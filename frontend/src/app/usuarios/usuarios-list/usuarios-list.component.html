@@ -1,0 +1,74 @@
+﻿<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-gray-800">Usuarios</h1>
+    <div class="flex items-center gap-2">
+      <button *ngIf="esAdmin" (click)="sincronizarFirmas()" [disabled]="loading"
+        title="Actualiza el campo de firma de los usuarios desde las imágenes en storage/firmas"
+        class="px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded-lg transition-colors text-sm disabled:opacity-50">
+        Sincronizar firmas
+      </button>
+      <button routerLink="/sec/usuarios/nuevo" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+        + Nuevo Usuario
+      </button>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl p-4">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+      <input [(ngModel)]="filtros.login" (input)="buscar()" placeholder="Login" class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+      <input [(ngModel)]="filtros.nombres" (input)="buscar()" placeholder="Nombres" class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+      <select [(ngModel)]="filtros.estatus" (change)="buscar()" class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm">
+        <option value="">Todos</option>
+        <option [value]="1">Activos</option>
+        <option [value]="0">Inactivos</option>
+      </select>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-gray-600">
+        <thead class="text-gray-500 border-b border-gray-200">
+          <tr>
+            <th class="text-left py-3 px-4">Login</th>
+            <th class="text-left py-3 px-4">Nombres</th>
+            <th class="text-left py-3 px-4">Apellidos</th>
+            <th class="text-left py-3 px-4">Email</th>
+            <th class="text-left py-3 px-4">Estatus</th>
+            <th class="text-left py-3 px-4">Grupo</th>
+            <th class="text-right py-3 px-4">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="loading && usuarios.length === 0">
+            <td colspan="7" class="text-center py-8 text-gray-500">Cargando...</td>
+          </tr>
+          <tr *ngFor="let u of usuarios" class="border-b border-gray-200 hover:bg-gray-100/50">
+            <td class="py-3 px-4 font-medium text-gray-800">{{ u.login }}</td>
+            <td class="py-3 px-4">{{ u.nombres }}</td>
+            <td class="py-3 px-4">{{ u.apellidos }}</td>
+            <td class="py-3 px-4">{{ u.email }}</td>
+            <td class="py-3 px-4">
+              <span [class]="u.estatus ? 'text-green-600' : 'text-red-600'">{{ u.estatus ? 'Activo' : 'Inactivo' }}</span>
+            </td>
+            <td class="py-3 px-4">{{ u.grupo || '-' }}</td>
+            <td class="py-3 px-4 text-right space-x-2">
+              <a [routerLink]="['/sec/usuarios', u.login]" class="text-blue-600 hover:text-blue-700">Editar</a>
+              <button *ngIf="esAdmin" (click)="resetear(u)" class="text-amber-600 hover:text-amber-700">Resetear clave</button>
+              <button (click)="eliminar(u)" class="text-red-600 hover:text-red-700">Eliminar</button>
+            </td>
+          </tr>
+          <tr *ngIf="!loading && usuarios.length === 0">
+            <td colspan="7" class="py-8 text-center text-gray-500">No hay usuarios registrados</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flex items-center justify-between mt-4 text-sm text-gray-500">
+      <span>Página {{ meta.page }} de {{ meta.totalPages }} ({{ meta.total }} registros)</span>
+      <div class="space-x-2">
+        <button (click)="cambiarPagina(-1)" [disabled]="meta.page <= 1" class="px-3 py-1 bg-gray-100 rounded disabled:opacity-50">Anterior</button>
+        <button (click)="cambiarPagina(1)" [disabled]="meta.page >= meta.totalPages" class="px-3 py-1 bg-gray-100 rounded disabled:opacity-50">Siguiente</button>
+      </div>
+    </div>
+  </div>
+</div>

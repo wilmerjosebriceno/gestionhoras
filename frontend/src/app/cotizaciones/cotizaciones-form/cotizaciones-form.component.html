@@ -1,0 +1,182 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-gray-800">{{ id ? 'Editar' : 'Nueva' }} Cotización</h1>
+    <button (click)="cancelar()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm">Cancelar</button>
+  </div>
+
+  <div class="bg-white rounded-xl p-5 border border-gray-200 space-y-5">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Cliente</label>
+        <div id="cliente-combo" class="relative">
+          <div class="flex items-center gap-1">
+            <input
+              [(ngModel)]="filtroCliente"
+              name="cid"
+              autocomplete="off"
+              (focus)="abrirListaCliente()"
+              (input)="onFiltroClienteCambia()"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              placeholder="Escriba para buscar..." />
+            <button *ngIf="clienteSeleccionado" type="button" (click)="limpiarCliente()"
+              title="Limpiar selección" class="text-gray-400 hover:text-gray-600 px-1">✕</button>
+          </div>
+          <div *ngIf="mostrarListaCliente"
+            class="absolute z-20 mt-1 w-full max-h-60 overflow-y-auto bg-white border border-gray-300 rounded-lg shadow-lg">
+            <div *ngIf="clientesFiltrados.length === 0" class="px-3 py-3 text-sm text-gray-400">Sin resultados</div>
+            <button *ngFor="let c of clientesFiltrados" type="button" (click)="seleccionarCliente(c)"
+              class="w-full text-left px-3 py-2 hover:bg-blue-50 text-sm border-b border-gray-100 last:border-0">
+              <span class="block font-medium text-gray-800"
+                [class.text-blue-700]="budget.idClient === c.idClient">{{ c.nameClient }}</span>
+              <span class="block text-xs text-gray-400">{{ c.rif }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Empresa</label>
+        <select [(ngModel)]="budget.idEmpresa" name="cidemp" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+          <option [ngValue]="undefined">Seleccione</option>
+          <option *ngFor="let e of empresas" [ngValue]="e.idEmpresa">{{ e.company }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Código (autogenerado)</label>
+        <input [(ngModel)]="budget.codeBudget" name="ccod" readonly title="Se genera automáticamente (AÑO-NNNNNN)"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 text-gray-500 cursor-not-allowed" placeholder="Auto" />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Estado</label>
+        <select [(ngModel)]="budget.status" name="cestado" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+          <option *ngFor="let e of estados | keyvalue" [ngValue]="e.key">{{ e.value }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Fecha de Cotización</label>
+        <input type="date" [(ngModel)]="budget.dateBudget" name="cfecha"
+          (ngModelChange)="onFechaCotizacionCambia()"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Fecha de Vencimiento</label>
+        <input type="date" [(ngModel)]="budget.vencimiento" name="cvenc"
+          (ngModelChange)="onVencimientoCambia()"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Tasa BCV</label>
+        <input type="number" [(ngModel)]="budget.tasaBcv" name="ctasa" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl p-5 border border-gray-200 space-y-4">
+    <div>
+      <label class="block text-xs text-gray-500 mb-1">Soporte / Mantenimiento</label>
+      <textarea [(ngModel)]="budget.soporte" name="csoporte" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm whitespace-pre-wrap"></textarea>
+    </div>
+    <div>
+      <label class="block text-xs text-gray-500 mb-1">Modalidad / Forma de Pago</label>
+      <textarea [(ngModel)]="budget.modalidad" name="cmodalidad" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm whitespace-pre-wrap"></textarea>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-200">
+    <div class="px-5 py-3 border-b border-gray-200 flex items-center justify-between">
+      <h2 class="font-semibold text-gray-800">Detalles (en horas)</h2>
+      <button (click)="agregarLinea()" class="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg">+ Agregar</button>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="px-3 py-2 text-left text-gray-600 font-medium">Plantilla</th>
+            <th class="px-3 py-2 text-left text-gray-600 font-medium">Región</th>
+            <th class="px-3 py-2 text-left text-gray-600 font-medium">Modalidad</th>
+            <th class="px-3 py-2 text-right text-gray-600 font-medium">Horas</th>
+            <th class="px-3 py-2 text-right text-gray-600 font-medium">Precio</th>
+            <th class="px-3 py-2 text-right text-gray-600 font-medium">IVA %</th>
+            <th class="px-3 py-2 text-right text-gray-600 font-medium">Subtotal</th>
+            <th class="px-3 py-2 text-center text-gray-600 font-medium"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <ng-container *ngFor="let d of budget.detalles; let i = index">
+            <tr>
+              <td class="px-3 py-2">
+                <select [(ngModel)]="d.idTemplate" (ngModelChange)="onPlantillaCambia(d)" class="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-sm">
+                  <option [ngValue]="undefined">Seleccione</option>
+                  <option *ngFor="let t of plantillas" [ngValue]="t.idTemplate">{{ t.code }} - {{ (t.name || '').split('\n')[0] }}</option>
+                </select>
+              </td>
+              <td class="px-3 py-2">
+                <select [(ngModel)]="d.idRegion" (ngModelChange)="onRegionCambia(d)" class="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-sm">
+                  <option [ngValue]="undefined">—</option>
+                  <option *ngFor="let r of regiones" [ngValue]="r.idRegion">{{ r.name }}</option>
+                </select>
+              </td>
+              <td class="px-3 py-2">
+                <select [(ngModel)]="d.modalidad" (ngModelChange)="onModalidadCambia(d)" class="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-sm">
+                  <option value="PRESENCIAL">PRESENCIAL</option>
+                  <option value="ONLINE">ONLINE</option>
+                </select>
+              </td>
+              <td class="px-3 py-2"><input type="number" [(ngModel)]="d.quantity" (ngModelChange)="calcularTotales()" class="w-20 px-2 py-1.5 border border-gray-300 rounded-lg text-sm text-right" /></td>
+              <td class="px-3 py-2"><input type="number" [(ngModel)]="d.price" (ngModelChange)="calcularTotales()" class="w-24 px-2 py-1.5 border border-gray-300 rounded-lg text-sm text-right" /></td>
+              <td class="px-3 py-2">
+                <select [(ngModel)]="d.idTasaIva" (ngModelChange)="onTasaCambia(d)" class="w-40 px-2 py-1.5 border border-gray-300 rounded-lg text-sm">
+                  <option [ngValue]="null">—</option>
+                  <option *ngFor="let t of tasas" [ngValue]="t.idTasaIva">{{ t.nombre }}</option>
+                </select>
+              </td>
+              <td class="px-3 py-2 text-right text-gray-700">{{ (d.quantity || 0) * (d.price || 0) | number:'1.2-2' }}</td>
+              <td class="px-3 py-2 text-center">
+                <button (click)="quitarLinea(i)" class="text-red-500 hover:text-red-700">✕</button>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="8" class="px-3 pb-2 pt-0">
+                <label class="block text-xs text-gray-400 mb-1">Descripción / Concepto</label>
+                <textarea
+                  [(ngModel)]="d.description"
+                  rows="4"
+                  class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono whitespace-pre-wrap"
+                  placeholder="Descripción del concepto (se autocompleta con el texto de la plantilla)"></textarea>
+              </td>
+            </tr>
+          </ng-container>
+          <tr *ngIf="!budget.detalles || budget.detalles.length === 0"><td colspan="8" class="px-4 py-6 text-center text-gray-500">Agregue líneas</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl p-5 border border-gray-200">
+    <h2 class="font-semibold text-gray-800 mb-3">Resumen de Totalización</h2>
+    <div class="space-y-1 text-sm">
+      <div class="flex justify-between"><span class="text-gray-500">Subtotal</span><span class="font-medium text-gray-800">${{ (budget.montoSubtotal || 0) | number:'1.2-2' }}</span></div>
+      <div class="flex justify-between"><span class="text-gray-500">Exento</span><span class="font-medium text-gray-800">${{ (budget.montoExento || 0) | number:'1.2-2' }}</span></div>
+      <div class="flex justify-between"><span class="text-gray-500">Base imponible</span><span class="font-medium text-gray-800">${{ (budget.montoBaseImponible || 0) | number:'1.2-2' }}</span></div>
+      <div class="flex justify-between"><span class="text-gray-500">IVA</span><span class="font-medium text-gray-800">{{ ivaLabel }}: ${{ (budget.montoIva || 0) | number:'1.2-2' }}</span></div>
+      <div class="flex justify-between border-t border-gray-200 pt-2 mt-2">
+        <span class="font-bold text-gray-800">TOTAL USD</span>
+        <span class="font-bold text-blue-700 text-lg">${{ (budget.montoTotal || 0) | number:'1.2-2' }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-gray-500">TOTAL Bs (tasa {{ budget.tasaBcv | number:'1.2-2' }})</span>
+        <span class="font-medium text-gray-800">{{ ((budget.montoTotal || 0) * (budget.tasaBcv || 0)) | number:'1.2-2' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex justify-end gap-3">
+    <button *ngIf="id" (click)="duplicar()" [disabled]="cargando" class="px-5 py-2 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-lg text-sm disabled:opacity-50">⧉ Duplicar</button>
+    <button (click)="cancelar()" class="px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm">Cancelar</button>
+    <button (click)="guardar()" [disabled]="cargando" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm disabled:opacity-50">
+      {{ cargando ? 'Guardando...' : 'Guardar Cotización' }}
+    </button>
+  </div>
+</div>

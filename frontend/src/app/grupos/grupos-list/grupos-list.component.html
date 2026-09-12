@@ -1,0 +1,36 @@
+﻿<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-gray-800">Grupos</h1>
+    <button routerLink="/sec/grupos/nuevo" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+      + Nuevo Grupo
+    </button>
+  </div>
+
+  <div class="bg-white rounded-xl overflow-hidden">
+    <table class="w-full text-sm text-gray-600">
+      <thead class="text-gray-500 border-b border-gray-200">
+        <tr>
+          <th class="text-left py-3 px-4">Grupo</th>
+          <th class="text-left py-3 px-4">Denominación</th>
+          <th class="text-right py-3 px-4">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="loading && grupos.length === 0">
+          <td colspan="3" class="text-center py-8 text-gray-500">Cargando...</td>
+        </tr>
+        <tr *ngFor="let g of grupos" class="border-b border-gray-200 hover:bg-gray-100/50">
+          <td class="py-3 px-4 font-medium text-gray-800">{{ g.grupo }}</td>
+          <td class="py-3 px-4">{{ g.denominacion }}</td>
+          <td class="py-3 px-4 text-right space-x-2">
+            <a [routerLink]="['/sec/grupos', g.grupo]" class="text-blue-600 hover:text-blue-700">Editar</a>
+            <button (click)="eliminar(g)" class="text-red-600 hover:text-red-700">Eliminar</button>
+          </td>
+        </tr>
+        <tr *ngIf="!loading && grupos.length === 0">
+          <td colspan="3" class="py-8 text-center text-gray-500">No hay grupos registrados</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

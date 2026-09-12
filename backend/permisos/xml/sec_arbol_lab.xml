@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sistema nombre="Laboratorio" id="lab">
+
+    <item nombre="Procedencias" pagina="lab_def_procedencialab.html.php"/>
+    <item nombre="Laboratorios" pagina="lab_def_laboratorios.html.php"/>
+    <item nombre="Metodos" pagina="lab_def_metodos.html.php"/>
+    <item nombre="Muestras" pagina="lab_def_muestras.html.php"/>
+    <item nombre="Metodos" pagina="lab_def_metodos.html.php"/>
+    <item nombre="Grupos" pagina="lab_def_grupos.html.php"/>
+    <item nombre="Equipos" pagina="lab_def_equipos.html.php"/>
+    <item nombre="Variables/Examenes" pagina="lab_def_variables.html.php"/>
+    <item nombre="Examenes" pagina="lab_pro_examenes.html.php"/>
+    <item nombre="Perfiles Examen" pagina="lab_def_perfiles.html.php"/>
+    <item nombre="Especialidad Medica" pagina="lab_def_especialidades.html.php"/>
+    <item nombre="Medicos" pagina="lab_def_medicos.html.php"/>
+    <item nombre="Pacientes" pagina="lab_def_pacientes.html.php"/>
+    <item nombre="Convenios" pagina="lab_def_convenios.html.php"/>
+
+    <item nombre="Historia" pagina="lab_pro_historia_sigesp.html.php"/>
+
+    <menu nombre="Resultados SIGESP">
+        <item nombre="Resultados SIGESP" pagina="lab_pro_resultados_sigesp.html.php"/>
+        <item nombre=" - Modo Registro Peticiones " pagina="resultado_sigesp_modoconsulta"/>
+    </menu>
+
+    <item nombre="Gráficos" pagina="lab_pro_gestion_chart.html.php"/>
+
+</sistema>
+

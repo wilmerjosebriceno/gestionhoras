@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sistema nombre="Gestion de Horas" id="sgh">
+
+  <menu nombre="Procesos">
+    <item nombre="Dashboard" pagina="dashboard"/>
+    <item nombre="Actividades / Horas" pagina="actividades"/>
+    <item nombre="Proyectos" pagina="proyectos"/>
+    <item nombre="Cronograma de Proyecto" pagina="cronograma"/>
+    <item nombre="Estructura de Proyecto" pagina="estructura"/>
+    <item nombre="Reportes" pagina="reportes"/>
+    <item nombre="Migracion" pagina="migracion"/>
+  </menu>
+
+  <menu nombre="Catalogos">
+    <item nombre="Clientes" pagina="clientes"/>
+    <item nombre="Modulos / Procesos" pagina="procesos"/>
+    <item nombre="Items de Actividad" pagina="items"/>
+    <item nombre="Categorias de Consultor" pagina="categorias"/>
+    <item nombre="Tipos de Actividad" pagina="tipos"/>
+    <item nombre="Consultores" pagina="usuarios_sgh"/>
+  </menu>
+
+</sistema>

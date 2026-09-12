@@ -1,0 +1,85 @@
+﻿<div class="max-w-2xl mx-auto space-y-6">
+  <h1 class="text-2xl font-bold text-gray-800">{{ editando ? 'Editar' : 'Nuevo' }} Usuario</h1>
+
+  <form (ngSubmit)="guardar()" class="bg-white rounded-xl p-6 space-y-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm text-gray-600 mb-1">Login *</label>
+        <input [(ngModel)]="dto.login" name="login" required class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" [readonly]="editando" />
+      </div>
+      <div>
+        <label class="block text-sm text-gray-600 mb-1">{{ editando ? 'Dejar vacío para no cambiar' : 'Contraseña *' }}</label>
+        <input type="password" [(ngModel)]="dto.password" name="password" [required]="!editando" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+      </div>
+      <div>
+        <label class="block text-sm text-gray-600 mb-1">Cédula</label>
+        <input [(ngModel)]="dto.cedula" name="cedula" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+      </div>
+      <div>
+        <label class="block text-sm text-gray-600 mb-1">Email</label>
+        <input type="email" [(ngModel)]="dto.email" name="email" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+      </div>
+      <div>
+        <label class="block text-sm text-gray-600 mb-1">Nombres</label>
+        <input [(ngModel)]="dto.nombres" name="nombres" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+      </div>
+      <div>
+        <label class="block text-sm text-gray-600 mb-1">Apellidos</label>
+        <input [(ngModel)]="dto.apellidos" name="apellidos" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+      </div>
+      <div>
+        <label class="block text-sm text-gray-600 mb-1">Teléfono</label>
+        <input [(ngModel)]="dto.telefono" name="telefono" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+      </div>
+      <div>
+        <label class="block text-sm text-gray-600 mb-1">Cargo</label>
+        <input [(ngModel)]="dto.cargo" name="cargo" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+      </div>
+      <div>
+        <label class="block text-sm text-gray-600 mb-1">Grupo</label>
+        <select [(ngModel)]="dto.idGrupo" name="idGrupo" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm">
+          <option value="">Sin grupo</option>
+          <option *ngFor="let g of grupos" [value]="g.idGrupo">{{ g.denominacion }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm text-gray-600 mb-1">Estatus</label>
+        <select [(ngModel)]="dto.estatus" name="estatus" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm">
+          <option [value]="1">Activo</option>
+          <option [value]="0">Inactivo</option>
+        </select>
+      </div>
+    </div>
+
+    <div *ngIf="editando" class="border border-gray-200 rounded-xl p-4 bg-gray-50">
+      <label class="block text-sm text-gray-600 mb-2">Firma digitalizada</label>
+      <div class="flex items-start gap-4">
+        <div class="w-44 h-20 bg-white border border-gray-300 rounded-lg flex items-center justify-center overflow-hidden">
+          <img *ngIf="firmaDataUri" [src]="firmaDataUri" class="max-w-full max-h-full object-contain" alt="Firma" />
+          <span *ngIf="!firmaDataUri" class="text-xs text-gray-400">Sin firma</span>
+        </div>
+        <div class="flex-1 space-y-2">
+          <input type="file" accept="image/jpeg,image/png,image/gif" (change)="onFirmaSeleccionada($event)"
+            class="block text-xs text-gray-600" />
+          <p class="text-xs text-gray-400">La firma aparecerá en el formato PDF de las cotizaciones.</p>
+          <div class="flex gap-2">
+            <button type="button" (click)="subirFirma()" [disabled]="!firmaArchivo || firmaSubiendo"
+              class="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50">
+              {{ firmaSubiendo ? 'Subiendo...' : (firmaDataUri ? 'Reemplazar firma' : 'Guardar firma') }}
+            </button>
+            <button *ngIf="firmaDataUri" type="button" (click)="eliminarFirma()"
+              class="px-3 py-1.5 text-xs bg-red-100 hover:bg-red-200 text-red-700 rounded-lg">Eliminar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="error" class="p-3 bg-red-100 border border-red-700 rounded-lg text-red-700 text-sm">{{ error }}</div>
+
+    <div class="flex justify-end space-x-3">
+      <a routerLink="/sec/usuarios" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-colors">Cancelar</a>
+      <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">{{ editando ? 'Actualizar' : 'Crear' }}</button>
+    </div>
+  </form>
+</div>
+<app-spinner [visible]="loading" message="Guardando usuario..."></app-spinner>

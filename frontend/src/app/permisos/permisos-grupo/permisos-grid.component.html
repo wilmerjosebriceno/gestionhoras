@@ -1,0 +1,29 @@
+﻿<div class="overflow-x-auto">
+  <table class="w-full text-sm text-gray-600">
+    <thead>
+      <tr class="text-gray-500 border-b border-gray-200">
+        <th class="text-left py-2 px-3">Página</th>
+        <th class="text-center py-2 px-3">Acceso</th>
+        <th class="text-center py-2 px-3">Ver</th>
+        <th class="text-center py-2 px-3">Insertar</th>
+        <th class="text-center py-2 px-3">Actualizar</th>
+        <th class="text-center py-2 px-3">Eliminar</th>
+        <th class="text-center py-2 px-3">Ejecutar</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let p of permisos; let i = index" class="border-b border-gray-200">
+        <td class="py-2 px-3 text-gray-800">{{ p.denPagina || p.pagina }}</td>
+        <td class="text-center"><input type="checkbox" [(ngModel)]="p.acceso" class="accent-blue-500" /></td>
+        <td class="text-center"><input type="checkbox" [(ngModel)]="p.seleccionar" class="accent-blue-500" /></td>
+        <td class="text-center"><input type="checkbox" [(ngModel)]="p.insertar" class="accent-blue-500" /></td>
+        <td class="text-center"><input type="checkbox" [(ngModel)]="p.actualizar" class="accent-blue-500" /></td>
+        <td class="text-center"><input type="checkbox" [(ngModel)]="p.eliminar" class="accent-blue-500" /></td>
+        <td class="text-center"><input type="checkbox" [(ngModel)]="p.ejecutar" class="accent-blue-500" /></td>
+      </tr>
+    </tbody>
+  </table>
+  <button (click)="save.emit(permisos)" class="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm">
+    Guardar Cambios
+  </button>
+</div>

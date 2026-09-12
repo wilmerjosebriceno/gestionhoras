@@ -1,0 +1,123 @@
+﻿<div class="space-y-6">
+  <h1 class="text-2xl font-bold text-gray-800">Dashboard Gestión de Horas</h1>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-xl p-5">
+      <p class="text-sm text-gray-500">Actividades</p>
+      <p class="text-3xl font-bold text-gray-800 mt-1">{{ formatoNumero(resumen.totalActividades) }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-5">
+      <p class="text-sm text-gray-500">Proyectos</p>
+      <p class="text-3xl font-bold text-gray-800 mt-1">{{ formatoNumero(resumen.totalProyectos) }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-5">
+      <p class="text-sm text-gray-500">Horas Registradas</p>
+      <p class="text-3xl font-bold text-blue-600 mt-1">{{ formatoNumero(resumen.totalHoras) }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-5">
+      <p class="text-sm text-gray-500">Fases de Cronograma</p>
+      <p class="text-3xl font-bold text-gray-800 mt-1">{{ formatoNumero(resumen.totalFases) }}</p>
+    </div>
+  </div>
+
+  <div *ngIf="!loading" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-white rounded-xl p-4">
+      <div #chartClientes></div>
+    </div>
+    <div class="bg-white rounded-xl p-4">
+      <div #chartUsuarios></div>
+    </div>
+  </div>
+
+  <div *ngIf="!loading" class="bg-white rounded-xl p-4">
+    <div #chartProyectos></div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-white rounded-xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-gray-200 flex justify-between items-center">
+        <h2 class="font-semibold text-gray-800">Horas por Cliente (Año actual)</h2>
+        <a routerLink="/sgh/catalogos/clientes" class="text-xs text-blue-600 hover:text-blue-700">Ver clientes</a>
+      </div>
+      <table class="w-full text-sm">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Cliente</th>
+            <th class="px-4 py-2 text-right text-gray-600 font-medium">Actividades</th>
+            <th class="px-4 py-2 text-right text-gray-600 font-medium">Horas</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <tr *ngFor="let c of clientesAnio" class="hover:bg-gray-100">
+            <td class="px-4 py-2 text-gray-800">{{ c.name }}</td>
+            <td class="px-4 py-2 text-right text-gray-600">{{ c._activity ?? c.actividades }}</td>
+            <td class="px-4 py-2 text-right text-blue-700">{{ formatoNumero(c.hours) }}</td>
+          </tr>
+          <tr *ngIf="clientesAnio.length === 0">
+            <td colspan="3" class="px-4 py-6 text-center text-gray-500">Sin datos</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="bg-white rounded-xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-gray-200">
+        <h2 class="font-semibold text-gray-800">Horas por Usuario (Año actual)</h2>
+      </div>
+      <table class="w-full text-sm">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Usuario</th>
+            <th class="px-4 py-2 text-right text-gray-600 font-medium">Módulos</th>
+            <th class="px-4 py-2 text-right text-gray-600 font-medium">Horas</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <tr *ngFor="let u of usuariosAnio" class="hover:bg-gray-100">
+            <td class="px-4 py-2 text-gray-800">{{ u.nameUser }}</td>
+            <td class="px-4 py-2 text-right text-gray-600">{{ u.modulos }}</td>
+            <td class="px-4 py-2 text-right text-blue-700">{{ formatoNumero(u.hours) }}</td>
+          </tr>
+          <tr *ngIf="usuariosAnio.length === 0">
+            <td colspan="3" class="px-4 py-6 text-center text-gray-500">Sin datos</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-200 flex justify-between items-center">
+      <h2 class="font-semibold text-gray-800">Horas Plan vs Ejecutadas por Proyecto</h2>
+      <a routerLink="/sgh/proyectos" class="text-xs text-blue-600 hover:text-blue-700">Ver proyectos</a>
+    </div>
+    <table class="w-full text-sm">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-2 text-left text-gray-600 font-medium">Proyecto / Cliente</th>
+          <th class="px-4 py-2 text-right text-gray-600 font-medium">Horas Plan</th>
+          <th class="px-4 py-2 text-right text-gray-600 font-medium">Horas Ejecutadas</th>
+          <th class="px-4 py-2 text-center text-gray-600 font-medium">Avance</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        <tr *ngFor="let p of proyectosChart" class="hover:bg-gray-100">
+          <td class="px-4 py-2 text-gray-800">
+            <a [routerLink]="['/sgh/proyectos', p.idProyect]" class="hover:text-blue-600">{{ p.name }}</a>
+          </td>
+          <td class="px-4 py-2 text-right text-gray-600">{{ formatoNumero(p.hour) }}</td>
+          <td class="px-4 py-2 text-right text-blue-700">{{ formatoNumero(p.hour_e) }}</td>
+          <td class="px-4 py-2 text-center">
+            <div class="w-full bg-gray-100 rounded-full h-2">
+              <div class="bg-blue-500 h-2 rounded-full" [style.width.%]="pctPlan(p)"></div>
+            </div>
+            <span class="text-xs text-gray-500">{{ pctPlan(p) }}%</span>
+          </td>
+        </tr>
+        <tr *ngIf="proyectosChart.length === 0">
+          <td colspan="4" class="px-4 py-6 text-center text-gray-500">Sin datos</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

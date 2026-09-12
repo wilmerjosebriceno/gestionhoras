@@ -1,0 +1,288 @@
+{
+  "SGH/dashboard": {
+    "sistema": "SGH",
+    "pagina": "dashboard",
+    "titulo": "Dashboard de Gestión de Horas",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Resumen gráfico del avance de la gestión de horas del proyecto: actividades, horas registradas y estado del cronograma." },
+      { "titulo": "Cómo usarlo", "texto": "Revisa los indicadores generales. Usa los filtros por proyecto o rango de fechas para acotar la información. Cada tarjeta permite ir a la lista correspondiente." },
+      { "titulo": "Consejos", "texto": "Es un panel informativo: la información se registra en Actividades / Horas. Si un indicador se ve vacío, verifica que existan actividades y horas registradas para el filtro seleccionado." }
+    ]
+  },
+  "SGH/proyectos": {
+    "sistema": "SGH",
+    "pagina": "proyectos",
+    "titulo": "Proyectos",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Catálogo de proyectos del sistema. Cada proyecto agrupa procesos, actividades y horas." },
+      { "titulo": "Cómo usarlo", "texto": "Crea un proyecto con el botón correspondiente, indica su nombre, cliente y fechas. Desde la lista puedes editar o eliminar." },
+      { "titulo": "Consejos", "texto": "Un proyecto debe existir antes de registrar actividades u horas. Usa nombres descriptivos para facilitar la búsqueda en reportes." }
+    ]
+  },
+  "SGH/actividades": {
+    "sistema": "SGH",
+    "pagina": "actividades",
+    "titulo": "Registro de Actividad / Horas",
+    "secciones": [
+      { "titulo": "¿Qué es este módulo?",
+        "texto": "Es el núcleo operativo de la Gestión de Horas. Permite registrar las horas de trabajo de un consultor en una fecha, desglosadas por módulo/proceso e ítem de actividad, asociadas a un cliente y opcionalmente a un proyecto.\n\nEsta información es la fuente de verdad de las horas: alimenta el dashboard, los reportes, el avance del cronograma y la valorización usada en el módulo de Cotizaciones." },
+      { "titulo": "Paso a paso del registro",
+        "pasos": [
+          "Entrar a SGH → Procesos → “Actividades / Horas”.",
+          "Pulsar “Nueva Actividad / Horas”.",
+          "Seleccionar el CLIENTE en el buscador (obligatorio). Al elegirlo se cargan sus proyectos.",
+          "Completar la cabecera: tipo, fecha del documento, usuario, responsable, visita y nota.",
+          "En el detalle, agregar una fila por actividad y elegir el ÍTEM de actividad (carga sus procesos) y el MÓDULO/PROCESO.",
+          "Indicar la situación, las horas (mayores a 0) y la nota de cada fila.",
+          "Pulsar “Crear”. El sistema genera el número de documento automáticamente y recalcula el proyecto/cronograma.",
+          "Opcional: imprimir el formato PDF."
+        ] },
+      { "titulo": "Cabecera — campos",
+        "texto": "Los campos de la cabecera definen el documento de la actividad.",
+        "lista": [
+          "Nro. Documento: se genera automáticamente (AÑO-########). No es editable.",
+          "Tipo: tipo de actividad (catálogo sgh_type). Opcional.",
+          "Fecha Documento: obligatoria. Fecha del trabajo realizado.",
+          "Usuario: consultor SGH actual. No editable.",
+          "Proyecto: opcional. Se llena al elegir el cliente.",
+          "Responsable: obligatorio. Persona responsable del trabajo.",
+          "Visita: interruptor que marca si fue una visita a sitio.",
+          "Nota: observaciones de la cabecera."
+        ] },
+      { "titulo": "Detalle de horas — reglas",
+        "texto": "Cada línea del detalle registra horas sobre una combinación de ítem + proceso.",
+        "lista": [
+          "Ítem de actividad: obligatorio. Al seleccionarlo se recargan sus procesos.",
+          "Módulo/Proceso: obligatorio (debe ser mayor o igual a 1).",
+          "Situación: obligatoria (el valor “0” cuenta como vacío).",
+          "Horas: obligatorias y mayores a 0.",
+          "Nota: obligatoria (el valor “0” cuenta como vacío).",
+          "Mantis: opcional, número de incidencia."
+        ] },
+      { "titulo": "Validaciones del sistema",
+        "texto": "El formulario valida antes de guardar; los errores se muestran en un panel ámbar y con una alerta.",
+        "lista": [
+          "Se debe seleccionar un cliente.",
+          "Responsable y fecha del documento son obligatorios.",
+          "Se requiere al menos una fila de detalle.",
+          "Por fila: proceso, ítem, horas > 0, situación y nota obligatorias."
+        ] },
+      { "titulo": "Numeración automática",
+        "texto": "Si no se envía un número, el backend lo genera con la tabla de control sgh_id:\n\n1. Consulta el correlativo del año actual.\n2. Lo incrementa y lo guarda.\n3. Compone el código: AÑO + guion + 8 dígitos (ej. 2026-00000001).\n\nLa numeración es independiente por año." },
+      { "titulo": "Recálculo automático",
+        "texto": "Al guardar, si la actividad está asociada a un proyecto, el sistema recalcula:\n\n• sgh_proyect_activity.hour_e : suma de horas por estructura del proyecto.\n• s_cron_proyecto.avance : porcentaje = horas ejecutadas / horas plan (procesos con avance_modelo = -1)." },
+      { "titulo": "Acciones sobre el listado",
+        "texto": "Desde “Actividades / Horas” cada registro permite:",
+        "lista": [
+          "Editar: abre el formulario con la actividad cargada.",
+          "Imprimir: genera el formato PDF de la actividad.",
+          "Anular: solicita un motivo y marca la actividad como anulada (status 2) sin borrarla.",
+          "Eliminar: borra la actividad definitivamente (pide confirmación)."
+        ] },
+      { "titulo": "Visibilidad por rol",
+        "texto": "El perfil del usuario en sgh_users controla lo que ve en reportes y listado:\n\n• rol = A (o S): ve TODOS los registros.\n• cualquier otro rol: ve SOLO sus propios registros.\n\nSi el usuario no tiene perfil en sgh_users, no verá datos de otros." },
+      { "titulo": "Consejos",
+        "texto": "Utilice descripciones claras en situación y nota para facilitar la auditoría. Registre cada trabajo por separado para un detalle preciso. Verifique que el cliente y el proyecto sean los correctos: afectan el cronograma y los reportes. Para valorizar horas (montos) se usa el módulo de Cotizaciones con los precios por región/modalidad." }
+    ]
+  },
+  "SGH/estructura": {
+    "sistema": "SGH",
+    "pagina": "estructura",
+    "titulo": "Estructura de Proyecto",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Define la descomposición del proyecto: procesos → categorías → ítems de actividad." },
+      { "titulo": "Cómo usarlo", "texto": "Arma el árbol jerárquico agregando procesos y sus ítems/categorías. Esta estructura es la base para registrar actividades." },
+      { "titulo": "Consejos", "texto": "Mantén la estructura definida ANTES de registrar horas: si cambia luego, el histórico de horas puede quedar desconectado." }
+    ]
+  },
+  "SGH/reportes": {
+    "sistema": "SGH",
+    "pagina": "reportes",
+    "titulo": "Reportes",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Reportes de horas por consultor, proyecto o período. Permite exportar y generar PDF." },
+      { "titulo": "Cómo usarlo", "texto": "Filtra por rango de fechas y, si eres administrador, elige el consultor. El sistema solo muestra datos del usuario autenticado si su perfil no es Administrador." },
+      { "titulo": "Consejos", "texto": "Usa 'Descargar PDF' para obtener el reporte consolidado. Verifica los totales; el cálculo depende de las horas registradas en Actividades." }
+    ]
+  },
+  "SGH/clientes": {
+    "sistema": "SGH",
+    "pagina": "clientes",
+    "titulo": "Catálogo de Clientes",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Catálogo de clientes asociados a los proyectos." },
+      { "titulo": "Cómo usarlo", "texto": "Crea/edita clientes con sus datos de contacto y estado activo. Los proyectos se vinculan a un cliente." },
+      { "titulo": "Consejos", "texto": "Mantén los RIF y razones sociales correctos: se usan para identificar al cliente en reportes y cotizaciones." }
+    ]
+  },
+  "SGH/procesos": {
+    "sistema": "SGH",
+    "pagina": "procesos",
+    "titulo": "Procesos / Módulos",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Define los procesos/módulos que componen el sistema (ej. Compras, Contabilidad, Nómina)." },
+      { "titulo": "Cómo usarlo", "texto": "Agrega el proceso con su código y descripción. Estos procesos son los que se cotizan y se encuentran en la estructura del proyecto." },
+      { "titulo": "Consejos", "texto": "Usa códigos cortos y estables: se referencian en plantillas y cotizaciones." }
+    ]
+  },
+  "SGH/items": {
+    "sistema": "SGH",
+    "pagina": "items",
+    "titulo": "Ítems de Actividad",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Ítems/actividades tipo que se asignan dentro de un proceso." },
+      { "titulo": "Cómo usarlo", "texto": "Define los ítems y vincúlalos a la categoría correspondiente. Son la unidad menor para registrar horas." },
+      { "titulo": "Consejos", "texto": "Agregar en este catálogo ahorra tiempo al construir la estructura del proyecto." }
+    ]
+  },
+  "SGH/categorias": {
+    "sistema": "SGH",
+    "pagina": "categorias",
+    "titulo": "Categorías",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Agrupa los ítems de actividad dentro del proyecto." },
+      { "titulo": "Cómo usarlo", "texto": "Crea categorías y asócialas a un proceso para organizar la estructura." },
+      { "titulo": "Consejos", "texto": "Una buena clasificación facilita filtrar horas en reportes." }
+    ]
+  },
+  "SGH/tipos": {
+    "sistema": "SGH",
+    "pagina": "tipos",
+    "titulo": "Tipos de Actividad",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Tipos de actividad (ej. desarrollo, soporte, capacitación) para clasificar las horas." },
+      { "titulo": "Cómo usarlo", "texto": "Defina los tipos y úselos al registrar cada actividad." },
+      { "titulo": "Consejos", "texto": "Permite medir la distribución del tiempo por tipo en los reportes." }
+    ]
+  },
+  "SGH/usuarios_sgh": {
+    "sistema": "SGH",
+    "pagina": "usuarios_sgh",
+    "titulo": "Usuarios del Sistema de Horas",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Perfiles de consultores y su rol dentro del sistema de gestión de horas." },
+      { "titulo": "Cómo usarlo", "texto": "Vincula cada usuario SGH a su perfil (rol A = administrador) y estado activo. Determina los reportes que puede ver." },
+      { "titulo": "Consejos", "texto": "El rol 'A' permite ver los reportes de todos; cualquier otro perfil solo ve sus propios datos." }
+    ]
+  },
+  "SGH/logos": {
+    "sistema": "SGH",
+    "pagina": "logos",
+    "titulo": "Logos de Empresa",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Administra los logos por empresa que se usan en los reportes/PDF." },
+      { "titulo": "Cómo usarlo", "texto": "Sube o reemplaza el logo de cada empresa. El sistema lo usa automáticamente en los documentos generados." },
+      { "titulo": "Consejos", "texto": "Usa imágenes livianas (JPG/PNG) con buena resolución para que el PDF no se deforme." }
+    ]
+  },
+  "COT/cotizaciones": {
+    "sistema": "COT",
+    "pagina": "cotizaciones",
+    "titulo": "Cotizaciones",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Crea y gestiona cotizaciones. Cada cotización se asocia a una empresa, cliente y región." },
+      { "titulo": "Cómo usarlo", "texto": "Nueva cotización: elige empresa, cliente y región; agrega líneas de detalle (plantilla/template, modalidad y horas). El sistema calcula subtotal, IVA (8%) y totales en USD y Bs automáticamente." },
+      { "titulo": "Consejos", "texto": "El código se genera automáticamente por empresa y año (AAAA-000001). La modalidad ONLINE usa el precio online de la región; PRESENCIAL usa el precio base." }
+    ]
+  },
+  "COT/kpis": {
+    "sistema": "COT",
+    "pagina": "kpis",
+    "titulo": "Dashboard KPI de Cotizaciones",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Indicadores de las cotizaciones: total, enviadas, aceptadas, rechazadas, montos y tendencia mensual." },
+      { "titulo": "Cómo usarlo", "texto": "Analiza los gráficos (estado, divisa mensual, por región, top clientes/plantillas). Filtra por período/sistema si está disponible." },
+      { "titulo": "Consejos", "texto": "Los montos se muestran en USD y su equivalente en Bs según la tasa BCV almacenada en la cotización." }
+    ]
+  },
+  "COT/empresas": {
+    "sistema": "COT",
+    "pagina": "empresas",
+    "titulo": "Empresas",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Empresas que emiten cotizaciones; cada una genera su propia numeración secuencial." },
+      { "titulo": "Cómo usarlo", "texto": "Crea/edita empresas con datos de contacto, logo y prefijo del código de cotización." },
+      { "titulo": "Consejos", "texto": "El prefijo es opcional; la numeración es independiente por empresa y año." }
+    ]
+  },
+  "COT/clientes": {
+    "sistema": "COT",
+    "pagina": "clientes",
+    "titulo": "Catálogo de Clientes (Cotizaciones)",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Clientes destinatarios de las cotizaciones." },
+      { "titulo": "Cómo usarlo", "texto": "Registra RIF, nombre, dirección y contacto. El formulario de cotización permite buscar por nombre o RIF." },
+      { "titulo": "Consejos", "texto": "Los datos de contacto se usan en el PDF de la cotización." }
+    ]
+  },
+  "COT/regiones": {
+    "sistema": "COT",
+    "pagina": "regiones",
+    "titulo": "Regiones",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Zonas geográficas con un precio por hora (presencial) y un precio online." },
+      { "titulo": "Cómo usarlo", "texto": "Define el nombre y los precios por hora. Se usan en el detalle de la cotización según la modalidad." },
+      { "titulo": "Consejos", "texto": "Si una cotización tiene modalidad ONLINE, se toma el 'precio online'; en caso contrario, el precio base." }
+    ]
+  },
+  "COT/plantillas": {
+    "sistema": "COT",
+    "pagina": "plantillas",
+    "titulo": "Plantillas",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Plantillas de propuestas con descripción, precio referencial y horas por alcance." },
+      { "titulo": "Cómo usarlo", "texto": "Crea plantillas con código, nombre, precio y horas. Se seleccionan como línea de detalle al construir una cotización." },
+      { "titulo": "Consejos", "texto": "Usuario en plantillas para reutilizar propuestas estándar y agilizar la elaboración." }
+    ]
+  },
+  "SEC/usuarios": {
+    "sistema": "SEC",
+    "pagina": "usuarios",
+    "titulo": "Usuarios (Seguridad)",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Gestión de usuarios del sistema: credenciales, datos personales y firma digitalizada." },
+      { "titulo": "Cómo usarlo", "texto": "Crea/edita usuarios, asigna estado y sube la firma electrónica si corresponde." },
+      { "titulo": "Consejos", "texto": "El campo adminUser = 1 da acceso total. Los usuarios con rol se administran mediante permisos." }
+    ]
+  },
+  "SEC/grupos": {
+    "sistema": "SEC",
+    "pagina": "grupos",
+    "titulo": "Grupos",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Grupos de usuarios para administrar permisos en bloque." },
+      { "titulo": "Cómo usarlo", "texto": "Define grupos y asígnales permisos; los usuarios del grupo heredan el acceso." },
+      { "titulo": "Consejos", "texto": "Usar grupos simplifica el mantenimiento de permisos frente a asignarlos usuario por usuario." }
+    ]
+  },
+  "SEC/sistemas": {
+    "sistema": "SEC",
+    "pagina": "sistemas",
+    "titulo": "Sistemas",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Catálogo de sistemas (SEC, SGH, COT, ...) visibles en el dashboard de módulos." },
+      { "titulo": "Cómo usarlo", "texto": "Administra código, denominación, ruta y estado de cada sistema." },
+      { "titulo": "Consejos", "texto": "El estado activo controla la visibilidad del módulo para los usuarios." }
+    ]
+  },
+  "SEC/permisos": {
+    "sistema": "SEC",
+    "pagina": "permisos",
+    "titulo": "Permisología",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Asigna los permisos por componente (página) a usuarios o grupos." },
+      { "titulo": "Cómo usarlo", "texto": "Selecciona un sistema, carga el árbol de componentes y marca el acceso y las operaciones permitidas." },
+      { "titulo": "Consejos", "texto": "El guard de rutas del frontend verifica estos permisos; un usuario sin acceso no verá ni podrá navegar a la pantalla." }
+    ]
+  },
+  "SEC/auditoria": {
+    "sistema": "SEC",
+    "pagina": "auditoria",
+    "titulo": "Auditoría",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Bitácora de eventos del sistema (accesos, operaciones y acciones de usuarios)." },
+      { "titulo": "Cómo usarlo", "texto": "Filtra por fecha, usuario o evento para revisar la actividad." },
+      { "titulo": "Consejos", "texto": "Es una herramienta de control: revisa los eventos inusuales para detectar accesos indebidos." }
+    ]
+  }
+}

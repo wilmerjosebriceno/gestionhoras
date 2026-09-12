@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sistema nombre="Seguridad" id="sec">
+
+  <menu nombre="Gestion">
+    <item nombre="Usuarios" pagina="usuarios"/>
+    <item nombre="Grupos" pagina="grupos"/>
+    <item nombre="Sistemas" pagina="sistemas"/>
+    <item nombre="Permisos" pagina="permisos"/>
+    <item nombre="Auditoria" pagina="auditoria"/>
+  </menu>
+
+  <menu nombre="Seguridad">
+    <item nombre="Cambio Password" pagina="cambio_password"/>
+    <item nombre="Estatus Usuario" pagina="estatus_usuarios"/>
+  </menu>
+
+</sistema>

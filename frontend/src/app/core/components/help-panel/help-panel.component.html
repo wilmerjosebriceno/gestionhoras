@@ -1,0 +1,46 @@
+<div *ngIf="visible" class="fixed inset-0 z-50 overflow-hidden">
+  <!-- Backdrop -->
+  <div class="absolute inset-0 bg-gray-900/40" (click)="cerrar()"></div>
+
+  <!-- Panel -->
+  <div class="absolute right-0 top-0 h-full w-[28rem] max-w-full bg-white shadow-2xl flex flex-col">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+      <div>
+        <div class="text-[11px] uppercase tracking-wider text-gray-400 font-semibold">{{ sistema }} / {{ paginaActual }}</div>
+        <h2 class="text-lg font-semibold text-gray-800 mt-0.5">{{ contenido?.titulo || titulo }}</h2>
+      </div>
+      <button (click)="cerrar()" class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors" aria-label="Cerrar ayuda">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto px-5 py-4">
+      <div *ngIf="cargando" class="text-sm text-gray-500 py-8 text-center">Cargando ayuda…</div>
+
+      <div *ngIf="sinContenido" class="text-center py-10">
+        <div class="text-gray-400 mb-3 text-4xl">?</div>
+        <p *ngIf="paginaActual" class="text-sm text-gray-600">No hay contenido de ayuda registrado para <strong>{{ sistema }}/{{ paginaActual }}</strong>.</p>
+        <p *ngIf="!paginaActual" class="text-sm text-gray-600">Esta pantalla no tiene ayuda asociada.</p>
+        <p class="text-xs text-gray-400 mt-2">El contenido se configura en <code>backend/ayuda/ayuda.json</code>.</p>
+      </div>
+
+      <ng-container *ngIf="contenido as c">
+        <div *ngFor="let s of c.secciones" class="mb-5">
+          <h3 class="text-sm font-semibold text-gray-800 mb-1.5">{{ s.titulo }}</h3>
+          <p *ngIf="s.texto" class="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{{ s.texto }}</p>
+          <ol *ngIf="s.pasos && s.pasos.length" class="list-decimal list-inside space-y-1 mt-1 text-sm text-gray-600 leading-relaxed">
+            <li *ngFor="let p of s.pasos">{{ p }}</li>
+          </ol>
+          <ul *ngIf="s.lista && s.lista.length" class="list-disc list-inside space-y-1 mt-1 text-sm text-gray-600 leading-relaxed">
+            <li *ngFor="let item of s.lista">{{ item }}</li>
+          </ul>
+        </div>
+      </ng-container>
+    </div>
+
+    <div class="px-5 py-3 border-t border-gray-200 flex items-center justify-between">
+      <span class="text-xs text-gray-400">Ayuda en línea &middot; Gestión de Horas SIGESP</span>
+      <button (click)="cerrar()" class="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-colors">Cerrar</button>
+    </div>
+  </div>
+</div>

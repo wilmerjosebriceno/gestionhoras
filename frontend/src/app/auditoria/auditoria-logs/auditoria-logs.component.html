@@ -1,0 +1,52 @@
+﻿<div class="space-y-6">
+  <h1 class="text-2xl font-bold text-gray-800">Auditoría</h1>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="bg-white rounded-xl p-4">
+      <p class="text-gray-500 text-sm">Total Logs</p>
+      <p class="text-2xl font-bold text-gray-800">{{ resumen?.totalLogs || 0 }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-4">
+      <p class="text-gray-500 text-sm">Logs Hoy</p>
+      <p class="text-2xl font-bold text-gray-800">{{ resumen?.logsHoy || 0 }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-4">
+      <p class="text-gray-500 text-sm">Eventos</p>
+      <p class="text-2xl font-bold text-gray-800">{{ resumen?.eventos?.length || 0 }}</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl p-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <input [(ngModel)]="filtros.nota" (input)="buscar()" placeholder="Buscar en nota" class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+      <input type="date" [(ngModel)]="filtros.fechaInicio" (change)="buscar()" class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+      <input type="date" [(ngModel)]="filtros.fechaFin" (change)="buscar()" class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-gray-600">
+        <thead class="text-gray-500 border-b border-gray-200">
+          <tr>
+            <th class="text-left py-3 px-4">Fecha</th>
+            <th class="text-left py-3 px-4">Hora</th>
+            <th class="text-left py-3 px-4">Evento</th>
+            <th class="text-left py-3 px-4">Nota</th>
+            <th class="text-left py-3 px-4">IP</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="isLoading()">
+            <td colspan="5" class="text-center py-8 text-gray-500">Cargando...</td>
+          </tr>
+          <tr *ngFor="let l of logs" class="border-b border-gray-200 hover:bg-gray-100/50">
+            <td class="py-3 px-4">{{ l.fecha }}</td>
+            <td class="py-3 px-4">{{ l.hora }}</td>
+            <td class="py-3 px-4"><span class="px-2 py-0.5 bg-gray-100 rounded text-xs">{{ l.evento || '-' }}</span></td>
+            <td class="py-3 px-4">{{ l.nota }}</td>
+            <td class="py-3 px-4 font-mono text-xs">{{ l.tcpip }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

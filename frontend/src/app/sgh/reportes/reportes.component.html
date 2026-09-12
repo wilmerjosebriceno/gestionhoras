@@ -1,0 +1,116 @@
+<div class="space-y-6">
+  <h1 class="text-2xl font-bold text-gray-800">Generador de Reportes</h1>
+
+  <div class="bg-white rounded-xl p-5 border border-gray-200">
+    <h2 class="font-semibold text-gray-800 mb-4">Parámetros del reporte</h2>
+
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Desde</label>
+        <input type="date" [(ngModel)]="fecini" name="rfecini"
+          class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 text-sm" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Hasta</label>
+        <input type="date" [(ngModel)]="fecfin" name="rfecfin"
+          class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 text-sm" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Tipo Actividad</label>
+        <select [(ngModel)]="idType" name="ridtype"
+          class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 text-sm">
+          <option [ngValue]="undefined">Todos</option>
+          <option *ngFor="let t of tipos" [ngValue]="t.idType">{{ t.nameType }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Módulo / Proceso</label>
+        <select [(ngModel)]="idProcess" name="ridprocess"
+          class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 text-sm">
+          <option [ngValue]="undefined">Todos</option>
+          <option *ngFor="let p of procesos" [ngValue]="p.idProcess">{{ p.nameProcess }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Cliente</label>
+        <select [(ngModel)]="idClient" name="ridclient"
+          class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 text-sm">
+          <option [ngValue]="undefined">Todos</option>
+          <option *ngFor="let c of clientes" [ngValue]="c.idClient">{{ c.name }}</option>
+        </select>
+      </div>
+      <div *ngIf="esAdminReportes">
+        <label class="block text-xs text-gray-500 mb-1">Consultor</label>
+        <select [(ngModel)]="idUser" name="riduser"
+          class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 text-sm">
+          <option [ngValue]="undefined">Todos</option>
+          <option *ngFor="let u of usuarios" [ngValue]="u.idUser">{{ u.nameUser }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="flex gap-3 mt-5">
+      <button (click)="generar()" [disabled]="loading"
+        class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm flex items-center gap-2 disabled:opacity-50">
+        <span *ngIf="loading" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+        {{ loading ? 'Generando...' : 'Generar Reporte' }}
+      </button>
+      <button (click)="limpiar()" class="px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm">
+        Limpiar
+      </button>
+      <button (click)="exportarPdf()"
+        class="px-5 py-2 bg-green-700 hover:bg-green-600 text-white rounded-lg text-sm">
+        Exportar PDF
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="consultado" class="bg-white rounded-xl overflow-hidden border border-gray-200">
+    <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+      <h2 class="font-semibold text-gray-800">Reporte de Actividades</h2>
+      <span class="text-sm text-gray-500">
+        {{ filas.length }} registros · Total horas: <b class="text-blue-700">{{ totalHoras() | number:'1.2-2' }}</b>
+      </span>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Documento</th>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Cliente</th>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Tipo</th>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Módulo / Proceso</th>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Consultor</th>
+            <th class="px-4 py-2 text-center text-gray-600 font-medium">Fecha</th>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Situación</th>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Nota</th>
+            <th class="px-4 py-2 text-right text-gray-600 font-medium">Horas</th>
+            <th class="px-4 py-2 text-center text-gray-600 font-medium">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <tr *ngFor="let f of filas" class="hover:bg-gray-100">
+            <td class="px-4 py-2 text-gray-800">{{ f.numdoc }}</td>
+            <td class="px-4 py-2 text-gray-800">{{ f.name }}</td>
+            <td class="px-4 py-2 text-gray-600">{{ f.nameType }}</td>
+            <td class="px-4 py-2 text-gray-600">{{ f.nameProcess }}</td>
+            <td class="px-4 py-2 text-gray-600">{{ f.nameUser }}</td>
+            <td class="px-4 py-2 text-center text-gray-600">{{ f.dateDocument | date:'shortDate' }}</td>
+            <td class="px-4 py-2 text-gray-600">{{ f.situation }}</td>
+            <td class="px-4 py-2 text-gray-600 max-w-xs truncate" [title]="f.detalleNota">{{ f.detalleNota }}</td>
+            <td class="px-4 py-2 text-right text-blue-700">{{ f.hours | number:'1.2-2' }}</td>
+            <td class="px-4 py-2 text-center">
+              <span [class]="f.status === 2 ? 'px-2 py-1 text-xs rounded-full bg-red-100 text-red-700' : (f.status === 1 ? 'px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700' : 'px-2 py-1 text-xs rounded-full bg-green-100 text-green-700')">
+                {{ f.status === 0 ? 'Abierto' : (f.status === 1 ? 'Procesado' : 'Anulado') }}
+              </span>
+            </td>
+          </tr>
+          <tr *ngIf="filas.length === 0">
+            <td colspan="10" class="px-4 py-8 text-center text-gray-500">No hay registros para los parámetros seleccionados</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,163 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-gray-800">Dashboard Cotizaciones</h1>
+    <div class="flex items-center gap-3">
+      <button (click)="cargar()" [disabled]="loading"
+        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm disabled:opacity-50">
+        Actualizar
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="bg-white rounded-xl p-4 border border-gray-200 flex flex-wrap items-end gap-3">
+    <div>
+      <label class="block text-xs text-gray-500 mb-1">Desde</label>
+      <input type="date" [(ngModel)]="filters.de" class="px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+    </div>
+    <div>
+      <label class="block text-xs text-gray-500 mb-1">Hasta</label>
+      <input type="date" [(ngModel)]="filters.hasta" class="px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+    </div>
+    <div>
+      <label class="block text-xs text-gray-500 mb-1">Empresa</label>
+      <select [(ngModel)]="filters.idEmpresa" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+        <option [ngValue]="undefined">Todas</option>
+        <option *ngFor="let e of empresas" [ngValue]="e.idEmpresa">{{ e.company }}</option>
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs text-gray-500 mb-1">Cliente</label>
+      <select [(ngModel)]="filters.idClient" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+        <option [ngValue]="undefined">Todos</option>
+        <option *ngFor="let c of clientes" [ngValue]="c.idClient">{{ c.nameClient }}</option>
+      </select>
+    </div>
+    <button (click)="cargar()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm">Aplicar</button>
+    <button (click)="limpiar()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm">Limpiar</button>
+  </div>
+
+  <div *ngIf="loading" class="p-8 text-center text-gray-500">Cargando...</div>
+
+  <ng-container *ngIf="!loading && kpis">
+    <!-- Tarjetas KPI -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-white rounded-xl p-4 border border-gray-200">
+        <p class="text-xs text-gray-500">Cotizaciones Totales</p>
+        <p class="text-2xl font-bold text-gray-800">{{ kpis.total }}</p>
+        <p class="text-xs text-gray-400 mt-1">Bs. {{ kpis.monto | number:'1.2-2' }}</p>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-gray-200">
+        <p class="text-xs text-gray-500">Aceptadas</p>
+        <p class="text-2xl font-bold text-green-600">{{ kpis.aceptadas }}</p>
+        <p class="text-xs text-gray-400 mt-1">Bs. {{ kpis.montoAceptado | number:'1.2-2' }}</p>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-gray-200">
+        <p class="text-xs text-gray-500">Tasa de Aceptación</p>
+        <p class="text-2xl font-bold text-blue-600">{{ kpis.tasaAceptacion }}%</p>
+        <p class="text-xs text-gray-400 mt-1">sobre enviadas</p>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-gray-200">
+        <p class="text-xs text-gray-500">Ticket Promedio</p>
+        <p class="text-2xl font-bold text-gray-800">Bs. {{ kpis.ticketPromedio | number:'1.2-2' }}</p>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-gray-200">
+        <p class="text-xs text-gray-500">Monto Total (USD)</p>
+        <p class="text-2xl font-bold text-emerald-600">$ {{ kpis.montoUsd | number:'1.2-2' }}</p>
+        <p class="text-xs text-gray-400 mt-1">Bs. {{ kpis.monto | number:'1.2-2' }}</p>
+      </div>
+    </div>
+
+    <!-- Fila secundaria de estados -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-white rounded-xl p-4 border border-gray-200 border-l-4" style="border-left-color:#9ca3af">
+        <p class="text-xs text-gray-500">Borradores</p>
+        <p class="text-xl font-bold text-gray-700">{{ kpis.borradores }}</p>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-gray-200 border-l-4" style="border-left-color:#f59e0b">
+        <p class="text-xs text-gray-500">Enviadas</p>
+        <p class="text-xl font-bold text-amber-600">{{ kpis.enviadas }}</p>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-gray-200 border-l-4" style="border-left-color:#16a34a">
+        <p class="text-xs text-gray-500">Aceptadas</p>
+        <p class="text-xl font-bold text-green-600">{{ kpis.aceptadas }}</p>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-gray-200 border-l-4" style="border-left-color:#dc2626">
+        <p class="text-xs text-gray-500">Rechazadas</p>
+        <p class="text-xl font-bold text-red-600">{{ kpis.rechazadas }}</p>
+      </div>
+    </div>
+
+    <!-- Cotizaciones por atender (vencidas / por vencer) -->
+    <div *ngIf="venc && (venc.totalVencidas || venc.totalPorVencer)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="bg-red-50 rounded-xl p-4 border border-red-200 flex items-center justify-between">
+        <div>
+          <p class="text-xs text-red-600 font-medium">Cotizaciones Vencidas</p>
+          <p class="text-2xl font-bold text-red-700">{{ venc.totalVencidas }}</p>
+          <p class="text-xs text-red-400 mt-1">Vencidas en los últimos 15 días (borrador/enviada)</p>
+        </div>
+        <span class="text-3xl">🔴</span>
+      </div>
+      <div class="bg-amber-50 rounded-xl p-4 border border-amber-200 flex items-center justify-between">
+        <div>
+          <p class="text-xs text-amber-600 font-medium">Próximas a Vencer</p>
+          <p class="text-2xl font-bold text-amber-700">{{ venc.totalPorVencer }}</p>
+          <p class="text-xs text-amber-400 mt-1">Vencen en los próximos 5 días</p>
+        </div>
+        <span class="text-3xl">🟠</span>
+      </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="bg-white rounded-xl p-4 border border-gray-200">
+        <div #chartEstado></div>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-gray-200">
+        <div #chartDivisa></div>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-gray-200">
+        <div #chartRegion></div>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-gray-200">
+        <div #chartClientes></div>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-gray-200">
+        <div #chartPlantillas></div>
+      </div>
+    </div>
+
+    <!-- Últimas cotizaciones -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <h2 class="px-5 py-3 border-b border-gray-200 font-semibold text-gray-800">Últimas Cotizaciones</h2>
+      <table class="w-full text-sm">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Código</th>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Cliente</th>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Fecha</th>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Estado</th>
+            <th class="px-4 py-2 text-right text-gray-600 font-medium">Monto</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <tr *ngFor="let b of kpis.ultimas">
+            <td class="px-4 py-2 text-gray-700">{{ b.codeBudget }}</td>
+            <td class="px-4 py-2 text-gray-700">{{ b.client?.nameClient || '—' }}</td>
+            <td class="px-4 py-2 text-gray-500">{{ b.dateBudget }}</td>
+            <td class="px-4 py-2">
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium"
+                [ngClass]="{ 'bg-gray-100 text-gray-500': b.status===0, 'bg-amber-100 text-amber-700': b.status===1, 'bg-green-100 text-green-700': b.status===2, 'bg-red-100 text-red-700': b.status===3 }">
+                {{ estados[b.status] || b.status }}
+              </span>
+            </td>
+            <td class="px-4 py-2 text-right font-medium text-gray-800">{{ b.montoTotal | number:'1.2-2' }}</td>
+          </tr>
+          <tr *ngIf="!kpis.ultimas || kpis.ultimas.length === 0">
+            <td colspan="5" class="px-4 py-6 text-center text-gray-500">Sin cotizaciones</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+</div>

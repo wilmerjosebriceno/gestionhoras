@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sistema nombre="Cotizaciones" id="cot">
+
+  <menu nombre="Procesos">
+    <item nombre="Cotizaciones" pagina="cotizaciones"/>
+    <item nombre="Dashboard KPI" pagina="kpis"/>
+  </menu>
+
+  <menu nombre="Catalogos">
+    <item nombre="Empresas" pagina="empresas"/>
+    <item nombre="Clientes" pagina="clientes"/>
+    <item nombre="Regiones" pagina="regiones"/>
+    <item nombre="Plantillas" pagina="plantillas"/>
+    <item nombre="Tasas de IVA" pagina="tasas-iva"/>
+  </menu>
+
+</sistema>

@@ -1,0 +1,289 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-gray-800">{{ titulo() }}</h1>
+    <div class="flex items-center space-x-2">
+      <button *ngIf="tipo === 'clientes'" (click)="sincronizar()" class="px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded-lg text-sm">Sincronizar formales</button>
+      <button *ngIf="tipo !== 'tasas-iva'" (click)="toggleForm()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm">{{ mostrarForm ? 'Cerrar' : '+ Agregar' }}</button>
+    </div>
+  </div>
+
+  <!-- FORMULARIO CLIENTE -->
+  <div *ngIf="mostrarForm && tipo === 'clientes'" class="bg-white rounded-xl p-5 border border-gray-200">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">RIF *</label>
+        <input [(ngModel)]="nuevoCliente.rif" class="px-3 py-2 border border-gray-300 rounded-lg text-sm w-full" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Nombre / Razón Social *</label>
+        <input [(ngModel)]="nuevoCliente.nameClient" class="px-3 py-2 border border-gray-300 rounded-lg text-sm w-full" />
+      </div>
+      <div class="md:col-span-2">
+        <label class="block text-xs text-gray-500 mb-1">Dirección</label>
+        <textarea [(ngModel)]="nuevoCliente.adressClient" rows="2" class="px-3 py-2 border border-gray-300 rounded-lg text-sm w-full"></textarea>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Contacto</label>
+        <input [(ngModel)]="nuevoCliente.contactName" class="px-3 py-2 border border-gray-300 rounded-lg text-sm w-full" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Teléfono</label>
+        <input [(ngModel)]="nuevoCliente.contactPhone" class="px-3 py-2 border border-gray-300 rounded-lg text-sm w-full" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Email</label>
+        <input [(ngModel)]="nuevoCliente.contactEmail" class="px-3 py-2 border border-gray-300 rounded-lg text-sm w-full" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Activo</label>
+        <button type="button" (click)="nuevoCliente.active = nuevoCliente.active === 1 ? 0 : 1"
+          class="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none">
+          <span [class]="nuevoCliente.active === 1 ? 'w-10 h-5 bg-green-500 rounded-full relative transition-colors' : 'w-10 h-5 bg-gray-300 rounded-full relative transition-colors'">
+            <span [class]="nuevoCliente.active === 1 ? 'absolute left-5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform' : 'absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform'"></span>
+          </span>
+          <span class="text-gray-600">{{ nuevoCliente.active === 1 ? 'Sí' : 'No' }}</span>
+        </button>
+      </div>
+    </div>
+    <button (click)="guardar()" class="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm">{{ esEdicion() ? 'Actualizar Cliente' : 'Guardar Cliente' }}</button>
+  </div>
+
+  <!-- FORMULARIO REGION -->
+  <div *ngIf="mostrarForm && tipo === 'regiones'" class="bg-white rounded-xl p-5 border border-gray-200">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Región *</label>
+        <input [(ngModel)]="nuevaRegion.name" class="px-3 py-2 border border-gray-300 rounded-lg text-sm w-full" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Precio / Hora (USD)</label>
+        <input type="number" [(ngModel)]="nuevaRegion.price" class="px-3 py-2 border border-gray-300 rounded-lg text-sm w-full" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Precio Online</label>
+        <input type="number" [(ngModel)]="nuevaRegion.priceOnline" class="px-3 py-2 border border-gray-300 rounded-lg text-sm w-full" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Activo</label>
+        <button type="button" (click)="nuevaRegion.active = nuevaRegion.active === 1 ? 0 : 1"
+          class="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none">
+          <span [class]="nuevaRegion.active === 1 ? 'w-10 h-5 bg-green-500 rounded-full relative transition-colors' : 'w-10 h-5 bg-gray-300 rounded-full relative transition-colors'">
+            <span [class]="nuevaRegion.active === 1 ? 'absolute left-5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform' : 'absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform'"></span>
+          </span>
+          <span class="text-gray-600">{{ nuevaRegion.active === 1 ? 'Sí' : 'No' }}</span>
+        </button>
+      </div>
+      <div class="md:col-span-3">
+        <label class="block text-xs text-gray-500 mb-1">Descripción</label>
+        <input [(ngModel)]="nuevaRegion.description" class="px-3 py-2 border border-gray-300 rounded-lg text-sm w-full" />
+      </div>
+    </div>
+    <button (click)="guardar()" class="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm">{{ esEdicion() ? 'Actualizar Región' : 'Guardar Región' }}</button>
+  </div>
+
+  <!-- FORMULARIO PLANTILLA -->
+  <div *ngIf="mostrarForm && tipo === 'plantillas'" class="bg-white rounded-xl p-5 border border-gray-200">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Código</label>
+        <input [(ngModel)]="nuevaPlantilla.code" maxlength="8" class="px-3 py-2 border border-gray-300 rounded-lg text-sm w-full" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Precio / Hora (USD)</label>
+        <input type="number" [(ngModel)]="nuevaPlantilla.price" class="px-3 py-2 border border-gray-300 rounded-lg text-sm w-full" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Horas</label>
+        <input type="number" [(ngModel)]="nuevaPlantilla.hours" class="px-3 py-2 border border-gray-300 rounded-lg text-sm w-full" />
+      </div>
+    </div>
+    <div class="mt-3">
+      <label class="block text-xs text-gray-500 mb-1">Descripción / Concepto *</label>
+      <textarea
+        [(ngModel)]="nuevaPlantilla.name"
+        rows="8"
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono whitespace-pre-wrap"
+        placeholder="Escriba la descripción del concepto. Use Enter para saltos de línea y Tab para indentación."></textarea>
+      <p class="text-xs text-gray-400 mt-1">Permite saltos de línea y tabulaciones para describir módulos, condiciones de pago, etc.</p>
+    </div>
+    <button (click)="guardar()" class="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm">{{ esEdicion() ? 'Actualizar Plantilla' : 'Guardar Plantilla' }}</button>
+  </div>
+
+  <!-- FORMULARIO EMPRESA -->
+  <div *ngIf="mostrarForm && tipo === 'empresas'" class="bg-white rounded-xl p-5 border border-gray-200">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Empresa *</label>
+        <input [(ngModel)]="nuevaEmpresa.company" class="px-3 py-2 border border-gray-300 rounded-lg text-sm w-full" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Prefijo</label>
+        <input [(ngModel)]="nuevaEmpresa.prefix" class="px-3 py-2 border border-gray-300 rounded-lg text-sm w-full" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Teléfono</label>
+        <input [(ngModel)]="nuevaEmpresa.telephone" class="px-3 py-2 border border-gray-300 rounded-lg text-sm w-full" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Email</label>
+        <input [(ngModel)]="nuevaEmpresa.email" class="px-3 py-2 border border-gray-300 rounded-lg text-sm w-full" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Web</label>
+        <input [(ngModel)]="nuevaEmpresa.web" class="px-3 py-2 border border-gray-300 rounded-lg text-sm w-full" />
+      </div>
+    </div>
+    <button (click)="guardar()" class="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm">{{ esEdicion() ? 'Actualizar Empresa' : 'Guardar Empresa' }}</button>
+  </div>
+
+  <!-- FORMULARIO TASA DE IVA -->
+  <div *ngIf="mostrarForm && tipo === 'tasas-iva'" class="bg-white rounded-xl p-5 border border-gray-200">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Nombre *</label>
+        <input [(ngModel)]="nuevaTasa.nombre" maxlength="60" class="px-3 py-2 border border-gray-300 rounded-lg text-sm w-full" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Porcentaje (%)</label>
+        <input type="number" [(ngModel)]="nuevaTasa.porcentaje" class="px-3 py-2 border border-gray-300 rounded-lg text-sm w-full" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Orden</label>
+        <input type="number" [(ngModel)]="nuevaTasa.orden" class="px-3 py-2 border border-gray-300 rounded-lg text-sm w-full" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Activo</label>
+        <button type="button" (click)="nuevaTasa.activo = nuevaTasa.activo === 1 ? 0 : 1"
+          class="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none">
+          <span [class]="nuevaTasa.activo === 1 ? 'w-10 h-5 bg-green-500 rounded-full relative transition-colors' : 'w-10 h-5 bg-gray-300 rounded-full relative transition-colors'">
+            <span [class]="nuevaTasa.activo === 1 ? 'absolute left-5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform' : 'absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform'"></span>
+          </span>
+          <span class="text-gray-600">{{ nuevaTasa.activo === 1 ? 'Sí' : 'No' }}</span>
+        </button>
+      </div>
+    </div>
+    <button (click)="guardar()" class="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm">Actualizar Tasa de IVA</button>
+  </div>
+
+  <div *ngIf="loading" class="p-8 text-center text-gray-500">Cargando...</div>
+  <div *ngIf="error" class="p-6 text-center text-red-600">{{ error }}</div>
+
+  <div *ngIf="!loading && !error" class="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-2 text-left text-gray-600 font-medium">Nombre</th>
+          <ng-container *ngIf="tipo === 'clientes'">
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">RIF</th>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Contacto</th>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Email</th>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Activo</th>
+          </ng-container>
+          <ng-container *ngIf="tipo === 'regiones'">
+            <th class="px-4 py-2 text-right text-gray-600 font-medium">Precio/Hora</th>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Activo</th>
+          </ng-container>
+          <ng-container *ngIf="tipo === 'plantillas'">
+            <th class="px-4 py-2 text-right text-gray-600 font-medium">Precio/Hora</th>
+          </ng-container>
+          <ng-container *ngIf="tipo === 'empresas'">
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Prefijo</th>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Teléfono</th>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Email</th>
+          </ng-container>
+          <ng-container *ngIf="tipo === 'tasas-iva'">
+            <th class="px-4 py-2 text-right text-gray-600 font-medium">Porcentaje</th>
+            <th class="px-4 py-2 text-right text-gray-600 font-medium">Orden</th>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Activo</th>
+          </ng-container>
+          <th class="px-4 py-2 text-center text-gray-600 font-medium">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        <ng-container *ngIf="tipo === 'clientes'">
+          <tr *ngFor="let c of clientes">
+            <td class="px-4 py-2 text-gray-800">
+              {{ c.nameClient }}
+              <span *ngIf="c.idSghClient" class="ml-2 px-1.5 py-0.5 text-[10px] font-medium rounded bg-green-100 text-green-700">Formal</span>
+            </td>
+            <td class="px-4 py-2 text-gray-600">{{ c.rif }}</td>
+            <td class="px-4 py-2 text-gray-600">{{ c.contactName }}</td>
+            <td class="px-4 py-2 text-gray-600">{{ c.contactEmail }}</td>
+            <td class="px-4 py-2">
+              <span [class]="c.active === 1 ? 'inline-flex items-center gap-1 text-green-600' : 'inline-flex items-center gap-1 text-gray-500'">
+                <span [class]="c.active === 1 ? 'w-8 h-4 bg-green-500 rounded-full relative' : 'w-8 h-4 bg-gray-300 rounded-full relative'">
+                  <span [class]="c.active === 1 ? 'absolute left-4 top-0.5 w-3 h-3 bg-white rounded-full' : 'absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full'"></span>
+                </span>
+                {{ c.active === 1 ? 'Sí' : 'No' }}
+              </span>
+            </td>
+            <td class="px-4 py-2 text-center space-x-2">
+              <button (click)="editar(c)" class="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-lg">Editar</button>
+              <button (click)="eliminar(c)" class="px-2 py-1 text-xs bg-red-50 text-red-700 rounded-lg">Eliminar</button>
+            </td>
+          </tr>
+        </ng-container>
+        <ng-container *ngIf="tipo === 'regiones'">
+          <tr *ngFor="let r of regiones">
+            <td class="px-4 py-2 text-gray-800">{{ r.name }}</td>
+            <td class="px-4 py-2 text-right text-gray-600">{{ r.price | number:'1.2-2' }}</td>
+            <td class="px-4 py-2">
+              <span [class]="r.active === 1 ? 'inline-flex items-center gap-1 text-green-600' : 'inline-flex items-center gap-1 text-gray-500'">
+                <span [class]="r.active === 1 ? 'w-8 h-4 bg-green-500 rounded-full relative' : 'w-8 h-4 bg-gray-300 rounded-full relative'">
+                  <span [class]="r.active === 1 ? 'absolute left-4 top-0.5 w-3 h-3 bg-white rounded-full' : 'absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full'"></span>
+                </span>
+                {{ r.active === 1 ? 'Sí' : 'No' }}
+              </span>
+            </td>
+            <td class="px-4 py-2 text-center space-x-2">
+              <button (click)="editar(r)" class="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-lg">Editar</button>
+              <button (click)="eliminar(r)" class="px-2 py-1 text-xs bg-red-50 text-red-700 rounded-lg">Eliminar</button>
+            </td>
+          </tr>
+        </ng-container>
+        <ng-container *ngIf="tipo === 'plantillas'">
+          <tr *ngFor="let t of plantillas">
+            <td class="px-4 py-2 text-gray-800 whitespace-pre-wrap align-top max-w-xl">
+              <span class="font-semibold text-gray-900">{{ t.code }}</span> - {{ t.name }}
+            </td>
+            <td class="px-4 py-2 text-right text-gray-600">{{ t.price | number:'1.2-2' }}</td>
+            <td class="px-4 py-2 text-center space-x-2">
+              <button (click)="editar(t)" class="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-lg">Editar</button>
+              <button (click)="eliminar(t)" class="px-2 py-1 text-xs bg-red-50 text-red-700 rounded-lg">Eliminar</button>
+            </td>
+          </tr>
+        </ng-container>
+        <ng-container *ngIf="tipo === 'empresas'">
+          <tr *ngFor="let e of empresas">
+            <td class="px-4 py-2 text-gray-800">{{ e.company }}</td>
+            <td class="px-4 py-2 text-gray-600">{{ e.prefix }}</td>
+            <td class="px-4 py-2 text-gray-600">{{ e.telephone }}</td>
+            <td class="px-4 py-2 text-gray-600">{{ e.email }}</td>
+            <td class="px-4 py-2 text-center space-x-2">
+              <button (click)="editar(e)" class="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-lg">Editar</button>
+              <button (click)="eliminar(e)" class="px-2 py-1 text-xs bg-red-50 text-red-700 rounded-lg">Eliminar</button>
+            </td>
+          </tr>
+        </ng-container>
+        <ng-container *ngIf="tipo === 'tasas-iva'">
+          <tr *ngFor="let t of tasas">
+            <td class="px-4 py-2 text-gray-800">{{ t.nombre }}</td>
+            <td class="px-4 py-2 text-right text-gray-600">{{ t.porcentaje }}%</td>
+            <td class="px-4 py-2 text-right text-gray-600">{{ t.orden }}</td>
+            <td class="px-4 py-2">
+              <span [class]="t.activo === 1 ? 'inline-flex items-center gap-1 text-green-600' : 'inline-flex items-center gap-1 text-gray-500'">
+                <span [class]="t.activo === 1 ? 'w-8 h-4 bg-green-500 rounded-full relative' : 'w-8 h-4 bg-gray-300 rounded-full relative'">
+                  <span [class]="t.activo === 1 ? 'absolute left-4 top-0.5 w-3 h-3 bg-white rounded-full' : 'absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full'"></span>
+                </span>
+                {{ t.activo === 1 ? 'Sí' : 'No' }}
+              </span>
+            </td>
+            <td class="px-4 py-2 text-center space-x-2">
+              <button (click)="editar(t)" class="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-lg">Editar</button>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+</div>

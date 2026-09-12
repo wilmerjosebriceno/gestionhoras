@@ -1,0 +1,47 @@
+﻿<div class="max-w-xl mx-auto space-y-6">
+  <h1 class="text-2xl font-bold text-gray-800">{{ editando ? 'Editar' : 'Nuevo' }} Sistema</h1>
+
+  <form (ngSubmit)="guardar()" class="bg-white rounded-xl p-6 space-y-4">
+    <div>
+      <label class="block text-sm text-gray-600 mb-1">Codigo *</label>
+      <input [(ngModel)]="dto.sistema" name="sistema" required maxlength="4"
+        class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm uppercase"
+        [readonly]="editando" placeholder="Ej: SEC" />
+    </div>
+    <div>
+      <label class="block text-sm text-gray-600 mb-1">Denominacion *</label>
+      <input [(ngModel)]="dto.denominacion" name="denominacion" required maxlength="80"
+        class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm"
+        placeholder="Ej: Seguridad" />
+    </div>
+    <div>
+      <label class="block text-sm text-gray-600 mb-1">Descripcion</label>
+      <input [(ngModel)]="dto.descripcion" name="descripcion" maxlength="255"
+        class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm"
+        placeholder="Ej: Control de perfiles, accesos y log" />
+    </div>
+    <div>
+      <label class="block text-sm text-gray-600 mb-1">Ruta</label>
+      <input [(ngModel)]="dto.ruta" name="ruta" maxlength="40"
+        class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm"
+        placeholder="Ej: /sec" />
+    </div>
+    <div>
+      <label class="block text-sm text-gray-600 mb-1">Estatus</label>
+      <select [(ngModel)]="dto.estatus" name="estatus"
+        class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm">
+        <option [ngValue]="1">Activo</option>
+        <option [ngValue]="0">Inactivo</option>
+      </select>
+    </div>
+
+    <div *ngIf="error" class="p-3 bg-red-100 border border-red-700 rounded-lg text-red-700 text-sm">{{ error }}</div>
+
+    <div class="flex justify-end space-x-3">
+      <a routerLink="/sec/sistemas" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-colors">Cancelar</a>
+      <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+        {{ editando ? 'Actualizar' : 'Crear' }}
+      </button>
+    </div>
+  </form>
+</div>

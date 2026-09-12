@@ -1,0 +1,79 @@
+﻿<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-gray-800">{{ config.titulo }}</h1>
+    <div class="space-x-2">
+      <a routerLink="/sgh/catalogos/clientes" [class.hidden]="tipo==='clientes'" class="text-xs text-gray-500 hover:text-gray-600">Clientes</a>
+      <a routerLink="/sgh/catalogos/procesos" [class.hidden]="tipo==='procesos'" class="text-xs text-gray-500 hover:text-gray-600">Procesos</a>
+      <a routerLink="/sgh/catalogos/items" [class.hidden]="tipo==='items'" class="text-xs text-gray-500 hover:text-gray-600">Ítems</a>
+      <a routerLink="/sgh/catalogos/categorias" [class.hidden]="tipo==='categorias'" class="text-xs text-gray-500 hover:text-gray-600">Categorías</a>
+      <a routerLink="/sgh/catalogos/tipos" [class.hidden]="tipo==='tipos'" class="text-xs text-gray-500 hover:text-gray-600">Tipos</a>
+      <a routerLink="/sgh/catalogos/usuarios" [class.hidden]="tipo==='usuarios'" class="text-xs text-gray-500 hover:text-gray-600">Usuarios SGH</a>
+      <button (click)="nuevo()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors">Nuevo</button>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl p-4 flex gap-3 items-end">
+    <div class="flex-1 max-w-xs">
+      <label class="block text-xs text-gray-500 mb-1">Buscar</label>
+      <input [(ngModel)]="filtro" (keyup.enter)="cargar()" name="filtro"
+        class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+    </div>
+    <button (click)="cargar()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg text-sm">Buscar</button>
+  </div>
+
+  <div class="bg-white rounded-xl overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-100">
+        <tr>
+          <th *ngFor="let c of config.campos" class="px-4 py-3 text-left text-gray-600 font-medium">{{ c.label }}</th>
+          <th class="px-4 py-3 text-right text-gray-600 font-medium">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        <tr *ngIf="loading && filas.length === 0">
+          <td [attr.colspan]="config.campos.length + 1" class="px-4 py-8 text-center text-gray-500">Cargando...</td>
+        </tr>
+        <tr *ngFor="let f of filas" class="hover:bg-gray-100">
+          <td *ngFor="let c of config.campos" class="px-4 py-3 text-gray-600">{{ val(f, c.key) }}</td>
+          <td class="px-4 py-3 text-right space-x-2">
+            <button (click)="editar(f)" class="text-blue-600 hover:text-blue-700">Editar</button>
+            <button (click)="eliminar(f)" class="text-red-600 hover:text-red-700">Eliminar</button>
+          </td>
+        </tr>
+        <tr *ngIf="!loading && filas.length === 0">
+          <td [attr.colspan]="config.campos.length + 1" class="px-4 py-8 text-center text-gray-500">Sin registros</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="error" class="p-3 bg-red-100 border border-red-700 rounded-lg text-red-700 text-sm">{{ error }}</div>
+
+  <div *ngIf="mostrandoFormulario" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+    <form (ngSubmit)="guardar()" class="bg-white rounded-xl p-6 w-full max-w-lg space-y-4 max-h-[90vh] overflow-y-auto">
+      <h2 class="text-lg font-semibold text-gray-800">{{ editandoId !== null ? 'Editar' : 'Nuevo' }} {{ config.titulo }}</h2>
+      <div *ngFor="let c of config.campos">
+        <label class="block text-sm text-gray-600 mb-1">{{ c.label }}{{ c.required ? ' *' : '' }}</label>
+        <select *ngIf="c.tipo === 'select'" [(ngModel)]="form[c.key]" [name]="c.key" [required]="c.required || false"
+          class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm">
+          <option [ngValue]="undefined">Seleccione...</option>
+          <option *ngFor="let o of c.opciones" [ngValue]="o.value">{{ o.label }}</option>
+        </select>
+        <textarea *ngIf="c.tipo === 'textarea'" [(ngModel)]="form[c.key]" [name]="c.key" rows="2"
+          class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm"></textarea>
+        <input *ngIf="c.tipo === 'number'" [(ngModel)]="form[c.key]" [name]="c.key" type="number" step="any"
+          class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+        <input *ngIf="!c.tipo || c.tipo === 'text'" [(ngModel)]="form[c.key]" [name]="c.key" [required]="c.required || false"
+          [maxlength]="c.maxlength || null"
+          class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+      </div>
+      <div *ngIf="error" class="p-3 bg-red-100 border border-red-700 rounded-lg text-red-700 text-sm">{{ error }}</div>
+      <div class="flex justify-end space-x-3">
+        <button type="button" (click)="mostrandoFormulario = false; error=''" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg">Cancelar</button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+          {{ editandoId !== null ? 'Actualizar' : 'Crear' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

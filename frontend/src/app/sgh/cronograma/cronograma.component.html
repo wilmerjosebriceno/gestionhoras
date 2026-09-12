@@ -1,0 +1,272 @@
+﻿<div class="space-y-6">
+  <div *ngIf="necesitaProyecto" class="bg-white rounded-xl p-6">
+    <h1 class="text-2xl font-bold text-gray-800 mb-4">Cronograma — Seleccione un Proyecto</h1>
+    <label class="block text-sm text-gray-600 mb-1">Proyecto</label>
+    <select [(ngModel)]="proyectoSel" (ngModelChange)="seleccionarProyecto()"
+      class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm">
+      <option [ngValue]="undefined">Seleccione un proyecto...</option>
+      <option *ngFor="let p of proyectos" [ngValue]="p.idProyect">
+        {{ p.numdoc ? p.numdoc + ' — ' : '' }}{{ p.nameClient || p.cliente?.name }} ({{ p.dateProyect | date:'shortDate' }})
+      </option>
+    </select>
+    <p *ngIf="proyectos.length === 0" class="text-xs text-gray-500 mt-2">No hay proyectos registrados.</p>
+  </div>
+
+  <ng-container *ngIf="!necesitaProyecto">
+  <div class="flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-gray-800">Cronograma</h1>
+    <div class="space-x-2">
+      <button (click)="generar()" class="px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded-lg text-sm">Generar / Actualizar Fases</button>
+      <button (click)="nuevoHito()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm">+ Hito</button>
+      <a [routerLink]="['/sgh/proyectos', idProyect]" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg text-sm">Volver</a>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl p-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div>
+      <p class="text-xs text-gray-500">Proyecto</p>
+      <p class="text-gray-800 font-medium">{{ header.numdoc }}</p>
+    </div>
+    <div>
+      <p class="text-xs text-gray-500">Cliente</p>
+      <p class="text-gray-800">{{ header.nameClient }}</p>
+    </div>
+    <div>
+      <p class="text-xs text-gray-500">Responsable</p>
+      <p class="text-gray-800">{{ header.responsable }}</p>
+    </div>
+    <div>
+      <p class="text-xs text-gray-500">Periodo</p>
+      <p class="text-gray-800">{{ header.dateIni | date:'shortDate' }} - {{ header.dateFin | date:'shortDate' }}</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-200">
+      <h2 class="font-semibold text-gray-800">Fases</h2>
+    </div>
+    <table class="w-full text-sm">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-2 text-left text-gray-600 font-medium">Fase</th>
+          <th class="px-4 py-2 text-center text-gray-600 font-medium">Plan</th>
+          <th class="px-4 py-2 text-center text-gray-600 font-medium">Horas Plan/Ejec</th>
+          <th class="px-4 py-2 text-center text-gray-600 font-medium">Avance</th>
+          <th class="px-4 py-2 text-center text-gray-600 font-medium">Status</th>
+          <th class="px-4 py-2 text-right text-gray-600 font-medium">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        <tr *ngIf="loading">
+          <td colspan="6" class="px-4 py-8 text-center text-gray-500">Cargando...</td>
+        </tr>
+        <tr *ngFor="let f of fases" class="hover:bg-gray-100">
+          <td class="px-4 py-2">
+            <span class="text-gray-800">{{ f.nombreOrden || f.nameProcess }}</span>
+            <div class="text-xs text-gray-500">{{ f.nameUser }}</div>
+          </td>
+          <td class="px-4 py-2 text-center text-gray-600">
+            {{ f.fechaIniPlan | date:'shortDate' }} - {{ f.fechaFinPlan | date:'shortDate' }}
+          </td>
+          <td class="px-4 py-2 text-center text-gray-600">{{ f.hoursPlan }} / {{ f.hoursEjec }}</td>
+          <td class="px-4 py-2">
+            <div class="flex items-center gap-2 justify-center">
+              <div class="w-24 bg-gray-100 rounded-full h-2">
+                <div class="bg-blue-500 h-2 rounded-full" [style.width.%]="f.avanceFinal"></div>
+              </div>
+              <span class="text-xs text-gray-500">{{ f.avanceFinal }}%</span>
+            </div>
+          </td>
+          <td class="px-4 py-2 text-center">
+            <span [class]="'px-2 py-1 text-xs rounded-full ' + colorFase(f.status)">{{ estadoFase(f.status) }}</span>
+          </td>
+          <td class="px-4 py-2 text-right space-x-2">
+            <button (click)="abrirEditarFase(f)" class="text-blue-600 hover:text-blue-700">Editar</button>
+            <button (click)="abrirSeguimiento(f)" class="text-amber-600 hover:text-amber-700">Seguimiento</button>
+          </td>
+        </tr>
+        <tr *ngIf="!loading && fases.length === 0">
+          <td colspan="6" class="px-4 py-6 text-center text-gray-500">Sin fases generadas</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="bg-white rounded-xl overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-200">
+      <h2 class="font-semibold text-gray-800">Hitos</h2>
+    </div>
+    <table class="w-full text-sm">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-2 text-left text-gray-600 font-medium">Hito</th>
+          <th class="px-4 py-2 text-center text-gray-600 font-medium">Fecha Plan</th>
+          <th class="px-4 py-2 text-center text-gray-600 font-medium">Fecha Real</th>
+          <th class="px-4 py-2 text-center text-gray-600 font-medium">Status</th>
+          <th class="px-4 py-2 text-right text-gray-600 font-medium">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        <tr *ngFor="let h of hitos" class="hover:bg-gray-100">
+          <td class="px-4 py-2 text-gray-800">{{ h.nombre }}</td>
+          <td class="px-4 py-2 text-center text-gray-600">{{ h.fechaPlan | date:'shortDate' }}</td>
+          <td class="px-4 py-2 text-center text-gray-600">{{ h.fechaReal | date:'shortDate' }}</td>
+          <td class="px-4 py-2 text-center">
+            <span [class]="h.status === 1 ? 'px-2 py-1 text-xs rounded-full bg-green-100 text-green-700' : (h.status === 2 ? 'px-2 py-1 text-xs rounded-full bg-red-100 text-red-700' : 'px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-300')">
+              {{ h.status === 1 ? 'Cumplido' : (h.status === 2 ? 'Vencido' : 'En curso') }}
+            </span>
+          </td>
+          <td class="px-4 py-2 text-right">
+            <button (click)="eliminarHito(h)" class="text-red-600 hover:text-red-700">Eliminar</button>
+          </td>
+        </tr>
+        <tr *ngIf="hitos.length === 0">
+          <td colspan="5" class="px-4 py-6 text-center text-gray-500">Sin hitos</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="error" class="p-3 bg-red-100 border border-red-700 rounded-lg text-red-700 text-sm">{{ error }}</div>
+
+  <div *ngIf="faseEditar" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+    <form (ngSubmit)="guardarFase()" class="bg-white rounded-xl p-6 w-full max-w-lg space-y-4">
+      <h2 class="text-lg font-semibold text-gray-800">{{ faseEditar.nameProcess }}</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Inicio Plan</label>
+          <input type="date" [(ngModel)]="faseForm.fechaIniPlan" name="fip" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Fin Plan</label>
+          <input type="date" [(ngModel)]="faseForm.fechaFinPlan" name="ffp" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Inicio Real</label>
+          <input type="date" [(ngModel)]="faseForm.fechaIniReal" name="fir" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Fin Real</label>
+          <input type="date" [(ngModel)]="faseForm.fechaFinReal" name="ffr" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Responsable</label>
+          <select [(ngModel)]="faseForm.idUserResponsable" name="resp" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm">
+            <option [ngValue]="undefined">Sin asignar</option>
+            <option *ngFor="let u of usuarios" [ngValue]="u.idUser">{{ u.nameUser }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Status</label>
+          <select [(ngModel)]="faseForm.status" name="st" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm">
+            <option [ngValue]="0">Pendiente</option>
+            <option [ngValue]="1">En Curso</option>
+            <option [ngValue]="2">Atrasada</option>
+            <option [ngValue]="3">Cerrada</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Modelo de Avance</label>
+          <select [(ngModel)]="faseForm.avanceModelo" name="am" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm">
+            <option [ngValue]="-1">Automático (por horas)</option>
+            <option [ngValue]="0">Manual</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Avance (%)</label>
+          <input type="number" [(ngModel)]="faseForm.avance" name="av" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+        </div>
+      </div>
+      <div class="flex justify-end space-x-3">
+        <button type="button" (click)="faseEditar = undefined" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg">Cancelar</button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">Guardar</button>
+      </div>
+    </form>
+  </div>
+
+  <div *ngIf="seguimientoFase" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-6 w-full max-w-lg space-y-4 max-h-[90vh] overflow-y-auto">
+      <h2 class="text-lg font-semibold text-gray-800">Seguimiento: {{ seguimientoFase.nameProcess }}</h2>
+      <form (ngSubmit)="guardarSeguimiento()" class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">Nuevo Avance (%)</label>
+            <input type="number" [(ngModel)]="segForm.avanceNew" name="na" required class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">Status</label>
+            <select [(ngModel)]="segForm.statusNew" name="sn" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm">
+              <option [ngValue]="0">Pendiente</option>
+              <option [ngValue]="1">En Curso</option>
+              <option [ngValue]="2">Atrasada</option>
+              <option [ngValue]="3">Cerrada</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Usuario</label>
+          <select [(ngModel)]="segForm.idUser" name="iu" required class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm">
+            <option *ngFor="let u of usuarios" [ngValue]="u.idUser">{{ u.nameUser }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Comentario</label>
+          <textarea [(ngModel)]="segForm.comentario" name="cm" rows="2" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm"></textarea>
+        </div>
+        <div class="flex justify-end space-x-3">
+          <button type="button" (click)="seguimientoFase = undefined" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg">Cerrar</button>
+          <button type="submit" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg">Registrar</button>
+        </div>
+      </form>
+      <div class="border-t border-gray-200 pt-3">
+        <h3 class="text-sm font-semibold text-gray-600 mb-2">Historial</h3>
+        <div *ngFor="let s of segHistorial" class="text-xs text-gray-500 py-1 border-b border-gray-200 last:border-0">
+          <b class="text-gray-800">{{ s.nameUser }}</b> {{ s.fecha | date:'shortDate' }}: avance {{ s.avanceOld }}% → {{ s.avanceNew }}%
+          <span *ngIf="s.comentario"> - {{ s.comentario }}</span>
+        </div>
+        <p *ngIf="segHistorial.length === 0" class="text-xs text-gray-500">Sin registros</p>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="mostrandoHito" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+    <form (ngSubmit)="guardarHito()" class="bg-white rounded-xl p-6 w-full max-w-md space-y-4">
+      <h2 class="text-lg font-semibold text-gray-800">Nuevo Hito</h2>
+      <div>
+        <label class="block text-sm text-gray-600 mb-1">Nombre *</label>
+        <input [(ngModel)]="hitoForm.nombre" name="nh" required class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Fecha Plan</label>
+          <input type="date" [(ngModel)]="hitoForm.fechaPlan" name="fp" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Fecha Real</label>
+          <input type="date" [(ngModel)]="hitoForm.fechaReal" name="fr" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Status</label>
+          <select [(ngModel)]="hitoForm.status" name="sh" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm">
+            <option [ngValue]="0">En curso</option>
+            <option [ngValue]="1">Cumplido</option>
+            <option [ngValue]="2">Vencido</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Peso</label>
+          <input type="number" [(ngModel)]="hitoForm.peso" name="ph" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm text-gray-600 mb-1">Comentario</label>
+        <input [(ngModel)]="hitoForm.comentario" name="ch" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+      </div>
+      <div class="flex justify-end space-x-3">
+        <button type="button" (click)="mostrandoHito = false" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg">Cancelar</button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">Crear</button>
+      </div>
+    </form>
+  </div>
+  </ng-container>
+</div>

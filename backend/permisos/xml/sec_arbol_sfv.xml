@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sistema nombre="Sistema de Facturacion" id="sfv">
+
+   <menu nombre="Seguridad">
+      <item nombre="Inicio de session" pagina="iniciosessioncomercial"/>
+   </menu>
+
+   <item nombre="WARNING [NOTAS DE ENTREGA ] " pagina="warning_oe"/>
+   <item nombre="DASHBOARD" pagina="sfv_pro_dashboard.html.php"/>
+   <item nombre="Tasa de Convertibilidad" pagina="sfv_def_dicom.html.php"/>
+
+   <menu nombre="Productos y Servicios">
+      <item nombre="Catalogo de Precios" pagina="sfv_def_catalogo_precio.html.php"/>
+      <item nombre="Registro Productos y Servicios" pagina="sfv_def_conceptos.html.php"/>
+      <item nombre="Actualizacion de Precios" pagina="sfv_pro_precios_update.html.php"/>
+      <item nombre="Actualizacion Inventarios" pagina="sfv_pro_inventory_update.html.php"/>
+
+   </menu>
+
+   <menu nombre="Cliente">
+      <item nombre="Registro Clientes" pagina="sfv_pro_registro_cliente.html.php"/>
+      <item nombre="Asignar Catalogo de Precios a Clientes" pagina="catalogo_precio_cliente"/>
+      <item nombre="Asignar Oficinas a Clientes" pagina="oficinas_cliente"/>
+      <item nombre="Asignar Monto Credito" pagina="cliente_monto_credito"/>
+      <item nombre="Modificar Saldo Credito Disponible" pagina="cliente_monto_credito_saldo"/>
+      <item nombre="Cambio de Estatus Agente de Retencion" pagina="cliente_agente"/>
+      <item nombre="Cambio de Estatus Venta a Credito" pagina="cliente_credito"/>
+      <item nombre=" Cambio de Estatus" pagina="sfv_pro_estatus.html.php"/>
+      <item nombre=" Cambio RIF" pagina="sfv_pro_cambio_rif.html.php"/>
+   </menu>
+
+
+   <menu nombre="Facturacion">
+      <item nombre="Punto de Venta PRO FORMA" pagina="sfv_pro_puntoventa.html.php"/>
+      <item nombre="Punto de Venta POS" pagina="sfv_pro_puntoventa_pos.html.php"/>
+      <item nombre="Facturacion -> Generar Cuentas x cobrar " pagina="facturar_cxc"/>
+      <item nombre="Facturacion -> Cambiar Fecha de Facturacion " pagina="facturar_fecha"/>
+      <item nombre="Facturacion -> Cambiar Vendedor " pagina="cambiar_vendedor"/>
+
+      <item nombre="Anulacion ProForma Facturas Modo Fiscal" pagina="sfv_pro_anular_facturas.html.php"/>
+
+      <item nombre="Actualizar Facturas" pagina="sfv_pro_update_facturas.html.php"/>
+      <item nombre="Reprocesar Saldos Facturas" pagina="sfv_pro_reprocesar_saldos.html.php"/>
+      <item nombre="Integrar Inventario Facturas" pagina="sfv_pro_integrar_inventario.html.php"/>
+      <item nombre="Calculao de Prefacturacion" pagina="sfv_pro_prefacturacionservicios.html.php"/>
+      <item nombre="Control de Forma Factura" pagina="sfv_pro_controlforma.html.php"/>
+      <item nombre=" Actualizar Control Forma en Facturas " pagina="sfv_pro_updatefacturacontrolforma.html.php"/>
+      <item nombre="Notas de Credito/Debitos por Descuentos en Ventas" pagina="sfv_pro_nota_factura.html.php"/>
+   </menu>
+
+
+   <menu nombre="Recibo de Pago">
+      <item nombre="Pagos en Lote" pagina="sfv_pro_pagoslotes.html.php"/>
+      <item nombre="Pagos" pagina="sfv_pro_pagos.html.php"/>
+      <item nombre="Anulacion Pago" pagina="sfv_pro_reverso_recibo.html.php"/>
+      <item nombre="Conciliacion de Pagos" pagina="sfv_pro_conciliacion.html.php"/>
+      <item nombre="Actualizar Modalidad de Pago" pagina="sfv_pro_modalidadpagobanco.html.php"/>
+      <item nombre="Actualizar Modalidad de Pago en Lote" pagina="sfv_pro_modalidadpagobanco_lote.html.php"/>
+
+   </menu>
+
+   <menu nombre="Anticipos">
+      <item nombre="Registro Anticipos" pagina="sfv_pro_anticipo.html.php"/>
+      <item nombre="Aprobacion Anticipos" pagina="sfv_pro_anticipos_aprobacion.html.php"/>
+   </menu>
+
+   <item nombre="Cotizaciones (Nuevo)" pagina="sfv_pro_cotizacion_bt.html.php"/>
+
+   <menu nombre="Solicitud de Pedido">
+      <item nombre="Pedido" pagina="sfv_pro_pedidos_bt.html.php"/>
+   </menu>
+
+   <menu nombre="Gestion de Reservaciones">
+      <item nombre="Temporadas" pagina="sfv_def_temporada.html.php"/>
+      <item nombre="Tipo Ambientes" pagina="sfv_def_tipoambiente.html.php"/>
+      <item nombre="Ambientes" pagina="sfv_def_ambientes.html.php"/>
+      <item nombre="Tipo Espacios" pagina="sfv_def_tipoespacios.html.php"/>
+      <item nombre="Espacios" pagina="sfv_def_espacios.html.php"/>
+      <item nombre="Tarifas " pagina="sfv_def_tarifas_reserva.html.php"/>
+      <item nombre="Tipo Cliente" pagina="sfv_def_tipocliente.html.php"/>
+      <item nombre="Cliente " pagina="sfv_pro_cliente_reserva.html.php"/>
+      <item nombre="Planeacion de Reservas " pagina="sfv_pro_planeacion_reserva.html.php"/>
+      <item nombre="Reservas " pagina="sfv_pro_reserva.html.php"/>
+      <item nombre="Gestion de Reservas " pagina="sfv_pro_reserva_gestion.html.php"/>
+      <item nombre="Check In Out Reservas " pagina="sfv_pro_reserva_check.html.php"/>
+   </menu>
+
+   <menu nombre="Gestion Vehiculos">
+      <item nombre="Colores" pagina="sfv_def_vehiculo_color.html.php"/>
+      <item nombre="Clases" pagina="sfv_def_vehiculo_clase.html.php"/>
+      <item nombre="Servicios" pagina="sfv_def_vehiculo_servicio.html.php"/>
+      <item nombre="Tipos" pagina="sfv_def_vehiculo_tipo.html.php"/>
+      <item nombre="Usos" pagina="sfv_def_vehiculo_uso.html.php"/>
+      <item nombre="Marcas" pagina="sfv_def_vehiculo_marca.html.php"/>
+      <item nombre="Modelos" pagina="sfv_def_vehiculo_modelo.html.php"/>
+      <item nombre="Placas" pagina="sfv_def_placas.html.php"/>
+
+      <item nombre="Vehiculos" pagina="sfv_pro_vehiculo.html.php"/>
+      <item nombre=" - Datos Vehiculo" pagina="vehiculo_datos"/>
+      <item nombre=" - Datos Carrocero" pagina="vehiculo_carrocero"/>
+      <item nombre=" - Datos Certificado" pagina="vehiculo_certificado"/>
+      <item nombre=" - Cambio de Placa" pagina="vehiculo_cambioplaca"/>
+      <item nombre=" - Asignacion Placa" pagina="vehiculo_asignacionplaca"/>
+      <item nombre="Movimientos" pagina="sfv_pro_vehiculo_mvo.html.php"/>
+      <item nombre="Orden Despacho" pagina="sfv_pro_vehiculo_oe.html.php"/>
+
+      <item nombre="Reportes Vehiculos" pagina="sfv_rep_inventario_veh.html.php"/>
+
+   </menu>
+
+
+   <menu nombre="Orden de Entrega">
+      <item nombre="Generar Orden de Entrega" pagina="sfv_pro_oe.html.php"/>
+      <item nombre="Recepcion Orden de Entrega" pagina="sfv_pro_recepcionordenentrega.html.php"/>
+   </menu>
+
+
+   <menu nombre="Guia de Carga">
+      <item nombre="Generar Guia" pagina="sfv_pro_guia.html.php"/>
+   </menu>
+
+   <item nombre="Centros de Entregas" pagina="sfv_pro_centroentrega.html.php"/>
+   <item nombre="Calculo de Comisiones" pagina="sfv_pro_comisiones.html.php"/>
+   <item nombre="Autorizaciones" pagina="sfv_pro_autorizacion.html.php"/>
+   <item nombre="Control y Seguimiento de Documento" pagina="sfv_pro_gestiondocumento.html.php"/>
+
+
+   <menu nombre="Transferencias Contables">
+      <item nombre="Ajuste Comprobante Transferencia Banco" pagina="sfv_mov_ajuste_banco.html.php"/>
+      <item nombre="Transferencia Anticipos" pagina="sfv_int_anticipo.html.php"/>
+      <item nombre="Transferir Pagos Anticipos" pagina="sfv_int_payment_anticipo.html.php"/>
+      <item nombre="Transferencia de Facturas CXC al Modulo Integrador" pagina="sfv_int_cxc.html.php"/>
+      <item nombre="Transferencia de Facturas Pagos Simultaneos al Modulo Integrador" pagina="sfv_int_pagos.html.php"/>
+      <item nombre="Transferir Deducciones" pagina="sfv_int_ded.html.php"/>
+      <item nombre="Transferir Notas de Creditos" pagina="sfv_int_nc.html.php"/>
+      <item nombre="Transferir Notas de Debitos" pagina="sfv_int_nd.html.php"/>
+   </menu>
+
+   <menu nombre="Parametrizaciones">
+      <item nombre="Configuracion" pagina="sfv_def_config.html.php"/>
+
+
+      <menu nombre="Oficinas/Configuracion Fiscal">
+         <item nombre="Linea Empresa" pagina="sfv_def_enterprise.html.php"/>
+         <item nombre="Asignar Usuarios X Linea Empresa" pagina="sfv_def_linea_user.html.php"/>
+         <item nombre="Impuestos" pagina="sfv_def_iva.html.php"/>
+         <item nombre="Puntos de Ventas" pagina="sfv_def_maquina.html.php"/>
+         <item nombre="Configuracion HKA Maquinas Fiscales" pagina="sfv_def_printer_hka.html.php"/>
+         <item nombre="Activacion Banderas Maquinas Fiscales HKA" pagina="sfv_pro_flags_hka.html.php"/>
+         <item nombre="Maquinas Fiscal" pagina="sfv_def_mf.html.php"/>
+         <item nombre="Series de Facturacion" pagina="sfv_def_serie.html.php"/>
+         <item nombre="Asignar Series a Lineas empresas" pagina="sfv_pro_serielinea.html.php"/>
+         <item nombre="Registro de Oficinas" pagina="sfv_def_oficina.html.php"/>
+         <item nombre="Usuario por Oficina" pagina="sfv_def_oc.html.php"/>
+         <item nombre="Cajeros" pagina="sfv_def_caja.html.php"/>
+         <item nombre="Administrador Maquina Fiscal" pagina="admin_fiscal_printer"/>
+
+      </menu>
+
+
+      <menu nombre="Monedas y Tasas">
+         <item nombre="Monedas" pagina="sfv_def_moneda.html.php"/>
+      </menu>
+
+      <menu nombre="Sedes/Centros Entrega">
+         <item nombre="Registro de Sedes" pagina="sfv_def_sede.html.php"/>
+         <item nombre="Asignar Usuario por Sede" pagina="sfv_def_usuariosede.html.php"/>
+      </menu>
+
+      <menu nombre="Almacenes">
+         <item nombre="Almacenes" pagina="sfv_def_almacen.html.php"/>
+         <item nombre="Asignar Almacenes X Oficinas" pagina="sfv_def_almacenoficina.html.php"/>
+         <item nombre="Asignar Usuarios X Almacen" pagina="sfv_def_ua.html.php"/>
+      </menu>
+
+      <menu nombre="Comisiones">
+         <item nombre="Criterio de Ruta" pagina="sfv_def_ruta.html.php"/>
+         <item nombre="Criterio de Retiro" pagina="sfv_def_retiro.html.php"/>
+         <item nombre="Configuracion Comisiones Lista de Precios" pagina="sfv_def_config_comisiones.html.php"/>
+         <item nombre="Escalas de Comisiones" pagina="sfv_def_escalas_comision.html.php"/>
+         <item nombre="Configuracion Comisiones MIX" pagina="sfv_def_config_comision_mix.html.php"/>
+      </menu>
+
+      <menu nombre="Ubicacion">
+         <item nombre="Pais" pagina="sfv_def_pais.html.php"/>
+         <item nombre="Estado" pagina="sfv_def_estado.html.php"/>
+         <item nombre="Municipio" pagina="sfv_def_municipio.html.php"/>
+         <item nombre="Ciudad" pagina="sfv_def_ciudad.html.php"/>
+         <item nombre="Parroquia" pagina="sfv_def_parroquia.html.php"/>
+         <item nombre="Sector" pagina="sfv_def_sector.html.php"/>
+      </menu>
+
+      <item nombre="Unidad de Medida" pagina="sfv_def_unidad.html.php"/>
+      <item nombre="Conceptos de Deduccion" pagina="sfv_def_deduccion.html.php"/>
+
+
+      <menu nombre="Caracteristicas Productos/Servicios">
+         <item nombre="Clasificacion" pagina="sfv_def_clasificacionconcepto_padre.html.php"/>
+         <item nombre="Sub Clasificacion" pagina="sfv_def_clasificacionconcepto.html.php"/>
+         <item nombre="Roles del Producto o Servicio" pagina="sfv_def_roll.html.php"/>
+         <item nombre="Procedencia Producto o Servicio" pagina="sfv_def_procedencia.html.php"/>
+      </menu>
+
+      <item nombre="Categoria de Cientes" pagina="sfv_def_categoria.html.php"/>
+
+      <item nombre="Bancos" pagina="sfv_def_banco.html.php"/>
+      <item nombre="Cuentas Bancos" pagina="sfv_def_cuentabanco.html.php"/>
+      <item nombre="Configuracion de Cuentas Reportes " pagina="sfv_def_config_bank_report.html.php"/>
+
+      <menu nombre="Transportista">
+         <item nombre="Registro de Transportista" pagina="sfv_def_transportista.html.php"/>
+         <item nombre="Registro de Unidad de Transporte" pagina="sfv_def_unidad_transporte.html.php"/>
+         <item nombre="Registro de Conductor" pagina="sfv_def_conductor.html.php"/>
+      </menu>
+
+      <menu nombre="Vendedores">
+         <item nombre="Vendedores" pagina="sfv_def_vendedor.html.php"/>
+         <item nombre="Asignacion Vendedores a Linea Empresa" pagina="sfv_pro_vendedores_empresa.html.php"/>
+      </menu>
+
+      <item nombre="Vendedores" pagina="sfv_def_vendedor.html.php"/>
+      <item nombre="Tipo Embarcacion" pagina="sfv_def_tipoembarcacion.html.php"/>
+
+   </menu>
+
+   <menu nombre="Reportes">
+
+      <menu nombre="Listados">
+         <item nombre=" Conceptos de Servicios" pagina="sfv_rep_listado_conceptos.html.php"/>
+         <item nombre=" Clientes" pagina="sfv_rep_listado_clientes.html.php"/>
+      </menu>
+
+      <item nombre=" Estado de Cuenta  " pagina="sfv_rep_edocuenta.html.php"/>
+      <item nombre=" Reimpresion " pagina="sfv_rep_reimpresion.html.php"/>
+      <item nombre=" Visor Factura " pagina="visor_factura_impresion_factura"/>
+
+      <item nombre=" Inventario " pagina="sfv_rep_inventario.html.php"/>
+
+      <menu nombre="Reportes Notas de Entrega/Guia de Carga">
+         <item nombre=" Reporte Integral  " pagina="sfv_rep_integral_oe.html.php"/>
+      </menu>
+
+      <menu nombre="Reportes Pedidos y Cotizaciones">
+         <item nombre="Reportes de Gestion Pedidos y Cotizaciones" pagina="sfv_rep_pedidos_cotizaciones.html.php"/>
+         <item nombre=" Listado" pagina="sfv_rep_listado_pedidos.html.php"/>
+         <item nombre=" Resumen" pagina="sfv_rep_resumen_pedidos.html.php"/>
+      </menu>
+
+      <menu nombre="Reportes de Ventas">
+         <item nombre=" Reporte Integral de Ventas" pagina="sfv_rep_integral_ventas.html.php"/>
+         <item nombre=" Libro de Ventas" pagina="sfv_rep_libro_ventas.html.php"/>
+         <item nombre=" Transacciones de Ventas " pagina="sfv_rep_transacciones_procesadas.html.php"/>
+         <item nombre=" Listado de Facturas por Servicio Clientes" pagina="sfv_rep_factura_servicio_cliente.html.php"/>
+         <item nombre=" Resumen de Ventas de Productos" pagina="sfv_rep_resumen_ventas.html.php"/>
+         <item nombre=" Resumen de Facturacion por Conceptos" pagina="sfv_rep_facturacion_concepto.html.php"/>
+         <item nombre=" Detalle de Facturacion por Servicios Clientes" pagina="sfv_rep_detallefacturaclasificacionconcepto.html.php"/>
+         <item nombre=" Reporte de Facturacion por Trimestre" pagina="sfv_rep_trimestres_facturacion.html.php"/>
+         <item nombre=" Grafico Comparativo de Facturacion" pagina="sfv_grafico_comparativo_facturado.html.php"/>
+         <item nombre=" Consolidado de Facturacion Ventas y Cobranzas " pagina="sfv_rep_consolidado_venta_producto.html.php"/>
+         <item nombre=" Detallado de Facturacion Ventas y Cobranzas " pagina="sfv_rep_detalle_venta_producto.html.php"/>
+      </menu>
+
+      <menu nombre="Reportes de Cobranzas">
+
+         <item nombre=" Reportes Integral de Cobranzas" pagina="sfv_rep_integral_cobranzas.html.php"/>
+         <item nombre=" Reportes de Conciliacion" pagina="sfv_rep_conciliacion.html.php"/>
+         <item nombre=" Reportes Anticpos" pagina="sfv_rep_anticipos.html.php"/>
+         <item nombre=" Transacciones de Cobranza" pagina="sfv_rep_transaccion_ventas.html.php"/>
+         <item nombre=" Notas de Credito y Notas de Debito" pagina="sfv_rep_notas_cyd.html.php"/>
+         <item nombre=" Detalle de Cuentas por Cobrar Cliente" pagina="sfv_rep_cxc_detallado_clientes.html.php"/>
+         <item nombre=" Resumen de Cuentas por Cobrar" pagina="sfv_rep_cxc_clientes.html.php"/>
+         <item nombre=" Analisis Vencimiento de Cliente" pagina="sfv_rep_analisisvencimientocliente.html.php"/>
+         <item nombre=" Clientes Morosos" pagina="sfv_rep_morosos.html.php"/>
+      </menu>
+
+      <menu nombre="Reportes de Gestion de Reservaciones">
+         <item nombre=" Reporte de Reservaciones" pagina="sfv_rep_integral_reserva.html.php"/>
+      </menu>
+
+
+      <item nombre=" Graficos de Gestion" pagina="sfv_grafico_gestion.html.php"/>
+
+      <item nombre=" Auditoria y Seguridad " pagina="sfv_rep_seguridad.html.php"/>
+
+   </menu>
+
+
+   <menu nombre="Mantenimiento">
+      <item nombre=" MANTENIMIENTO " pagina="sfv_pro_mantenimiento.html.php"/>
+      <item nombre=" MIGRADOR " pagina="sfv_pro_migration.html.php"/>
+      <item nombre=" BILL DIGITAL " pagina="sfv_pro_bill_digital.html.php"/>
+      <item nombre=" UNBLOCK SIEGSP UTILITYS" pagina="visorfactura_unblock"/>
+   </menu>
+
+</sistema>
+
+			

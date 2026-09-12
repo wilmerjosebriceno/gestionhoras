@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sistema nombre="Inventario" id="siv">
+
+
+    <item nombre="DASHBOARD" pagina="siv_pro_dashboard.html.php"/>
+
+    <menu nombre="Configuraciones">
+        <item nombre="Prefijos Numeracion" pagina="siv_def_prefijo.html.php"/>
+    </menu>
+
+    <menu nombre="Gestion de Centros/Almacenes">
+
+        <item nombre="Centros Logisticos" pagina="siv_def_logiccenter.html.php"/>
+        <item nombre="Tipos de Almacenes" pagina="siv_def_types_stores.html.php"/>
+        <item nombre="Almacenes" pagina="siv_def_stores.html.php"/>
+        <item nombre="Areas/Depositos/Almacenes" pagina="siv_def_areas_stores.html.php"/>
+        <item nombre="Ubicaciones" pagina="siv_def_locations.html.php"/>
+
+    </menu>
+
+    <item nombre="Segmento/Familia/Clase" pagina="siv_def_segmentfamilyclass.html.php"/>
+
+    <menu nombre="Parametrizacion Farmacia">
+        <item nombre="Laboratorio" pagina="siv_def_laboratory.html.php"/>
+        <item nombre="Medicamentos segun Origen" pagina="siv_def_origen_medicine.html.php"/>
+        <item nombre="Medicamentos segun via de administracion" pagina="siv_def_via_medicine.html.php"/>
+        <item nombre="Medicamentos segun forma de venta" pagina="siv_def_waysale_medicine.html.php"/>
+        <item nombre="Medicamentos segun su forma farmaceutica" pagina="siv_def_shape_medicine.html.php"/>
+        <item nombre="Medicamentos segun accion terapeutica" pagina="siv_def_action_medicine.html.php"/>
+        <item nombre="Principios Activos" pagina="siv_def_activeingredient_medicine.html.php"/>
+
+    </menu>
+
+    <menu nombre="Producto">
+
+        <item nombre="Unidades de Medida" pagina="siv_def_uom.html.php"/>
+        <item nombre="Tipos de Productos" pagina="siv_def_type_product.html.php"/>
+        <item nombre="Productos" pagina="siv_pro_product.html.php"/>
+
+    </menu>
+
+
+    <menu nombre="Entrada de Productos">
+
+        <item nombre="Registro" pagina="siv_pro_doc_entrada.html.php"/>
+
+    </menu>
+
+
+    <item nombre="Transferencias entre Almacenes" pagina="siv_pro_doc_transfer.html.php"/>
+
+    <item nombre="Toma de Inventario" pagina="siv_pro_toma.html.php"/>
+
+    <item nombre="Despacho de Inventario" pagina="siv_pro_doc_despacho.html.php"/>
+
+    <item nombre="Conversion de Producto" pagina="siv_pro_doc_conversion.html.php"/>
+
+    <menu nombre="Aprobaciones">
+
+        <item nombre="Gestion de Aprobaciones" pagina="siv_pro_aprobaciones.html.php"/>
+
+    </menu>
+
+    <item nombre="Reportes" pagina="siv_rep_integral.html.php"/>
+
+    <menu nombre="Mantenimiento">
+
+        <item nombre="Migrador" pagina="siv_pro_migrador.html.php"/>
+        <item nombre="Reparar Inventario" pagina="siv_pro_repair_inventory.html.php"/>
+
+
+    </menu>
+
+</sistema>
+

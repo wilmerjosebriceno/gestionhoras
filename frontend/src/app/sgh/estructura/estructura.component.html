@@ -1,0 +1,48 @@
+﻿<div class="space-y-6">
+  <h1 class="text-2xl font-bold text-gray-800">Estructura de Proyecto</h1>
+
+  <div class="bg-white rounded-xl p-4">
+    <label class="block text-sm text-gray-600 mb-1">Ítem de Actividad</label>
+    <select [(ngModel)]="idItem" name="idItem" (change)="seleccionar(idItem!)"
+      class="w-full max-w-md px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm">
+      <option *ngFor="let it of items" [ngValue]="it.idItemActivity">{{ it.name }}</option>
+    </select>
+  </div>
+
+  <div class="bg-white rounded-xl overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-200 flex justify-between items-center">
+      <h2 class="font-semibold text-gray-800">Procesos asignados (horas plan)</h2>
+      <button (click)="guardar()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm">Guardar Asignaciones</button>
+    </div>
+    <table class="w-full text-sm">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-2 text-left text-gray-600 font-medium">Proceso</th>
+          <th class="px-4 py-2 text-center text-gray-600 font-medium">Activo</th>
+          <th class="px-4 py-2 text-right text-gray-600 font-medium">Horas Plan</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        <tr *ngIf="loading && filas.length === 0">
+          <td colspan="3" class="px-4 py-8 text-center text-gray-500">Cargando...</td>
+        </tr>
+        <tr *ngFor="let f of filas" class="hover:bg-gray-100">
+          <td class="px-4 py-2 text-gray-600">{{ f.nameProcess }}</td>
+          <td class="px-4 py-2 text-center">
+            <input type="checkbox" [(ngModel)]="f.active" name="act{{ f.idProcess }}" (change)="f.active = f.active ? 1 : 0" />
+          </td>
+          <td class="px-4 py-2 text-right">
+            <input type="number" step="0.01" [(ngModel)]="f.hours" name="hrs{{ f.idProcess }}"
+              class="w-24 px-2 py-1 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm text-right" />
+          </td>
+        </tr>
+        <tr *ngIf="!loading && filas.length === 0">
+          <td colspan="3" class="px-4 py-6 text-center text-gray-500">Sin procesos</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="exito" class="p-3 bg-green-100 border border-green-700 rounded-lg text-green-700 text-sm">{{ exito }}</div>
+  <div *ngIf="error" class="p-3 bg-red-100 border border-red-700 rounded-lg text-red-700 text-sm">{{ error }}</div>
+</div>

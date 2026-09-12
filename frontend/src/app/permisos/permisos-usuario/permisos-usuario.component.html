@@ -1,0 +1,128 @@
+﻿<div class="space-y-6">
+  <h1 class="text-2xl font-bold text-gray-800">Permisos por Sistema</h1>
+
+  <div class="bg-white rounded-xl p-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+      <div>
+        <label class="block text-sm text-gray-600 mb-1">Listar por</label>
+        <select [(ngModel)]="tipoListar" (change)="cargarLista()" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm">
+          <option value="U">Usuarios</option>
+          <option value="G">Grupos</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm text-gray-600 mb-1">Sistema</label>
+        <select [(ngModel)]="sistemaSel" (change)="onCambioSistema()" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm">
+          <option value="">Seleccione un Sistema</option>
+          <option *ngFor="let s of sistemas" [value]="s.sistema">{{ s.denominacion }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm text-gray-600 mb-1">Pagina</label>
+        <select [(ngModel)]="paginaSel" (change)="onCambioPagina()" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm">
+          <option value="">Seleccione una Pagina</option>
+          <option *ngFor="let p of flatPages" [value]="p.pagina">{{ p.nombre }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <label class="block text-sm text-gray-600 mb-1">
+          {{ tipoListar === 'U' ? 'Usuarios' : 'Grupos' }}
+          <button (click)="toggleAllItems()" class="text-xs text-blue-600 ml-2">(Seleccionar todos)</button>
+        </label>
+        <select multiple size="12" class="w-full bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm">
+          <option *ngFor="let u of (tipoListar === 'U' ? usuarios : grupos)" [value]="tipoListar === 'U' ? u.login : u.grupo"
+            (click)="toggleItem(tipoListar === 'U' ? u.login : u.grupo)"
+            [class.bg-blue-600]="selectedItems.includes(tipoListar === 'U' ? u.login : u.grupo)">
+            {{ tipoListar === 'U' ? u.login : u.denominacion }}
+          </option>
+        </select>
+      </div>
+
+      <div>
+        <div class="flex items-center mb-3">
+          <input type="checkbox" id="chkall" [checked]="acceso && buscar && incluir && modificar && eliminar && procesar && imprimir && anular"
+            (change)="toggleAllPermisos()" class="mr-2" />
+          <label for="chkall" class="text-sm text-gray-600 font-medium">Permisos</label>
+        </div>
+        <div class="space-y-2 bg-gray-100/50 rounded-lg p-4">
+          <label class="flex items-center text-sm text-gray-600">
+            <input type="checkbox" [(ngModel)]="acceso" class="mr-2" /> Accesar (v)
+          </label>
+          <label class="flex items-center text-sm text-gray-600">
+            <input type="checkbox" [(ngModel)]="buscar" class="mr-2" /> Buscar (b)
+          </label>
+          <label class="flex items-center text-sm text-gray-600">
+            <input type="checkbox" [(ngModel)]="incluir" class="mr-2" /> Incluir (i)
+          </label>
+          <label class="flex items-center text-sm text-gray-600">
+            <input type="checkbox" [(ngModel)]="modificar" class="mr-2" /> Modificar (m)
+          </label>
+          <label class="flex items-center text-sm text-gray-600">
+            <input type="checkbox" [(ngModel)]="eliminar" class="mr-2" /> Eliminar (e)
+          </label>
+          <label class="flex items-center text-sm text-gray-600">
+            <input type="checkbox" [(ngModel)]="procesar" class="mr-2" /> Procesar (p)
+          </label>
+          <label class="flex items-center text-sm text-gray-600">
+            <input type="checkbox" [(ngModel)]="imprimir" class="mr-2" /> Imprimir (r)
+          </label>
+          <label class="flex items-center text-sm text-gray-600">
+            <input type="checkbox" [(ngModel)]="anular" class="mr-2" /> Anular (a)
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-6" *ngIf="permisosExistentes.length > 0">
+      <h3 class="text-lg font-semibold text-gray-800 mb-3">Permisos Encontrados</h3>
+      <div class="bg-gray-100 rounded-lg overflow-hidden">
+        <table class="w-full text-sm text-left text-gray-600">
+          <thead class="text-xs uppercase bg-white text-gray-500">
+            <tr>
+              <th class="px-4 py-3">Página</th>
+              <th class="px-4 py-3 text-center">Acceso</th>
+              <th class="px-4 py-3 text-center">Buscar</th>
+              <th class="px-4 py-3 text-center">Incluir</th>
+              <th class="px-4 py-3 text-center">Modificar</th>
+              <th class="px-4 py-3 text-center">Eliminar</th>
+              <th class="px-4 py-3 text-center">Procesar</th>
+              <th class="px-4 py-3 text-center">Imprimir</th>
+              <th class="px-4 py-3 text-center">Anular</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of permisosExistentes" class="border-b border-gray-300 hover:bg-gray-200">
+              <td class="px-4 py-3 font-medium">{{ p.denPagina || p.pagina }}</td>
+              <td class="px-4 py-3 text-center"><span [class.text-green-600]="p.acceso" [class.text-red-600]="!p.acceso">{{ p.acceso ? 'Sí' : 'No' }}</span></td>
+              <td class="px-4 py-3 text-center">{{ p.seleccionar ? 'Sí' : 'No' }}</td>
+              <td class="px-4 py-3 text-center">{{ p.insertar ? 'Sí' : 'No' }}</td>
+              <td class="px-4 py-3 text-center">{{ p.actualizar ? 'Sí' : 'No' }}</td>
+              <td class="px-4 py-3 text-center">{{ p.eliminar ? 'Sí' : 'No' }}</td>
+              <td class="px-4 py-3 text-center">{{ p.ejecutar ? 'Sí' : 'No' }}</td>
+              <td class="px-4 py-3 text-center">{{ p.imprimir ? 'Sí' : 'No' }}</td>
+              <td class="px-4 py-3 text-center">{{ p.anular ? 'Sí' : 'No' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="flex justify-end space-x-3 mt-6">
+      <button (click)="buscarPermisos()"
+        class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors text-sm">
+        Buscar Permisos
+      </button>
+      <button (click)="guardarPermisos()"
+        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm">
+        Guardar
+      </button>
+    </div>
+
+    <div *ngIf="error" class="mt-4 p-3 bg-red-100 border border-red-700 rounded-lg text-red-700 text-sm">{{ error }}</div>
+    <div *ngIf="success" class="mt-4 p-3 bg-green-100 border border-green-700 rounded-lg text-green-700 text-sm">{{ success }}</div>
+  </div>
+</div>
+<app-spinner [visible]="loading" message="Procesando permisos..."></app-spinner>

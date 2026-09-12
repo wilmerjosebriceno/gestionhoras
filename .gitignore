@@ -1,0 +1,46 @@
+# ===== Dependencias =====
+**/node_modules/
+
+# ===== Builds / generados =====
+**/dist/
+**/.angular/cache/
+**/coverage/
+**/out-tsc/
+**/bazel-out/
+**/tmp/
+**/.sass-cache/
+
+# ===== Variables de entorno / secretos =====
+**/.env
+**/.env.local
+**/.env.*.local
+!**/.env.example
+
+# ===== Logs =====
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ===== Empaquetados / respaldos (evita limite 100MB de GitHub) =====
+*.zip
+*.rar
+*.7z
+*.tar
+*.tar.gz
+*.tgz
+
+# ===== Temporales / respaldos =====
+*.bak
+*.tmp
+*.orig
+*~
+
+# ===== Sistema / IDE =====
+.DS_Store
+Thumbs.db
+.idea/
+.history/
+*.sublime-workspace
+*.sublime-project
