@@ -1,0 +1,162 @@
+<div class="space-y-6">
+  <h1 class="text-2xl font-bold text-gray-800">Reportes de Mantis (Actividades)</h1>
+
+  <div class="bg-white rounded-xl p-5 border border-gray-200">
+    <h2 class="font-semibold text-gray-800 mb-4">Parámetros de consulta</h2>
+
+    <p *ngIf="cargandoFiltros" class="text-sm text-gray-500 mb-4">
+      Cargando catálogos desde Mantis (proyectos, usuarios y estados)...
+    </p>
+
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Proyecto</label>
+        <select [(ngModel)]="proyectoId" name="rproyecto"
+          class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 text-sm">
+          <option [ngValue]="undefined">Todos</option>
+          <option *ngFor="let p of proyectos" [ngValue]="p.id">{{ p.name }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Informador</label>
+        <select [(ngModel)]="reporterId" name="rinformador"
+          class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 text-sm">
+          <option [ngValue]="undefined">Todos</option>
+          <option *ngFor="let u of usuarios" [ngValue]="u.id">{{ u.real_name || u.name }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Asignado</label>
+        <select [(ngModel)]="handlerId" name="rasignado"
+          class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 text-sm">
+          <option [ngValue]="undefined">Todos</option>
+          <option *ngFor="let u of usuarios" [ngValue]="u.id">{{ u.real_name || u.name }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Estatus</label>
+        <select [(ngModel)]="statusId" name="restatus"
+          class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 text-sm">
+          <option [ngValue]="undefined">Todos</option>
+          <option *ngFor="let e of estatus" [ngValue]="e.id">{{ e.name }}</option>
+        </select>
+      </div>
+      <div class="col-span-2">
+        <label class="block text-xs text-gray-500 mb-1">Texto (resumen)</label>
+        <input type="text" [(ngModel)]="texto" name="rtexto" placeholder="Buscar en el resumen..."
+          class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 text-sm" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Desde</label>
+        <input type="date" [(ngModel)]="desde" name="rdesde"
+          class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 text-sm" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Hasta</label>
+        <input type="date" [(ngModel)]="hasta" name="rhasta"
+          class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 text-sm" />
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-3 mt-5">
+      <button (click)="consultar()" [disabled]="loading"
+        class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm flex items-center gap-2 disabled:opacity-50">
+        <span *ngIf="loading" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+        {{ loading ? 'Consultando...' : 'Consultar' }}
+      </button>
+      <button (click)="limpiar()" class="px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm">
+        Limpiar
+      </button>
+      <button (click)="analizar()" [disabled]="analizando"
+        class="px-5 py-2 bg-purple-700 hover:bg-purple-600 text-white rounded-lg text-sm flex items-center gap-2 disabled:opacity-50">
+        <span *ngIf="analizando" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+        {{ analizando ? 'Analizando...' : 'Analizar con IA' }}
+      </button>
+      <button (click)="exportarCsv()" class="px-5 py-2 bg-green-700 hover:bg-green-600 text-white rounded-lg text-sm">
+        Exportar CSV
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="!consultado" class="bg-white rounded-xl p-10 border border-gray-200 text-center text-gray-500">
+    Seleccione los filtros deseados y presione <b class="text-gray-700">Consultar</b> para visualizar
+    los reportes de incidencias de Mantis.
+  </div>
+
+  <div *ngIf="consultado" class="bg-white rounded-xl overflow-hidden border border-gray-200">
+    <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+      <div class="flex gap-2">
+        <button (click)="cambiarTab('tabla')"
+          [class]="tab === 'tabla' ? 'px-4 py-1.5 rounded-lg text-sm bg-blue-600 text-white' : 'px-4 py-1.5 rounded-lg text-sm bg-gray-100 text-gray-700 hover:bg-gray-200'">
+          Tabla
+        </button>
+        <button (click)="cambiarTab('dashboard')"
+          [class]="tab === 'dashboard' ? 'px-4 py-1.5 rounded-lg text-sm bg-blue-600 text-white' : 'px-4 py-1.5 rounded-lg text-sm bg-gray-100 text-gray-700 hover:bg-gray-200'">
+          Dashboard
+        </button>
+        <button (click)="cambiarTab('ia')"
+          [class]="tab === 'ia' ? 'px-4 py-1.5 rounded-lg text-sm bg-blue-600 text-white' : 'px-4 py-1.5 rounded-lg text-sm bg-gray-100 text-gray-700 hover:bg-gray-200'">
+          Análisis IA
+        </button>
+      </div>
+      <span class="text-sm text-gray-500">
+        <b class="text-blue-700">{{ issues.length }}</b> incidencias
+      </span>
+    </div>
+
+    <!-- TABLA -->
+    <div *ngIf="tab === 'tabla'" class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">ID</th>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Resumen</th>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Proyecto</th>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Informador</th>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Asignado</th>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Estado</th>
+            <th class="px-4 py-2 text-left text-gray-600 font-medium">Prioridad</th>
+            <th class="px-4 py-2 text-center text-gray-600 font-medium">Fecha</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <tr *ngFor="let i of issues" class="hover:bg-gray-100">
+            <td class="px-4 py-2 text-blue-700 font-medium">{{ i.id }}</td>
+            <td class="px-4 py-2 text-gray-800 max-w-md truncate" [title]="i.summary">{{ i.summary }}</td>
+            <td class="px-4 py-2 text-gray-600">{{ i.project }}</td>
+            <td class="px-4 py-2 text-gray-600">{{ i.reporter }}</td>
+            <td class="px-4 py-2 text-gray-600">{{ i.handler }}</td>
+            <td class="px-4 py-2 text-gray-600">{{ i.status }}</td>
+            <td class="px-4 py-2 text-gray-600">{{ i.priority }}</td>
+            <td class="px-4 py-2 text-center text-gray-600">{{ i.dateSubmitted }}</td>
+          </tr>
+          <tr *ngIf="issues.length === 0">
+            <td colspan="8" class="px-4 py-8 text-center text-gray-500">
+              No hay incidencias para los parámetros seleccionados
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div *ngIf="tab === 'dashboard'" class="p-5 grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="border border-gray-200 rounded-lg p-2"><div #chartEstado></div></div>
+      <div class="border border-gray-200 rounded-lg p-2"><div #chartProyecto></div></div>
+      <div class="border border-gray-200 rounded-lg p-2"><div #chartAsignado></div></div>
+      <div class="border border-gray-200 rounded-lg p-2"><div #chartMes></div></div>
+    </div>
+
+    <!-- ANÁLISIS IA -->
+    <div *ngIf="tab === 'ia'" class="p-5">
+      <div *ngIf="analizando" class="flex items-center gap-3 text-gray-600">
+        <span class="inline-block w-5 h-5 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></span>
+        Generando análisis con IA...
+      </div>
+      <pre *ngIf="!analizando && analisisTexto" class="whitespace-pre-wrap text-sm text-gray-800 bg-gray-50 rounded-lg p-4 border border-gray-200">{{ analisisTexto }}</pre>
+      <p *ngIf="!analizando && !analisisTexto" class="text-gray-500 text-sm">
+        Presione <b>Analizar con IA</b> para generar un análisis ejecutivo del resultado actual.
+      </p>
+    </div>
+  </div>
+</div>

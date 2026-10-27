@@ -72,6 +72,66 @@
     <app-detalle-horas [items]="items" [filas]="detalles" [cargarProcesos]="cargarProcesos.bind(this)">
     </app-detalle-horas>
 
+    <!-- Documentos adjuntos -->
+    <div class="bg-white rounded-xl p-4 space-y-3">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Documentos adjuntos</h2>
+        <span class="text-xs text-gray-400">{{ adjuntos.length + archivosPendientes.length }} archivo(s)</span>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <input #fileInput type="file" multiple accept=".pdf,.jpg,.jpeg,.png" class="hidden"
+          (change)="onArchivosSeleccionados($event)" />
+        <button type="button" (click)="fileInput.click()" [disabled]="subiendo"
+          class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm disabled:opacity-50">
+          {{ subiendo ? 'Subiendo...' : 'Adjuntar archivo' }}
+        </button>
+        <span class="text-xs text-gray-400">PDF, JPG o PNG · máx. 5 MB por archivo</span>
+      </div>
+
+      <p *ngIf="!editando" class="text-xs text-gray-500">
+        En una actividad nueva, los archivos se suben automáticamente al guardar.
+      </p>
+
+      <!-- Archivos pendientes (actividad nueva) -->
+      <ul *ngIf="archivosPendientes.length" class="divide-y divide-gray-100">
+        <li *ngFor="let f of archivosPendientes; let i = index" class="flex items-center justify-between py-2 gap-3">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="text-[10px] font-semibold text-white rounded px-1.5 py-0.5"
+              [class]="f.type === 'application/pdf' ? 'bg-red-500' : 'bg-emerald-500'">
+              {{ f.type === 'application/pdf' ? 'PDF' : 'IMG' }}
+            </span>
+            <span class="text-sm text-gray-700 truncate">{{ f.name }}</span>
+            <span class="text-xs text-gray-400 shrink-0">({{ tamanoLegible(f.size) }})</span>
+            <span class="text-[10px] font-semibold rounded px-1.5 py-0.5 bg-amber-100 text-amber-700">Pendiente</span>
+          </div>
+          <button type="button" (click)="quitarPendiente(i)" class="text-sm text-red-600 hover:text-red-800 shrink-0">Quitar</button>
+        </li>
+      </ul>
+
+      <!-- Adjuntos ya subidos -->
+      <ul *ngIf="adjuntos.length" class="divide-y divide-gray-100">
+        <li *ngFor="let a of adjuntos" class="flex items-center justify-between py-2 gap-3">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="text-[10px] font-semibold text-white rounded px-1.5 py-0.5"
+              [class]="a.mimetype === 'application/pdf' ? 'bg-red-500' : 'bg-emerald-500'">
+              {{ a.mimetype === 'application/pdf' ? 'PDF' : 'IMG' }}
+            </span>
+            <span class="text-sm text-gray-700 truncate">{{ a.filename }}</span>
+            <span class="text-xs text-gray-400 shrink-0">({{ tamanoLegible(a.sizeBytes) }})</span>
+          </div>
+          <div class="flex items-center gap-3 shrink-0">
+            <button type="button" (click)="descargarAdjunto(a)"
+              class="text-sm text-blue-600 hover:text-blue-800">Descargar</button>
+            <button type="button" (click)="eliminarAdjunto(a)"
+              class="text-sm text-red-600 hover:text-red-800">Eliminar</button>
+          </div>
+        </li>
+      </ul>
+
+      <p *ngIf="!adjuntos.length && !archivosPendientes.length" class="text-sm text-gray-400">Sin documentos adjuntos.</p>
+    </div>
+
     <div *ngIf="errosDetalle.length" class="p-3 bg-amber-100 border border-amber-700 rounded-lg text-amber-700 text-sm">
       <ul class="list-disc pl-5 space-y-1">
         <li *ngFor="let e of errosDetalle">{{ e }}</li>

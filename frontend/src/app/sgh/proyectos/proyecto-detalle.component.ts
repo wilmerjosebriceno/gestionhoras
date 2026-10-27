@@ -35,7 +35,7 @@ export class ProyectoDetalleComponent implements OnInit {
         this.setError(err);
       },
     });
-    this.service.detalleProyecto(id).subscribe((d) => (this.detalle = d));
+    this.service.detalleProyecto(id, true).subscribe((d) => (this.detalle = d));
     this.service.actividadesDelProyecto(id).subscribe((a) => (this.actividades = a));
   }
 

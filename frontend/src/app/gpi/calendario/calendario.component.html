@@ -1,0 +1,115 @@
+<div class="space-y-4">
+  <div *ngIf="cargando" class="bg-white rounded-xl border border-gray-200 p-6 text-center text-gray-400 text-sm">Cargando calendario…</div>
+
+  <div *ngIf="!cargando">
+    <!-- Lista de calendarios -->
+    <div class="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="font-semibold text-gray-800">Calendario laborable del proyecto</h3>
+        <button (click)="nuevoCalendario()" class="px-3 py-1.5 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg">+ Nuevo calendario</button>
+      </div>
+
+      <div *ngIf="!calendarios.length" class="text-sm text-gray-500">
+        Este proyecto aún no tiene calendario. Crea uno para definir los días laborables y los feriados.
+      </div>
+
+      <div *ngIf="calendarios.length" class="space-y-2">
+        <div *ngFor="let c of calendarios"
+             class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg border cursor-pointer"
+             [class.border-blue-400]="seleccionado?.id_calendario === c.id_calendario"
+             [class.bg-blue-50]="seleccionado?.id_calendario === c.id_calendario"
+             [class.border-gray-200]="seleccionado?.id_calendario !== c.id_calendario"
+             (click)="seleccionar(c)">
+          <div>
+            <div class="text-sm font-medium text-gray-800">{{ c.nombre }}</div>
+            <div class="text-xs text-gray-500">Días: {{ diasActivos(c) }} · {{ c.horas_por_dia }} h/día</div>
+          </div>
+          <span *ngIf="seleccionado?.id_calendario === c.id_calendario" class="text-xs text-blue-600">seleccionado</span>
+        </div>
+      </div>
+
+      <!-- Formulario de calendario -->
+      <div *ngIf="mostrarFormCal" class="border-t border-gray-200 pt-3 space-y-3">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div class="md:col-span-2">
+            <label class="block text-xs text-gray-500 font-medium mb-1">Nombre</label>
+            <input [(ngModel)]="calForm.nombre" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 font-medium mb-1">Horas por día</label>
+            <input type="number" min="0" step="0.5" [(ngModel)]="calForm.horasPorDia" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-4">
+          <label *ngFor="let d of dias" class="flex items-center gap-1 text-sm text-gray-600 capitalize">
+            <input type="checkbox" [(ngModel)]="calForm[d]" class="rounded" /> {{ d }}
+          </label>
+        </div>
+        <div class="flex gap-2">
+          <button (click)="guardarCalendario()" [disabled]="guardando" class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50">
+            {{ guardando ? 'Guardando…' : 'Guardar' }}
+          </button>
+          <button (click)="mostrarFormCal = false" class="px-4 py-2 text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Excepciones (feriados) -->
+    <div *ngIf="seleccionado" class="bg-white rounded-xl border border-gray-200 p-4 space-y-3 mt-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-semibold text-gray-800">Feriados / excepciones</h3>
+        <button (click)="mostrarFormExc = !mostrarFormExc" class="px-3 py-1.5 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg">+ Agregar excepción</button>
+      </div>
+
+      <div *ngIf="mostrarFormExc" class="flex flex-wrap items-end gap-3 border-b border-gray-200 pb-3">
+        <div>
+          <label class="block text-xs text-gray-500 font-medium mb-1">Fecha</label>
+          <input type="date" [(ngModel)]="excForm.fecha" class="text-sm border border-gray-300 rounded-lg px-3 py-2" />
+        </div>
+        <div>
+          <label class="block text-xs text-gray-500 font-medium mb-1">Tipo</label>
+          <select [(ngModel)]="excForm.laborable" class="text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+            <option [ngValue]="false">No laborable (feriado)</option>
+            <option [ngValue]="true">Laborable especial</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-gray-500 font-medium mb-1">Horas</label>
+          <input type="number" min="0" step="0.5" [(ngModel)]="excForm.horas" class="w-24 text-sm border border-gray-300 rounded-lg px-3 py-2" />
+        </div>
+        <div class="flex-1 min-w-[160px]">
+          <label class="block text-xs text-gray-500 font-medium mb-1">Motivo</label>
+          <input [(ngModel)]="excForm.motivo" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+        </div>
+        <button (click)="agregarExcepcion()" class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg">Guardar</button>
+      </div>
+
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-xs text-gray-500 uppercase tracking-wider border-b border-gray-200 bg-gray-50">
+            <th class="px-4 py-3">Fecha</th>
+            <th class="px-4 py-3">Tipo</th>
+            <th class="px-4 py-3 text-right">Horas</th>
+            <th class="px-4 py-3">Motivo</th>
+            <th class="px-4 py-3"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <tr *ngFor="let e of excepciones" class="hover:bg-gray-50">
+            <td class="px-4 py-2 text-gray-700">{{ e.fecha | date:'dd/MM/yyyy' }}</td>
+            <td class="px-4 py-2">
+              <span class="px-2 py-0.5 rounded-full text-xs"
+                    [class]="e.laborable ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'">
+                {{ e.laborable ? 'Laborable especial' : 'No laborable' }}
+              </span>
+            </td>
+            <td class="px-4 py-2 text-right text-gray-600">{{ e.horas }}</td>
+            <td class="px-4 py-2 text-gray-600">{{ e.motivo || '—' }}</td>
+            <td class="px-4 py-2 text-right"><button (click)="eliminarExcepcion(e)" class="text-red-600 hover:underline text-xs">Eliminar</button></td>
+          </tr>
+          <tr *ngIf="!excepciones.length"><td colspan="5" class="px-4 py-6 text-center text-gray-400">Sin excepciones.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

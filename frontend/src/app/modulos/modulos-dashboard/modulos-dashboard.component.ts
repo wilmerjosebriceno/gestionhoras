@@ -13,6 +13,7 @@ const ICONS: Record<string, string> = {
   SEC: '/icons/seguridad.svg',
   SGH: '/icons/documents.svg',
   COT: '/icons/cotizacion.png',
+  SOP: '/icons/soporte.jpeg',
 };
 
 @Component({

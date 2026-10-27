@@ -40,6 +40,19 @@ export class CreateUsuarioSghDto {
   @IsString()
   @MaxLength(1)
   rol?: string;
+
+  @IsOptional()
+  @IsInt()
+  scrinCompanyId?: number;
+
+  @IsOptional()
+  @IsInt()
+  scrinEmploymentId?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  scrinToken?: string;
 }
 
 export class UpdateUsuarioSghDto {
@@ -70,4 +83,17 @@ export class UpdateUsuarioSghDto {
   @IsString()
   @MaxLength(1)
   rol?: string;
+
+  @IsOptional()
+  @IsInt()
+  scrinCompanyId?: number;
+
+  @IsOptional()
+  @IsInt()
+  scrinEmploymentId?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  scrinToken?: string;
 }

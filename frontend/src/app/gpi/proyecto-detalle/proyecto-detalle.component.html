@@ -1,0 +1,397 @@
+<div class="space-y-6" *ngIf="proyecto">
+  <!-- Encabezado -->
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <button (click)="volver()" class="text-xs text-blue-600 hover:underline">← Volver a proyectos</button>
+      <h1 class="text-xl font-bold text-gray-800">
+        <span class="font-mono text-gray-500">{{ proyecto.codigo }}</span> · {{ proyecto.nombre }}
+      </h1>
+    </div>
+    <div class="flex items-center gap-2">
+      <button (click)="programarProyecto()" [disabled]="programando"
+              class="px-3 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg disabled:opacity-50"
+              title="Recalcula las fechas plan según el calendario y las dependencias">
+        {{ programando ? 'Programando…' : 'Programar fechas' }}
+      </button>
+      <button (click)="nivelarProyecto()" [disabled]="nivelando"
+              class="px-3 py-2 text-sm bg-amber-600 hover:bg-amber-700 text-white rounded-lg disabled:opacity-50"
+              title="Redistribuye las horas según la capacidad de cada recurso">
+        {{ nivelando ? 'Nivelando…' : 'Nivelar recursos' }}
+      </button>
+      <button (click)="guardarLineaBase()" [disabled]="guardandoBase"
+              class="px-3 py-2 text-sm bg-gray-600 hover:bg-gray-700 text-white rounded-lg disabled:opacity-50"
+              title="Guarda las fechas y horas actuales como línea base">
+        {{ guardandoBase ? 'Guardando…' : 'Guardar línea base' }}
+      </button>
+      <label class="text-xs text-gray-500 ml-2">Estado:</label>
+      <select [ngModel]="proyecto.estado" (ngModelChange)="cambiarEstadoProyecto($event)"
+              class="text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+        <option value="planificado">Planificado</option>
+        <option value="en_ejecucion">En ejecución</option>
+        <option value="en_pausa">En pausa</option>
+        <option value="cerrado">Cerrado</option>
+        <option value="cancelado">Cancelado</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-xl border border-gray-200 p-4">
+      <div class="text-xs text-gray-500 font-medium">Horas estimadas</div>
+      <div class="mt-1 text-2xl font-bold text-gray-800">{{ proyecto.horas_estimadas }}</div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-4">
+      <div class="text-xs text-gray-500 font-medium">Equipo</div>
+      <div class="mt-1 text-2xl font-bold text-blue-600">{{ miembros.length }}</div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-4">
+      <div class="text-xs text-gray-500 font-medium">Actividades</div>
+      <div class="mt-1 text-2xl font-bold text-indigo-600">{{ actividades.length }}</div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-4">
+      <div class="text-xs text-gray-500 font-medium">Avance</div>
+      <div class="mt-1 text-2xl font-bold text-emerald-600">{{ proyecto.avance_pct }}%</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex flex-wrap gap-2 border-b border-gray-200">
+    <button (click)="cambiarTab('equipo')"
+            class="px-4 py-2 text-sm font-medium -mb-px border-b-2"
+            [class]="tab === 'equipo' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-700'">Equipo</button>
+    <button (click)="cambiarTab('actividades')"
+            class="px-4 py-2 text-sm font-medium -mb-px border-b-2"
+            [class]="tab === 'actividades' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-700'">Actividades</button>
+    <button (click)="cambiarTab('asignaciones')"
+            class="px-4 py-2 text-sm font-medium -mb-px border-b-2"
+            [class]="tab === 'asignaciones' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-700'">Asignación de horas</button>
+    <button (click)="cambiarTab('gantt')"
+            class="px-4 py-2 text-sm font-medium -mb-px border-b-2"
+            [class]="tab === 'gantt' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-700'">Gantt</button>
+    <button (click)="cambiarTab('partes')"
+            class="px-4 py-2 text-sm font-medium -mb-px border-b-2"
+            [class]="tab === 'partes' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-700'">Partes de horas</button>
+    <button (click)="cambiarTab('carga')"
+            class="px-4 py-2 text-sm font-medium -mb-px border-b-2"
+            [class]="tab === 'carga' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-700'">Carga por recurso</button>
+    <button (click)="cambiarTab('calendario')"
+            class="px-4 py-2 text-sm font-medium -mb-px border-b-2"
+            [class]="tab === 'calendario' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-700'">Calendario</button>
+  </div>
+
+  <!-- ==================== EQUIPO ==================== -->
+  <div *ngIf="tab === 'equipo'" class="space-y-4">
+    <div class="bg-white rounded-xl border border-gray-200 p-4 flex flex-wrap items-end gap-3">
+      <div class="flex-1 min-w-[200px]">
+        <label class="block text-xs text-gray-500 font-medium mb-1">Recurso</label>
+        <select [(ngModel)]="miembroForm.idRecurso" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+          <option [ngValue]="null">— Seleccione —</option>
+          <option *ngFor="let r of recursos" [ngValue]="r.id_recurso">{{ r.nombre }} ({{ r.tipo }})</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Rol</label>
+        <select [(ngModel)]="miembroForm.idRol" class="text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+          <option [ngValue]="null">— Sin rol —</option>
+          <option *ngFor="let ro of roles" [ngValue]="ro.id_rol">{{ ro.nombre }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Dedicación %</label>
+        <input type="number" min="0" max="100" [(ngModel)]="miembroForm.dedicacionPct"
+               class="w-24 text-sm border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+      <button (click)="agregarMiembro()" class="px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg">Agregar al equipo</button>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-xs text-gray-500 uppercase tracking-wider border-b border-gray-200 bg-gray-50">
+            <th class="px-4 py-3">Recurso</th>
+            <th class="px-4 py-3">Rol</th>
+            <th class="px-4 py-3 text-right">Dedicación</th>
+            <th class="px-4 py-3 text-right">Horas asignadas</th>
+            <th class="px-4 py-3"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <tr *ngFor="let m of miembros" class="hover:bg-gray-50">
+            <td class="px-4 py-2 text-gray-800">{{ m.recurso_nombre }}</td>
+            <td class="px-4 py-2 text-gray-600">{{ m.rol_nombre || '—' }}</td>
+            <td class="px-4 py-2 text-right text-gray-600">{{ m.dedicacion_pct }}%</td>
+            <td class="px-4 py-2 text-right text-gray-700">{{ m.horas_asignadas }}</td>
+            <td class="px-4 py-2 text-right">
+              <button (click)="quitarMiembro(m)" class="text-red-600 hover:underline text-xs">Quitar</button>
+            </td>
+          </tr>
+          <tr *ngIf="!miembros.length"><td colspan="5" class="px-4 py-6 text-center text-gray-400">Sin recursos en el equipo.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ==================== ACTIVIDADES ==================== -->
+  <div *ngIf="tab === 'actividades'" class="space-y-4">
+    <div class="flex justify-end">
+      <button (click)="nuevaActividad()" class="px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg">+ Nueva actividad</button>
+    </div>
+
+    <div *ngIf="mostrarActividad" class="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div class="md:col-span-2">
+          <label class="block text-xs text-gray-500 font-medium mb-1">Nombre *</label>
+          <input [(ngModel)]="actividadForm.nombre" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+        </div>
+        <div>
+          <label class="block text-xs text-gray-500 font-medium mb-1">Tipo</label>
+          <select [(ngModel)]="actividadForm.tipo" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+            <option value="tarea">Tarea</option>
+            <option value="resumen">Resumen</option>
+            <option value="hito">Hito</option>
+          </select>
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-xs text-gray-500 font-medium mb-1">Pertenece a (resumen / hito / tarea)</label>
+          <select [(ngModel)]="actividadForm.idPadre" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+            <option [ngValue]="null">— Sin padre (nivel raíz) —</option>
+            <option *ngFor="let a of actividades" [ngValue]="a.id_actividad">{{ a.tipo === 'resumen' ? '📁 ' : (a.tipo === 'hito' ? '◆ ' : '• ') }}{{ a.codigo_wbs ? a.codigo_wbs + ' ' : '' }}{{ a.nombre }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-gray-500 font-medium mb-1">Responsable</label>
+          <select [(ngModel)]="actividadForm.idResponsable" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+            <option [ngValue]="null">— Sin asignar —</option>
+            <option *ngFor="let r of recursos" [ngValue]="r.id_recurso">{{ r.nombre }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-gray-500 font-medium mb-1">Inicio plan</label>
+          <input type="date" [(ngModel)]="actividadForm.fechaIniPlan" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+        </div>
+        <div>
+          <label class="block text-xs text-gray-500 font-medium mb-1">Fin plan</label>
+          <input type="date" [(ngModel)]="actividadForm.fechaFinPlan" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+        </div>
+        <div>
+          <label class="block text-xs text-gray-500 font-medium mb-1">Horas estimadas</label>
+          <input type="number" min="0" [(ngModel)]="actividadForm.horasEstimadas" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+        </div>
+        <div>
+          <label class="block text-xs text-gray-500 font-medium mb-1">Orden</label>
+          <input type="number" [(ngModel)]="actividadForm.orden" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button (click)="guardarActividad()" class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg">Guardar</button>
+        <button (click)="mostrarActividad = false" class="px-4 py-2 text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg">Cancelar</button>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-xs text-gray-500 uppercase tracking-wider border-b border-gray-200 bg-gray-50">
+            <th class="px-4 py-3">Actividad</th>
+            <th class="px-4 py-3">Tipo</th>
+            <th class="px-4 py-3">Responsable</th>
+            <th class="px-4 py-3">Inicio</th>
+            <th class="px-4 py-3">Fin</th>
+            <th class="px-4 py-3 text-right">Horas est.</th>
+            <th class="px-4 py-3 text-right">Asignadas</th>
+            <th class="px-4 py-3">Estado</th>
+            <th class="px-4 py-3"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <tr *ngFor="let a of actividadesVista" class="hover:bg-gray-50">
+            <td class="px-4 py-2 text-gray-800">
+              <span [style.padding-left.px]="a._nivel * 18" class="inline-flex items-center">
+                <span class="mr-1">
+                  <span *ngIf="a.tipo === 'resumen'">📁</span>
+                  <span *ngIf="a.tipo === 'hito'">◆</span>
+                  <span *ngIf="a.tipo === 'tarea'">•</span>
+                </span>
+                <span [class.font-semibold]="a.tipo === 'resumen'">{{ a.codigo_wbs ? a.codigo_wbs + ' ' : '' }}{{ a.nombre }}</span>
+              </span>
+            </td>
+            <td class="px-4 py-2">
+              <span class="px-2 py-0.5 rounded-full text-xs"
+                    [class]="a.tipo === 'resumen' ? 'bg-indigo-100 text-indigo-700' : (a.tipo === 'hito' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600')">
+                {{ a.tipo }}
+              </span>
+            </td>
+            <td class="px-4 py-2 text-gray-600">{{ a.responsable_nombre || '—' }}</td>
+            <td class="px-4 py-2 text-gray-500">{{ a.fecha_ini_plan | date:'dd/MM/yyyy' }}</td>
+            <td class="px-4 py-2 text-gray-500">{{ a.fecha_fin_plan | date:'dd/MM/yyyy' }}</td>
+            <td class="px-4 py-2 text-right text-gray-700">{{ a.horas_estimadas }}</td>
+            <td class="px-4 py-2 text-right text-gray-700">{{ a.horas_asignadas }}</td>
+            <td class="px-4 py-2">
+              <select [ngModel]="a.estado" (ngModelChange)="cambiarEstadoActividad(a, $event)"
+                      class="text-xs border border-gray-300 rounded-lg px-2 py-1 bg-white">
+                <option *ngFor="let e of estadosActividad" [value]="e">{{ e }}</option>
+              </select>
+            </td>
+            <td class="px-4 py-2 text-right">
+              <button (click)="eliminarActividad(a)" class="text-red-600 hover:underline text-xs">Eliminar</button>
+            </td>
+          </tr>
+          <tr *ngIf="!actividades.length"><td colspan="9" class="px-4 py-6 text-center text-gray-400">Sin actividades.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ==================== ASIGNACIONES ==================== -->
+  <div *ngIf="tab === 'asignaciones'" class="space-y-4">
+    <div class="bg-white rounded-xl border border-gray-200 p-4 flex flex-wrap items-end gap-3">
+      <div class="flex-1 min-w-[200px]">
+        <label class="block text-xs text-gray-500 font-medium mb-1">Actividad</label>
+        <select [(ngModel)]="asignacionForm.idActividad" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+          <option [ngValue]="null">— Seleccione —</option>
+          <option *ngFor="let a of actividades" [ngValue]="a.id_actividad">{{ a.nombre }}</option>
+        </select>
+      </div>
+      <div class="flex-1 min-w-[200px]">
+        <label class="block text-xs text-gray-500 font-medium mb-1">Recurso (miembro)</label>
+        <select [(ngModel)]="asignacionForm.idMiembro" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+          <option [ngValue]="null">— Seleccione —</option>
+          <option *ngFor="let m of miembros" [ngValue]="m.id_miembro">{{ m.recurso_nombre }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Horas estimadas</label>
+        <input type="number" min="0" [(ngModel)]="asignacionForm.horasEstimadas" class="w-32 text-sm border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+      <button (click)="crearAsignacion()" class="px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg">Asignar</button>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-xs text-gray-500 uppercase tracking-wider border-b border-gray-200 bg-gray-50">
+            <th class="px-4 py-3">Actividad</th>
+            <th class="px-4 py-3">Recurso</th>
+            <th class="px-4 py-3 text-right">Horas estimadas</th>
+            <th class="px-4 py-3 text-right">Distribuidas</th>
+            <th class="px-4 py-3"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <tr *ngFor="let a of asignaciones" class="hover:bg-gray-50">
+            <td class="px-4 py-2 text-gray-800">{{ a.actividad_nombre }}</td>
+            <td class="px-4 py-2 text-gray-600">{{ a.recurso_nombre }}</td>
+            <td class="px-4 py-2 text-right text-gray-700">{{ a.horas_estimadas }}</td>
+            <td class="px-4 py-2 text-right" [class]="a.horas_distribuidas == a.horas_estimadas ? 'text-emerald-600' : 'text-amber-600'">
+              {{ a.horas_distribuidas }}
+            </td>
+            <td class="px-4 py-2 text-right whitespace-nowrap">
+              <button (click)="abrirHoras(a)" class="text-blue-600 hover:underline text-xs mr-3">Horas por fecha</button>
+              <button (click)="eliminarAsignacion(a)" class="text-red-600 hover:underline text-xs">Eliminar</button>
+            </td>
+          </tr>
+          <tr *ngIf="!asignaciones.length"><td colspan="5" class="px-4 py-6 text-center text-gray-400">Sin asignaciones.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Editor de horas por fecha -->
+    <div *ngIf="horasEditor" class="bg-white rounded-xl border-2 border-blue-300 p-4 space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="font-semibold text-gray-800">Horas estimadas por fecha</h3>
+        <span class="text-sm text-gray-600">Total: <b>{{ totalEditorHoras() }}</b> h</span>
+      </div>
+      <div class="space-y-2">
+        <div *ngFor="let f of horasEditor.filas; let i = index" class="flex items-center gap-2">
+          <input type="date" [(ngModel)]="f.fecha" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5" />
+          <input type="number" min="0" step="0.5" [(ngModel)]="f.horas" class="w-24 text-sm border border-gray-300 rounded-lg px-3 py-1.5" />
+          <span class="text-xs text-gray-500">horas</span>
+          <button (click)="quitarFilaHoras(i)" class="text-red-600 hover:underline text-xs">Quitar</button>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button (click)="agregarFilaHoras()" class="px-3 py-1.5 text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg">+ Agregar fecha</button>
+        <button (click)="guardarHoras()" [disabled]="guardandoHoras"
+                class="px-4 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50">
+          {{ guardandoHoras ? 'Guardando…' : 'Guardar horas' }}
+        </button>
+        <button (click)="horasEditor = null" class="px-4 py-1.5 text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== GANTT ==================== -->
+  <div *ngIf="tab === 'gantt'">
+    <app-gpi-gantt [proyectoId]="id"></app-gpi-gantt>
+  </div>
+
+  <!-- ==================== PARTES DE HORAS ==================== -->
+  <div *ngIf="tab === 'partes'" class="space-y-4">
+    <div class="bg-white rounded-xl border border-gray-200 p-4 flex flex-wrap items-end gap-3">
+      <div class="flex-1 min-w-[220px]">
+        <label class="block text-xs text-gray-500 font-medium mb-1">Asignación (actividad · recurso)</label>
+        <select [(ngModel)]="parteForm.idAsignacion" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+          <option [ngValue]="null">— Seleccione —</option>
+          <option *ngFor="let a of asignaciones" [ngValue]="a.id_asignacion">{{ a.actividad_nombre }} · {{ a.recurso_nombre }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Fecha</label>
+        <input type="date" [(ngModel)]="parteForm.fecha" class="text-sm border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Horas</label>
+        <input type="number" min="0" step="0.5" [(ngModel)]="parteForm.horas" class="w-24 text-sm border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+      <div class="flex-1 min-w-[180px]">
+        <label class="block text-xs text-gray-500 font-medium mb-1">Descripción</label>
+        <input [(ngModel)]="parteForm.descripcion" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+      <button (click)="crearParte()" class="px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg">Registrar horas</button>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-xs text-gray-500 uppercase tracking-wider border-b border-gray-200 bg-gray-50">
+            <th class="px-4 py-3">Fecha</th>
+            <th class="px-4 py-3">Actividad</th>
+            <th class="px-4 py-3">Recurso</th>
+            <th class="px-4 py-3 text-right">Horas</th>
+            <th class="px-4 py-3">Descripción</th>
+            <th class="px-4 py-3">Estado</th>
+            <th class="px-4 py-3"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <tr *ngFor="let p of partes" class="hover:bg-gray-50">
+            <td class="px-4 py-2 text-gray-500">{{ p.fecha | date:'dd/MM/yyyy' }}</td>
+            <td class="px-4 py-2 text-gray-800">{{ p.actividad_nombre }}</td>
+            <td class="px-4 py-2 text-gray-600">{{ p.recurso_nombre }}</td>
+            <td class="px-4 py-2 text-right text-gray-700">{{ p.horas }}</td>
+            <td class="px-4 py-2 text-gray-600">{{ p.descripcion || '—' }}</td>
+            <td class="px-4 py-2">
+              <span class="px-2 py-0.5 rounded-full text-xs"
+                    [class]="p.estado === 'aprobado' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'">{{ p.estado }}</span>
+            </td>
+            <td class="px-4 py-2 text-right">
+              <button *ngIf="p.estado !== 'aprobado'" (click)="aprobarParte(p)" class="text-blue-600 hover:underline text-xs">Aprobar</button>
+            </td>
+          </tr>
+          <tr *ngIf="!partes.length"><td colspan="7" class="px-4 py-6 text-center text-gray-400">Sin partes registrados.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ==================== CARGA POR RECURSO ==================== -->
+  <div *ngIf="tab === 'carga'">
+    <app-gpi-carga [proyectoId]="id"></app-gpi-carga>
+  </div>
+
+  <!-- ==================== CALENDARIO ==================== -->
+  <div *ngIf="tab === 'calendario'">
+    <app-gpi-calendario [proyectoId]="id"></app-gpi-calendario>
+  </div>
+</div>

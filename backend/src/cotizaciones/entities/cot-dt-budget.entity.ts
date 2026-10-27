@@ -45,6 +45,13 @@ export class CotDtBudget {
   @Column({ name: 'modalidad', type: 'varchar', length: 10, nullable: true })
   modalidad?: string | null;
 
+  /** Tarifa aplicada a la línea (snapshot de cot_tarifa). */
+  @Column({ name: 'id_tarifa', type: 'int', nullable: true })
+  idTarifa?: number | null;
+
+  @Column({ name: 'tarifa_aplicada', type: 'numeric', precision: 18, scale: 4, nullable: true })
+  tarifaAplicada?: number | null;
+
   @ManyToOne(() => Budget, (b) => b.detalles)
   @JoinColumn({ name: 'id_budget' })
   budget?: Budget;

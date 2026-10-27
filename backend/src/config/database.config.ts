@@ -24,6 +24,10 @@ import { CronProyecto } from '../sgh/entities/cron-proyecto.entity';
 import { CronHito } from '../sgh/entities/cron-hito.entity';
 import { CronSeguimiento } from '../sgh/entities/cron-seguimiento.entity';
 import { SghId } from '../sgh/entities/sgh-id.entity';
+import { ScrinActivity } from '../sgh/entities/scrin-activity.entity';
+import { ScrinSummary } from '../sgh/entities/scrin-summary.entity';
+import { ScrinProjectMap } from '../sgh/entities/scrin-project-map.entity';
+import { ActivityAttachment } from '../sgh/entities/activity-attachment.entity';
 import { CotClient } from '../cotizaciones/entities/cot-client.entity';
 import { Region } from '../cotizaciones/entities/region.entity';
 import { CotTemplate } from '../cotizaciones/entities/cot-template.entity';
@@ -33,6 +37,16 @@ import { CotBudgetHistory } from '../cotizaciones/entities/cot-budget-history.en
 import { Correlativo } from '../cotizaciones/entities/cot-correlativo.entity';
 import { CotEmpresa } from '../cotizaciones/entities/cot-empresa.entity';
 import { CotTasaIva } from '../cotizaciones/entities/cot-tasa-iva.entity';
+import { CotRangoUsuario } from '../cotizaciones/entities/cot-rango-usuario.entity';
+import { CotTarifa } from '../cotizaciones/entities/cot-tarifa.entity';
+import { AgenteSoporte } from '../soporte/entities/agente-soporte.entity';
+import { Ticket } from '../soporte/entities/ticket.entity';
+import { TicketMensaje } from '../soporte/entities/ticket-mensaje.entity';
+import { TicketHistorial } from '../soporte/entities/ticket-historial.entity';
+import { TicketAdjunto } from '../soporte/entities/ticket-adjunto.entity';
+import { TicketCategoria } from '../soporte/entities/ticket-categoria.entity';
+import { TicketGrupo } from '../soporte/entities/ticket-grupo.entity';
+import { TicketPoliticaSla } from '../soporte/entities/ticket-sla.entity';
 
 dotenv.config();
 
@@ -68,6 +82,10 @@ const databaseConfig: TypeOrmModuleOptions = {
     CronHito,
     CronSeguimiento,
     SghId,
+    ScrinActivity,
+    ScrinSummary,
+    ScrinProjectMap,
+    ActivityAttachment,
     CotClient,
     Region,
     CotTemplate,
@@ -77,6 +95,16 @@ const databaseConfig: TypeOrmModuleOptions = {
     Correlativo,
     CotEmpresa,
     CotTasaIva,
+    CotRangoUsuario,
+    CotTarifa,
+    AgenteSoporte,
+    Ticket,
+    TicketMensaje,
+    TicketHistorial,
+    TicketAdjunto,
+    TicketCategoria,
+    TicketGrupo,
+    TicketPoliticaSla,
   ],
   synchronize: false,
   logging: ['query', 'error'],

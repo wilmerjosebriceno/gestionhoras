@@ -3,3 +3,6 @@ dist/
 coverage/
 .env
 *.log
+
+# Documentos adjuntos de actividad (archivos subidos por usuarios)
+storage/actividades/

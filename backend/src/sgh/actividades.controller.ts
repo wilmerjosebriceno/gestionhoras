@@ -10,10 +10,15 @@
   Query,
   Req,
   Res,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { ActividadesService } from './actividades.service';
+import { ActivityAttachmentsService } from './activity-attachments.service';
 import { PdfReportsService } from './pdf-reports.service';
 import {
   CreateActividadDto,
@@ -26,6 +31,7 @@ import {
 export class ActividadesController {
   constructor(
     private readonly actividades: ActividadesService,
+    private readonly adjuntos: ActivityAttachmentsService,
     private readonly pdf: PdfReportsService,
   ) {}
 
@@ -57,6 +63,7 @@ export class ActividadesController {
     @Query('idProcess') idProcess?: string,
     @Query('idUser') idUser?: string,
     @Query('idClient') idClient?: string,
+    @Query('online') online?: string,
     @Req() req?: any,
   ) {
     const login = (req?.user as any)?.login;
@@ -67,6 +74,7 @@ export class ActividadesController {
       idProcess: idProcess ? Number(idProcess) : undefined,
       idUser: idUser ? Number(idUser) : undefined,
       idClient: idClient ? Number(idClient) : undefined,
+      online: online !== undefined && online !== '' ? Number(online) : undefined,
     }, login);
   }
 
@@ -83,6 +91,7 @@ export class ActividadesController {
     @Query('idProcess') idProcess?: string,
     @Query('idUser') idUser?: string,
     @Query('idClient') idClient?: string,
+    @Query('online') online?: string,
     @Req() req?: any,
     @Res() res?: Response,
   ) {
@@ -94,6 +103,7 @@ export class ActividadesController {
       idProcess: idProcess ? Number(idProcess) : undefined,
       idUser: idUser ? Number(idUser) : undefined,
       idClient: idClient ? Number(idClient) : undefined,
+      online: online !== undefined && online !== '' ? Number(online) : undefined,
     }, login);
     if (!res) return;
     const buf = await this.pdf.reporte(filas);
@@ -138,5 +148,50 @@ export class ActividadesController {
   remove(@Param('id', ParseIntPipe) id: number, @Req() req?: any) {
     const user = (req?.user as any) || {};
     return this.actividades.remove(id, user.login, user.adminUser === 1);
+  }
+
+  /* ==================== Documentos adjuntos ==================== */
+
+  /** Lista los adjuntos vigentes de la actividad. */
+  @Get(':id/attachments')
+  listarAdjuntos(@Param('id', ParseIntPipe) id: number) {
+    return this.adjuntos.listar(id);
+  }
+
+  /** Sube uno o varios archivos (PDF/JPG/PNG, campo `archivos`). */
+  @Post(':id/attachments')
+  @UseInterceptors(
+    FilesInterceptor('archivos', 10, {
+      storage: memoryStorage(),
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
+  adjuntar(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFiles() archivos: Express.Multer.File[],
+    @Req() req?: any,
+  ) {
+    const login = (req?.user as any)?.login;
+    return this.adjuntos.agregar(id, archivos ?? [], login);
+  }
+
+  /** Descarga un adjunto con sesión. */
+  @Get(':id/attachments/:adjuntoId')
+  async descargarAdjunto(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('adjuntoId', ParseIntPipe) adjuntoId: number,
+    @Res() res: Response,
+  ) {
+    const adjunto = await this.adjuntos.rutaDescarga(id, adjuntoId);
+    res.download(adjunto.ruta, adjunto.nombre);
+  }
+
+  /** Elimina un adjunto (baja lógica + borrado físico). */
+  @Delete(':id/attachments/:adjuntoId')
+  eliminarAdjunto(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('adjuntoId', ParseIntPipe) adjuntoId: number,
+  ) {
+    return this.adjuntos.eliminar(id, adjuntoId);
   }
 }

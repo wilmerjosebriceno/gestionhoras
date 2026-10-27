@@ -87,6 +87,53 @@ export class SwalService {
     }).then((r) => (r.isConfirmed && r.value ? String(r.value) : null));
   }
 
+  /**
+   * Diálogo con un textarea editable y hasta 3 acciones (para el auto-cierre
+   * desde Mantis). Devuelve la acción elegida y el texto editado.
+   */
+  confirmarConTexto(opciones: {
+    titulo: string;
+    html?: string;
+    valor?: string;
+    textoPrincipal: string;
+    textoSecundario?: string;
+    textoCancelar?: string;
+    icono?: SweetAlertIcon;
+  }): Promise<{ accion: 'principal' | 'secundario' | 'cancelar'; texto: string }> {
+    const id = 'swal_texto_accion';
+    const estilo =
+      'width:100%;box-sizing:border-box;margin:12px 0 0;height:230px;' +
+      'min-height:160px;max-height:55vh;resize:vertical;font-size:13px;line-height:1.45;';
+    const area =
+      `<textarea id="${id}" class="swal2-textarea" style="${estilo}">${opciones.valor ?? ''}</textarea>`;
+    const leer = () =>
+      (document.getElementById(id) as HTMLTextAreaElement | null)?.value ?? '';
+    return Swal.fire({
+      title: opciones.titulo,
+      html: (opciones.html ?? '') + area,
+      icon: opciones.icono,
+      width: '80%',
+      showDenyButton: !!opciones.textoSecundario,
+      showCancelButton: true,
+      confirmButtonText: opciones.textoPrincipal,
+      denyButtonText: opciones.textoSecundario,
+      cancelButtonText: opciones.textoCancelar ?? 'Más tarde',
+      confirmButtonColor: '#047857',
+      denyButtonColor: '#2563eb',
+      cancelButtonColor: '#6b7280',
+      focusConfirm: false,
+      didOpen: () => {
+        const ta = document.getElementById(id) as HTMLTextAreaElement | null;
+        ta?.focus();
+      },
+      preConfirm: leer,
+      preDeny: leer,
+    }).then((r) => ({
+      accion: r.isConfirmed ? 'principal' : r.isDenied ? 'secundario' : 'cancelar',
+      texto: typeof r.value === 'string' ? r.value : '',
+    }));
+  }
+
   cargando(titulo?: string): void {
     Swal.fire({
       title: titulo ?? 'Procesando...',

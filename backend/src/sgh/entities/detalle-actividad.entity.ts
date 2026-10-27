@@ -29,6 +29,10 @@ export class DetalleActividad {
   @Column({ name: 'mantis', type: 'varchar', length: 20, nullable: true })
   mantis?: string;
 
+  /** 1 = modalidad online · 0 = presencial (nulo se interpreta como presencial). */
+  @Column({ name: 'online', type: 'smallint', nullable: true, default: 0 })
+  online?: number;
+
   @ManyToOne(() => Actividad, (a) => a.detalles)
   @JoinColumn({ name: 'id_activity' })
   actividad?: Actividad;

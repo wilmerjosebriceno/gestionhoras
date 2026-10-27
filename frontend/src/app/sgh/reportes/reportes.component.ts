@@ -40,6 +40,8 @@ export class ReportesComponent implements OnInit {
   idProcess?: number;
   idClient?: number;
   idUser?: number;
+  /** Modalidad: 1 = online · 0 = presencial · undefined = todas */
+  online?: number;
 
   loading = false;
   filas: FilaReporte[] = [];
@@ -114,6 +116,7 @@ export class ReportesComponent implements OnInit {
     } else {
       this.idUser = this.miIdUser;
     }
+    this.online = undefined;
     this.filas = [];
     this.consultado = false;
   }
@@ -137,6 +140,7 @@ export class ReportesComponent implements OnInit {
         idType: this.idType,
         idProcess: this.idProcess,
         idClient: this.idClient,
+        online: this.online,
         idUser: this.esAdminReportes ? this.idUser : this.miIdUser,
       })
       .subscribe({
@@ -170,6 +174,7 @@ export class ReportesComponent implements OnInit {
         idType: this.idType,
         idProcess: this.idProcess,
         idClient: this.idClient,
+        online: this.online,
         idUser: this.esAdminReportes ? this.idUser : this.miIdUser,
       })
       .subscribe({

@@ -39,14 +39,25 @@ export class AyudaService {
       path.join(__dirname, 'ayuda', 'ayuda.json'),
       'C:\\xampp7\\htdocs\\gestionhoras\\backend\\ayuda\\ayuda.json', // fallback
     ];
+    // Se elige el archivo EXISTENTE mas reciente: asi, si conviven una copia
+    // vieja junto al proyecto y la empaquetada en dist (build nuevo), gana la
+    // mas actual. En desarrollo, el archivo del proyecto (recien editado) es
+    // el mas nuevo y por tanto el que se sirve.
+    let elegido: string | null = null;
+    let mtimeMs = -1;
     for (const archivo of candidatos) {
       try {
-        if (fs.existsSync(archivo)) return archivo;
+        if (!fs.existsSync(archivo)) continue;
+        const t = fs.statSync(archivo).mtimeMs;
+        if (t > mtimeMs) {
+          mtimeMs = t;
+          elegido = archivo;
+        }
       } catch {
         /* continuar */
       }
     }
-    return candidatos[0];
+    return elegido ?? candidatos[0];
   }
 
   private cargar(): Record<string, AyudaContenido> {

@@ -44,3 +44,10 @@ Thumbs.db
 .history/
 *.sublime-workspace
 *.sublime-project
+
+# ===== Archivos locales sensibles / temporales (NO versionar) =====
+token_soporte.txt
+backend/fix_soporte_test.js
+backend/storage/firmas/
+backend/storage/logos/
+/package-lock.json

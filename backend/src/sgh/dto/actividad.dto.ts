@@ -38,6 +38,11 @@ export class DetalleActividadRowDto {
   @IsString()
   @MaxLength(20)
   mantis?: string;
+
+  /** 1 = online · 0 = presencial. */
+  @IsOptional()
+  @IsInt()
+  online?: number;
 }
 
 export class CreateActividadDto {

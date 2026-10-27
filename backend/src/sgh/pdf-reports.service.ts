@@ -427,6 +427,177 @@ export class PdfReportsService {
     return this.buildBuffer(dd);
   }
 
+  /** Formato de habilitación de la generación de tickets vía web (por institución/cliente). */
+  async formatoHabilitacionCliente(cliente: any): Promise<Buffer> {
+    const logo = this.logos.getLogoDataUri(undefined);
+
+    const celdaEtq = (t: string) => ({
+      text: t,
+      bold: true,
+      color: '#334155',
+      fillColor: '#f1f5f9',
+      margin: [0, 6, 0, 6],
+    });
+    const celdaValor = (t: string) => ({ text: t || ' ', bold: true, margin: [0, 6, 0, 6] });
+    const celdaBlanca = () => ({ text: ' ', margin: [0, 12, 0, 12] });
+    const layoutTabla = {
+      hLineWidth: () => 0.5,
+      vLineWidth: () => 0.5,
+      hLineColor: () => '#cbd5e1',
+      vLineColor: () => '#cbd5e1',
+    };
+
+    const dd = {
+      pageSize: 'LETTER',
+      pageMargins: [48, 48, 48, 46],
+      defaultStyle: { font: 'Roboto', fontSize: 10, color: '#1e293b' },
+      content: [
+        ...(logo.existe && logo.dataUri
+          ? [{ image: logo.dataUri, width: 130, alignment: 'left', margin: [0, 0, 0, 6] }]
+          : [
+              {
+                text: 'SIGESP, C.A.',
+                bold: true,
+                fontSize: 16,
+                color: '#0f2f5f',
+                margin: [0, 0, 0, 6],
+              },
+            ]),
+        {
+          canvas: [
+            { type: 'line', x1: 0, y1: 0, x2: 516, y2: 0, lineWidth: 1.2, lineColor: '#0f2f5f' },
+          ],
+          margin: [0, 0, 0, 14],
+        },
+        {
+          text: 'FORMATO DE HABILITACIÓN',
+          bold: true,
+          fontSize: 15,
+          color: '#0f2f5f',
+          alignment: 'center',
+        },
+        {
+          text: 'Generación de Tickets vía Página Web',
+          fontSize: 11,
+          color: '#475569',
+          alignment: 'center',
+          margin: [0, 2, 0, 4],
+        },
+        {
+          text: `Fecha de emisión: ${this.fecha(new Date().toISOString())}`,
+          alignment: 'right',
+          fontSize: 9,
+          color: '#64748b',
+          margin: [0, 0, 0, 18],
+        },
+
+        {
+          text: 'Datos de la institución',
+          bold: true,
+          fontSize: 12,
+          color: '#0f2f5f',
+          margin: [0, 0, 0, 8],
+        },
+        {
+          table: {
+            widths: [150, '*'],
+            body: [
+              [celdaEtq('Razón social'), celdaValor(cliente?.name ?? '')],
+              [celdaEtq('RIF'), celdaValor(cliente?.rif ?? '')],
+            ],
+          },
+          layout: layoutTabla,
+          margin: [0, 0, 0, 18],
+        },
+
+        {
+          text: 'Datos de contacto a registrar',
+          bold: true,
+          fontSize: 12,
+          color: '#0f2f5f',
+          margin: [0, 0, 0, 2],
+        },
+        { text: 'Complete los siguientes campos:', fontSize: 9, color: '#64748b', margin: [0, 0, 0, 8] },
+        {
+          table: {
+            widths: [150, '*'],
+            body: [
+              [celdaEtq('Contacto'), celdaBlanca()],
+              [celdaEtq('Teléfono de contacto'), celdaBlanca()],
+              [celdaEtq('Correo electrónico'), celdaBlanca()],
+            ],
+          },
+          layout: layoutTabla,
+          margin: [0, 0, 0, 20],
+        },
+
+        {
+          text: 'Por medio del presente, la institución arriba identificada formaliza la habilitación del proceso de generación de tickets a través de la página web de la Mesa de Ayuda de SIGESP, y designa los datos de contacto indicados para la gestión y notificación de sus incidencias y requerimientos.',
+          fontSize: 10,
+          alignment: 'justify',
+          lineHeight: 1.4,
+          margin: [0, 0, 0, 28],
+        },
+
+        {
+          text: 'Conformidad de la institución',
+          bold: true,
+          fontSize: 12,
+          color: '#0f2f5f',
+          margin: [0, 0, 0, 28],
+        },
+        {
+          columns: [
+            {
+              width: '50%',
+              stack: [
+                {
+                  canvas: [
+                    { type: 'line', x1: 0, y1: 0, x2: 210, y2: 0, lineWidth: 0.8, lineColor: '#94a3b8' },
+                  ],
+                },
+                { text: 'Nombre y apellido', fontSize: 9, color: '#64748b', margin: [0, 4, 0, 0] },
+                { text: 'C.I.: ____________________', fontSize: 9, color: '#64748b', margin: [0, 12, 0, 0] },
+                { text: 'Cargo: ___________________', fontSize: 9, color: '#64748b', margin: [0, 10, 0, 0] },
+              ],
+            },
+            {
+              width: '50%',
+              stack: [
+                {
+                  canvas: [
+                    { type: 'line', x1: 0, y1: 0, x2: 210, y2: 0, lineWidth: 0.8, lineColor: '#94a3b8' },
+                  ],
+                },
+                { text: 'Firma y sello', fontSize: 9, color: '#64748b', margin: [0, 4, 0, 0] },
+                { text: 'Fecha: __________________', fontSize: 9, color: '#64748b', margin: [0, 12, 0, 0] },
+              ],
+            },
+          ],
+        },
+      ],
+      footer: (currentPage: number, pageCount: number) => ({
+        columns: [
+          {
+            text: 'SIGESP, C.A. · Mesa de Ayuda y Soporte · soporte@sigesp.com.ve',
+            fontSize: 8,
+            color: '#94a3b8',
+            margin: [48, 0, 0, 0],
+          },
+          {
+            text: `Página ${currentPage} de ${pageCount}`,
+            fontSize: 8,
+            color: '#94a3b8',
+            alignment: 'right',
+            margin: [0, 0, 48, 0],
+          },
+        ],
+      }),
+    };
+
+    return this.buildBuffer(dd);
+  }
+
   private horaActual(): string {
     const d = new Date();
     const p = (n: number) => String(n).padStart(2, '0');

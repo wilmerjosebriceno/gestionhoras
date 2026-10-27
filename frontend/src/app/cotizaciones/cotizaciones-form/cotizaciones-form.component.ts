@@ -2,7 +2,7 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { CotizacionesService } from '../services/cotizaciones.service';
-import { CotClient, CotRegion, CotTemplate, CotEmpresa, CotTasaIva, Budget, ESTADOS_BUDGET } from '../models/cotizacion.model';
+import { CotClient, CotRegion, CotTemplate, CotEmpresa, CotTasaIva, Budget, ESTADOS_BUDGET, CotRangoUsuario, CotTarifa } from '../models/cotizacion.model';
 import { SwalService } from '../../core/services/swal.service';
 
 @Component({
@@ -26,6 +26,9 @@ export class CotizacionesFormComponent implements OnInit {
   plantillas: CotTemplate[] = [];
   empresas: CotEmpresa[] = [];
   tasas: CotTasaIva[] = [];
+  rangos: CotRangoUsuario[] = [];
+  tarifas: CotTarifa[] = [];
+  rangoActual: CotRangoUsuario | null = null;
   ivaLabel = 'IVA (0%)';
   estados = ESTADOS_BUDGET;
   loadingCatalogos = false;
@@ -58,12 +61,16 @@ export class CotizacionesFormComponent implements OnInit {
       plantillas: this.service.listarPlantillas(),
       empresas: this.service.listarEmpresas(),
       tasas: this.service.listarTasas(),
-    }).subscribe(({ clientes, regiones, plantillas, empresas, tasas }) => {
+      rangos: this.service.listarRangos(),
+      tarifas: this.service.listarTarifas(),
+    }).subscribe(({ clientes, regiones, plantillas, empresas, tasas, rangos, tarifas }) => {
       this.clientes = clientes;
       this.regiones = regiones;
       this.plantillas = plantillas;
       this.empresas = empresas;
       this.tasas = tasas;
+      this.rangos = rangos;
+      this.tarifas = tarifas;
 
       if (this.id) {
         this.service.getBudget(this.id).subscribe((b) => {
@@ -71,13 +78,25 @@ export class CotizacionesFormComponent implements OnInit {
           this.budget.detalles = b.detalles?.map((d) => ({ ...d }));
           // En una cotización existente el vencimiento ya está definido: no se recalcula solo.
           this.vencimientoAuto = false;
+          this.rangoActual = this.resolverRangoLocal(this.budget.nroUser);
           const cli = this.clientes.find((c) => c.idClient === b.idClient) || null;
           if (cli) { this.clienteSeleccionado = cli; this.filtroCliente = cli.nameClient || ''; }
         });
       } else {
         // Nueva cotización: siempre inicia en estado BORRADOR
         this.budget.status = 0;
-        this.agregarLinea();
+        // Carga automática en el detalle de las plantillas INI y ADM (en ese orden)
+        const iniciales = this.plantillas
+          .filter((t) => ['INI', 'ADM'].includes((t.code || '').trim().toUpperCase()))
+          .sort((a, b) => {
+            const orden: Record<string, number> = { INI: 0, ADM: 1 };
+            return (orden[(a.code || '').trim().toUpperCase()] ?? 9) - (orden[(b.code || '').trim().toUpperCase()] ?? 9);
+          });
+        if (iniciales.length) {
+          iniciales.forEach((t) => this.agregarLineaPlantilla(t.idTemplate));
+        } else {
+          this.agregarLinea();
+        }
       }
     });
   }
@@ -162,40 +181,58 @@ export class CotizacionesFormComponent implements OnInit {
     this.vencimientoAuto = false;
   }
 
-  /** Tasa por defecto: ALÍCUOTA REDUCIDA (8%) o la primera activa distinta de 0%. */  tasaPorDefecto(): number | undefined {
-    const def = this.tasas.find((t) => Number(t.porcentaje) === 8 && t.activo === 1)
-      || this.tasas.find((t) => Number(t.porcentaje) > 0 && t.activo === 1)
-      || this.tasas.find((t) => t.activo === 1);
-    const defaultTax = this.tasas.find((t) => Number(t.porcentaje) === 8);
-    return (def?.idTasaIva ?? defaultTax?.idTasaIva);
+  /** Tasa por defecto: la alícuota más alta activa (IVA 16%). */
+  tasaPorDefecto(): number | undefined {
+    const activas = this.tasas.filter((t) => t.activo === 1);
+    const pool = activas.length ? activas : this.tasas;
+    if (!pool.length) return undefined;
+    const mayor = pool.reduce((max, t) => (Number(t.porcentaje) > Number(max.porcentaje) ? t : max));
+    return mayor?.idTasaIva;
+  }
+
+  /** % de IVA asociado a una tasa del catálogo. */
+  porcentajeTasa(idTasaIva?: number): number {
+    const t = this.tasas.find((x) => x.idTasaIva === idTasaIva);
+    return Number(t?.porcentaje ?? 0) || 0;
   }
 
   /** Región por defecto: CENTRAL (si existe y está activa). */
   regionCentral(): number | undefined {
-    const r = this.regiones.find((x) => (x.name || '').toUpperCase().includes('CENTRAL')) || this.regiones[0];
+    const norm = (s?: string | null) => (s || '').toUpperCase().replace(/\s+/g, ' ').trim();
+    const r = this.regiones.find((x) => norm(x.name).includes('CENTRAL')) || this.regiones[0];
     return r?.idRegion;
   }
 
   agregarLinea(): void {
     const idRegion = this.regionCentral();
+    const idTasaIva = this.tasaPorDefecto();
     const d = {
       idTemplate: undefined as any,
       idRegion: idRegion ?? (undefined as any),
       modalidad: 'PRESENCIAL',
       quantity: 0,
       price: 0,
-      tax: 8,
-      idTasaIva: this.tasaPorDefecto(),
+      tax: this.porcentajeTasa(idTasaIva) || 16,
+      idTasaIva,
       description: '',
     };
     if (!this.budget.detalles) this.budget.detalles = [];
     this.budget.detalles.push(d as any);
-    this.calcularTotales();
+    this.aplicarTarifa(d as any);
   }
 
   quitarLinea(i: number): void {
     this.budget.detalles?.splice(i, 1);
     this.calcularTotales();
+  }
+
+  /** Agrega una línea al detalle a partir de una plantilla (precio/horas/descripción, IVA 16% y región CENTRAL). */
+  agregarLineaPlantilla(idTemplate: number): void {
+    this.agregarLinea();
+    const d = this.budget.detalles?.[this.budget.detalles.length - 1];
+    if (!d) return;
+    d.idTemplate = idTemplate;
+    this.onPlantillaCambia(d);
   }
 
   /** Auto-precio por plantilla o región al cambiar plantilla. */
@@ -208,13 +245,60 @@ export class CotizacionesFormComponent implements OnInit {
       // Copia el texto del concepto (multilinea) de la plantilla a la descripcion del detalle
       if (tpl.name) d.description = tpl.name;
     }
-    // Valores por defecto: alícuota reducida (8%) y región CENTRAL
-    if (!d.idTasaIva) d.idTasaIva = this.tasaPorDefecto();
-    if (!d.idRegion) d.idRegion = this.regionCentral();
-    this.calcularTotales();
+    // Obligatorio al elegir plantilla: IVA 16% (alícuota más alta) y región CENTRAL
+    const idTasaIva = this.tasaPorDefecto();
+    if (idTasaIva != null) {
+      d.idTasaIva = idTasaIva;
+      d.tax = this.porcentajeTasa(idTasaIva);
+    }
+    const idRegion = this.regionCentral();
+    if (idRegion != null) d.idRegion = idRegion;
+    this.aplicarTarifa(d);
   }
   onRegionCambia(d: any): void {
-    const reg = this.regiones.find((r) => r.idRegion === d.idRegion);
+    this.aplicarTarifa(d);
+  }
+
+  onModalidadCambia(d: any): void {
+    this.aplicarTarifa(d);
+  }
+
+  /** Rango local (desde/hasta) que contiene el nro de usuarios. */
+  private resolverRangoLocal(nroUser?: number | null): CotRangoUsuario | null {
+    const n = Number(nroUser);
+    if (!n) return null;
+    return this.rangos.find((r) => r.desde <= n && n <= r.hasta) ?? null;
+  }
+
+  /**
+   * Resuelve la tarifa de una línea con: nro_user (cabecera) + región + modalidad.
+   * Si la cotización no tiene nro_user, cae al precio de la región (legacy).
+   */
+  aplicarTarifa(d: any): void {
+    const nroUser = Number(this.budget.nroUser) || null;
+    const rango = this.resolverRangoLocal(nroUser);
+    d.sinTarifa = false;
+    if (nroUser) {
+      // Con N° de usuarios debe existir tarifa (región + rango + modalidad)
+      if (rango && d.idRegion && d.modalidad) {
+        const tar = this.tarifas.find(
+          (t) =>
+            Number(t.idRegion) === Number(d.idRegion) &&
+            Number(t.idRango) === Number(rango.idRango) &&
+            String(t.modalidad).toUpperCase() === String(d.modalidad).toUpperCase(),
+        );
+        if (tar) {
+          d.idTarifa = tar.idTarifa;
+          d.tarifaAplicada = Number(tar.tarifa);
+          d.price = Number(tar.tarifa);
+          this.calcularTotales();
+          return;
+        }
+      }
+      d.sinTarifa = true; // no hay rango o no hay tarifa para la combinación
+    }
+    // Respaldo (legacy / sin tarifa): precio de la región (presencial/online)
+    const reg = this.regiones.find((r) => Number(r.idRegion) === Number(d.idRegion));
     if (reg) {
       const esOnline = String(d.modalidad || '').toUpperCase() === 'ONLINE';
       d.price = esOnline ? (reg.priceOnline ?? reg.price) : reg.price;
@@ -222,13 +306,16 @@ export class CotizacionesFormComponent implements OnInit {
     this.calcularTotales();
   }
 
-  onModalidadCambia(d: any): void {
-    // Al cambiar la modalidad, aplica el precio de la region correspondiente
-    const reg = this.regiones.find((r) => r.idRegion === d.idRegion);
-    if (reg) {
-      const esOnline = String(d.modalidad || '').toUpperCase() === 'ONLINE';
-      d.price = esOnline ? (reg.priceOnline ?? reg.price) : reg.price;
-    }
+  /** true si alguna línea no tiene tarifa definida para su combinación. */
+  hayLineasSinTarifa(): boolean {
+    return (this.budget.detalles || []).some((d: any) => d.sinTarifa === true);
+  }
+
+  /** Al cambiar el N° de usuarios: resuelve el rango y reaplica la tarifa a todas las líneas. */
+  onNroUserCambia(): void {
+    this.rangoActual = this.resolverRangoLocal(this.budget.nroUser);
+    this.budget.idRango = this.rangoActual?.idRango ?? null;
+    (this.budget.detalles || []).forEach((d) => this.aplicarTarifa(d));
     this.calcularTotales();
   }
 
@@ -270,11 +357,12 @@ export class CotizacionesFormComponent implements OnInit {
     this.ivaLabel = rates.length === 0 ? 'IVA (0%)'
       : rates.length === 1 ? `IVA (${rates[0]}%)`
       : `IVA (${rates.map((r) => `${r}%`).join(' + ')})`;
-    this.budget.montoSubtotal = subtotal;
-    this.budget.montoExento = subtotal - base;
-    this.budget.montoBaseImponible = base;
-    this.budget.montoIva = iva;
-    this.budget.montoTotal = base + iva;
+    const r4 = (n: number) => Math.round((Number(n) || 0) * 10000) / 10000;
+    this.budget.montoSubtotal = r4(subtotal);
+    this.budget.montoExento = r4(subtotal - base);
+    this.budget.montoBaseImponible = r4(base);
+    this.budget.montoIva = r4(iva);
+    this.budget.montoTotal = r4(base + iva);
   }
 
   guardar(): void {
@@ -286,6 +374,8 @@ export class CotizacionesFormComponent implements OnInit {
       vencimiento: this.budget.vencimiento,
       idClient: this.budget.idClient,
       idEmpresa: this.budget.idEmpresa,
+      nroUser: this.budget.nroUser ?? undefined,
+      idRango: this.budget.idRango ?? undefined,
       note: this.budget.note,
       soporte: this.budget.soporte,
       modalidad: this.budget.modalidad,
@@ -301,9 +391,9 @@ export class CotizacionesFormComponent implements OnInit {
         secuencia: d.secuencia ?? i,
         idRegion: d.idRegion ? Number(d.idRegion) : undefined,
         modalidad: d.modalidad,
-        quantity: Number(d.quantity) || 0,
-        price: Number(d.price) || 0,
-        tax: Number(d.tax) || 0,
+        quantity: Math.round((Number(d.quantity) || 0) * 100) / 100,
+        price: Math.round((Number(d.price) || 0) * 10000) / 10000,
+        tax: Math.round(Number(d.tax) || 0),
         idTasaIva: d.idTasaIva != null ? Number(d.idTasaIva) : undefined,
         description: d.description,
       })),

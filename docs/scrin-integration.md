@@ -72,6 +72,8 @@ Documentada en `https://scrin.io/apidoc/` (base `/api/v2`, header `X-SSM-Token`)
 > - Método **`POST`** (usar `GET` devuelve **500**).
 > - Header **`X-SSM-Token: <token>`**.
 > - Header **`Content-Type: application/json`** (sin él, devuelve **500**).
+> - Header **`Accept: application/json`** (sin él, devuelve **500**). Crítico al usar
+>   clientes HTTP como el `fetch` de Node, cuyo `Accept` por defecto (`*/*`) provoca el 500.
 >
 > Con `body: {}` (correcto para `GetCommonData`) y estos headers, responde **200 OK**.
 
@@ -408,8 +410,9 @@ Manejo de errores: si una cuenta falla, registrar el error y continuar con la si
 > aquí como `<SCRIN_TOKEN>`). No comitear el token real al repo.
 >
 > **Todos los endpoints v2 son `POST` y requieren dos headers:** `X-SSM-Token` y
-> `Content-Type: application/json`. Sin `Content-Type: application/json` el servidor
-> responde **500 Server Error** (verificado). `GetCommonData` usa `body: {}`.
+> `Content-Type: application/json` (+ `Accept: application/json`). Sin `Content-Type: application/json`
+> o sin `Accept: application/json` el servidor responde **500 Server Error** (verificado).
+> `GetCommonData` usa `body: {}`.
 
 ### 10.1 Empresa / catálogo completo — `GetCommonData`
 

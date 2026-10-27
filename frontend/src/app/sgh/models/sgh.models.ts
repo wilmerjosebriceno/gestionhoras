@@ -36,6 +36,8 @@ export interface Cliente {
   contacName?: string;
   creation: Date | string;
   active: number;
+  mantenimiento?: number;
+  idMantisProyect?: number;
 }
 
 export interface UsuarioSgh {
@@ -47,6 +49,10 @@ export interface UsuarioSgh {
   creation: Date | string;
   active: number;
   rol?: string;
+  scrinCompanyId?: number | null;
+  scrinEmploymentId?: number | null;
+  hasScrinToken?: boolean;
+  tokenPreview?: string | null;
 }
 
 export interface EstructuraFila {
@@ -101,6 +107,18 @@ export interface DetalleActividadRow {
   hours: number;
   note?: string;
   mantis?: string;
+  /** 1 = modalidad online · 0 = presencial */
+  online?: number;
+}
+
+export interface ActividadAttachment {
+  id: number;
+  idActivity: number;
+  filename: string;
+  mimetype: string;
+  sizeBytes: number;
+  createdAt: string;
+  uploadedBy?: number | null;
 }
 
 export interface Actividad {
@@ -123,6 +141,8 @@ export interface Actividad {
   cliente?: Cliente;
   detalles?: DetalleActividadRow[];
   metadata?: Array<{ id: number; idActivity: number; file: string }>;
+  /** N.º de adjuntos vigentes (solo lo entrega el listado). */
+  adjuntosCount?: number;
 }
 
 export interface Fase {

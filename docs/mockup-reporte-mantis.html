@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mockup · Reporte PDF de Casos Mantis</title>
+<style>
+  :root {
+    --brand: #0F2F5F;
+    --brand2: #2E6FBF;
+    --line: #E2E8F0;
+    --soft: #F1F5F9;
+    --muted: #64748B;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #e9eef5;
+    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+    color: #0f172a;
+    padding: 24px 12px 60px;
+  }
+  .toolbar {
+    max-width: 900px; margin: 0 auto 14px; display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; color: #475569;
+  }
+  .toolbar button {
+    border: 1px solid #cbd5e1; background: #fff; color: #334155; border-radius: 8px;
+    padding: 8px 14px; font-size: 13px; cursor: pointer;
+  }
+  .page {
+    max-width: 900px; margin: 0 auto; background: #fff; border-radius: 10px;
+    box-shadow: 0 12px 30px rgba(15, 47, 95, .18); overflow: hidden;
+  }
+  /* Encabezado */
+  .head {
+    background: linear-gradient(135deg, var(--brand), #16407c);
+    color: #fff; padding: 22px 28px 18px;
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;
+  }
+  .brand-name { font-size: 20px; font-weight: 700; letter-spacing: .3px; }
+  .brand-sub { color: #9fc0e8; font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; margin-top: 2px; }
+  .report-title { margin: 14px 0 2px; font-size: 15px; font-weight: 600; color: #dbeafe; }
+  .logo {
+    border: 2px dashed rgba(255,255,255,.45); border-radius: 8px;
+    padding: 10px 16px; font-size: 11px; color: #cfe0f5; text-align: center; white-space: nowrap;
+  }
+  .meta {
+    padding: 12px 28px; background: #f8fafc; border-bottom: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 8px 26px; font-size: 12px; color: #334155;
+  }
+  .meta b { color: var(--brand); }
+  /* KPIs */
+  .kpis { display: flex; flex-wrap: wrap; gap: 10px; padding: 16px 28px 6px; }
+  .kpi {
+    border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; min-width: 96px;
+    background: #fff;
+  }
+  .kpi .n { font-size: 18px; font-weight: 700; color: var(--brand); }
+  .kpi .l { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+  .chips { padding: 4px 28px 16px; display: flex; flex-wrap: wrap; gap: 8px; font-size: 11.5px; color: #475569; }
+  .chip { border: 1px solid var(--line); border-radius: 30px; padding: 3px 10px; background: var(--soft); }
+  /* Tabla */
+  .wrap { padding: 0 28px 22px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead th {
+    background: var(--brand); color: #fff; text-align: left; padding: 8px 10px;
+    font-weight: 600; font-size: 11px; letter-spacing: .3px;
+  }
+  tbody td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr.case { background: #fbfdff; }
+  tr.case:nth-child(4n+1) { background: #f7fafd; }
+  .id { font-weight: 700; color: var(--brand); white-space: nowrap; }
+  .fecha { white-space: nowrap; color: #475569; }
+  .asunto { font-weight: 600; color: #0f172a; }
+  .pill { display: inline-block; border-radius: 20px; padding: 2px 9px; font-size: 10.5px; font-weight: 600; }
+  .p-assigned { background: #fef3c7; color: #92400e; }
+  .p-new { background: #dbeafe; color: #1e40af; }
+  .p-resolved { background: #d1fae5; color: #065f46; }
+  .pri-high { background: #fee2e2; color: #991b1b; }
+  .pri-normal { background: #e2e8f0; color: #334155; }
+  .pri-low { background: #ede9fe; color: #5b21b6; }
+  /* Comentarios */
+  tr.note td { border-bottom: 1px solid #eef2f7; background: #fff; padding: 5px 10px 5px 26px; }
+  .note-line { font-size: 11px; color: #55657a; display: flex; gap: 8px; align-items: baseline; }
+  .note-line .arrow { color: #94a3b8; }
+  .note-line .who { color: var(--brand2); font-weight: 600; white-space: nowrap; }
+  .note-line .when { color: #94a3b8; white-space: nowrap; }
+  .note-line .txt { color: #64748b; }
+  .note-line .txt::before { content: "· "; color: #cbd5e1; }
+  .empty { font-size: 11px; color: #cbd5e1; padding-left: 26px; }
+  /* Pie */
+  .foot {
+    border-top: 1px solid var(--line); padding: 10px 28px; display: flex; justify-content: space-between;
+    font-size: 10.5px; color: #94a3b8; background: #f8fafc;
+  }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .toolbar { display: none; }
+    .page { box-shadow: none; border-radius: 0; max-width: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="toolbar">
+    <span>Mockup de presentación — así se vería el <b>Reporte PDF de Casos Mantis</b>.</span>
+    <button onclick="window.print()">🖨 Imprimir / Guardar PDF</button>
+  </div>
+
+  <div class="page">
+    <!-- Encabezado -->
+    <div class="head">
+      <div>
+        <div class="brand-name">SIGESP, C.A.</div>
+        <div class="brand-sub">Mesa de Ayuda y Soporte</div>
+        <div class="report-title">REPORTE DE CASOS · MANTIS</div>
+      </div>
+      <div class="logo">[ LOGO ]</div>
+    </div>
+
+    <div class="meta">
+      <span>Proyecto: <b>TELECOM</b></span>
+      <span>Período: <b>01/09/2026 – 30/09/2026</b></span>
+      <span>Responsable: <b>Todos</b></span>
+      <span>Generado: <b>08/10/2026 10:30</b></span>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpis">
+      <div class="kpi"><div class="n">42</div><div class="l">Total</div></div>
+      <div class="kpi"><div class="n">18</div><div class="l">Abiertos</div></div>
+      <div class="kpi"><div class="n">24</div><div class="l">Cerrados</div></div>
+      <div class="kpi"><div class="n">5</div><div class="l">Sin asignar</div></div>
+      <div class="kpi"><div class="n">3,4 d</div><div class="l">MTTR</div></div>
+    </div>
+    <div class="chips">
+      <span class="chip">Prioridad Alta: 9</span>
+      <span class="chip">Media: 21</span>
+      <span class="chip">Baja: 12</span>
+      <span class="chip">Estatus assigned: 11</span>
+      <span class="chip">new: 4</span>
+      <span class="chip">resolved: 24</span>
+    </div>
+
+    <!-- Detalle -->
+    <div class="wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:70px;">#Mantis</th>
+            <th style="width:96px;">Fecha / Hora</th>
+            <th style="width:120px;">Proyecto</th>
+            <th>Asunto</th>
+            <th style="width:98px;">Estatus</th>
+            <th style="width:88px;">Prioridad</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Caso 1 -->
+          <tr class="case">
+            <td class="id">#12345</td>
+            <td class="fecha">12/09 14:05</td>
+            <td>TELECOM</td>
+            <td><span class="asunto">Error al generar reporte de facturación</span><br>
+              <span style="font-size:11px;color:#64748b;">Responsable: Juan Pérez</span></td>
+            <td><span class="pill p-assigned">assigned</span></td>
+            <td><span class="pill pri-high">high</span></td>
+          </tr>
+          <tr class="note"><td colspan="6">
+            <div class="note-line"><span class="arrow">↳</span><span class="when">12/09 14:30</span><span class="who">Juan Pérez</span><span class="txt">Se revisó el log; el fallo viene del servicio de impresión en el servidor de facturación.</span></div>
+          </td></tr>
+          <tr class="note"><td colspan="6">
+            <div class="note-line"><span class="arrow">↳</span><span class="when">13/09 09:12</span><span class="who">María López</span><span class="txt">Aplicado parche en la cola de impresión; pendiente validación con el usuario.</span></div>
+          </td></tr>
+          <tr class="note"><td colspan="6">
+            <div class="note-line"><span class="arrow">↳</span><span class="when">13/09 16:40</span><span class="who">Juan Pérez</span><span class="txt">Validado en producción. Se solicita cerrar el caso.</span></div>
+          </td></tr>
+
+          <!-- Caso 2 -->
+          <tr class="case">
+            <td class="id">#12360</td>
+            <td class="fecha">15/09 09:40</td>
+            <td>TELECOM</td>
+            <td><span class="asunto">Solicitud de nuevo usuario en módulo comercial</span><br>
+              <span style="font-size:11px;color:#64748b;">Responsable: María Roa</span></td>
+            <td><span class="pill p-new">new</span></td>
+            <td><span class="pill pri-normal">normal</span></td>
+          </tr>
+          <tr class="note"><td colspan="6">
+            <div class="note-line"><span class="arrow">↳</span><span class="when">15/09 10:05</span><span class="who">María Roa</span><span class="txt">Pendiente validación de la lista de permisos solicitada por el cliente.</span></div>
+          </td></tr>
+
+          <!-- Caso 3 -->
+          <tr class="case">
+            <td class="id">#12392</td>
+            <td class="fecha">22/09 11:15</td>
+            <td>TELECOM</td>
+            <td><span class="asunto">Ajuste de formato en nota de entrega</span><br>
+              <span style="font-size:11px;color:#64748b;">Responsable: Carlos Gómez</span></td>
+            <td><span class="pill p-resolved">resolved</span></td>
+            <td><span class="pill pri-low">low</span></td>
+          </tr>
+          <tr class="note"><td colspan="6">
+            <div class="note-line"><span class="arrow">↳</span><span class="when">22/09 15:48</span><span class="who">Carlos Gómez</span><span class="txt">Se modificó la plantilla y se probó en ambiente de pruebas sin errores.</span></div>
+          </td></tr>
+          <tr class="note"><td colspan="6">
+            <div class="note-line"><span class="arrow">↳</span><span class="when">23/09 08:20</span><span class="who">Carlos Gómez</span><span class="txt">Conforme el cliente. Caso resuelto.</span></div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="foot">
+      <span>Página 1 de 1</span>
+      <span>SIGESP · Reporte generado por el sistema · Dashboard Mantis</span>
+    </div>
+  </div>
+</body>
+</html>

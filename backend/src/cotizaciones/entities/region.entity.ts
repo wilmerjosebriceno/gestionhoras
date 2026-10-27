@@ -12,6 +12,9 @@ export class Region {
   @Column({ name: 'name', type: 'varchar', length: 100, nullable: true })
   name?: string | null;
 
+  @Column({ name: 'code', type: 'varchar', length: 20, nullable: true })
+  code?: string | null;
+
   @Column({ name: 'description', type: 'varchar', length: 500, nullable: true })
   description?: string | null;
 

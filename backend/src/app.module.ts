@@ -12,7 +12,11 @@ import { AuditoriaModule } from './auditoria/auditoria.module';
 import { SistemasModule } from './sistemas/sistemas.module';
 import { SghModule } from './sgh/sgh.module';
 import { CotizacionesModule } from './cotizaciones/cotizaciones.module';
+import { AgenteModule } from './agente/agente.module';
 import { AyudaModule } from './ayuda/ayuda.module';
+import { MantisModule } from './mantis/mantis.module';
+import { SoporteModule } from './soporte/soporte.module';
+import { GpiModule } from './gpi/gpi.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RequiereAdminGuard } from './common/guards/requiere-admin.guard';
 import { PermisosGuard } from './common/guards/permisos.guard';
@@ -35,7 +39,11 @@ import { AllExceptionsFilter } from './common/filters/http-exception.filter';
     SistemasModule,
     SghModule,
     CotizacionesModule,
+    AgenteModule,
     AyudaModule,
+    MantisModule,
+    SoporteModule,
+    GpiModule,
   ],
   providers: [
     {

@@ -5,7 +5,7 @@ import { CotizacionesService } from './cotizaciones.service';
 import { PdfCotizacionService } from './pdf-cotizacion.service';
 import { MailService } from './mail.service';
 import { CreateBudgetDto } from './dto/budget.dto';
-import { CreateCotClientDto, CreateRegionDto, CreateCotTemplateDto, CreateEmpresaDto, CreateTasaIvaDto } from './dto/master.dto';
+import { CreateCotClientDto, CreateRegionDto, CreateCotTemplateDto, CreateEmpresaDto, CreateTasaIvaDto, CreateRangoUsuarioDto, CreateTarifaDto } from './dto/master.dto';
 
 @ApiTags('Cotizaciones')
 @Controller('cotizaciones')
@@ -53,8 +53,8 @@ export class CotizacionesController {
   /* ---- Regiones ---- */
   @Get('regiones')
   @ApiOperation({ summary: 'Listar regiones' })
-  regiones() {
-    return this.service.listarRegiones();
+  regiones(@Query('incluirInactivos') incluirInactivos?: string) {
+    return this.service.listarRegiones(incluirInactivos === 'true');
   }
   @Post('regiones')
   @ApiOperation({ summary: 'Crear región' })
@@ -126,6 +126,66 @@ export class CotizacionesController {
   @ApiOperation({ summary: 'Actualizar tasa de IVA' })
   actualizarTasa(@Param('id', ParseIntPipe) id: number, @Body() dto: CreateTasaIvaDto) {
     return this.service.actualizarTasa(id, dto);
+  }
+
+  /* ---- Rangos de usuarios ---- */
+  @Get('rangos')
+  @ApiOperation({ summary: 'Listar rangos de usuarios (desde/hasta)' })
+  rangos() {
+    return this.service.listarRangos();
+  }
+  @Post('rangos')
+  @ApiOperation({ summary: 'Crear rango de usuarios' })
+  crearRango(@Body() dto: CreateRangoUsuarioDto) {
+    return this.service.crearRango(dto);
+  }
+  @Put('rangos/:id')
+  @ApiOperation({ summary: 'Actualizar rango de usuarios' })
+  actualizarRango(@Param('id', ParseIntPipe) id: number, @Body() dto: CreateRangoUsuarioDto) {
+    return this.service.actualizarRango(id, dto);
+  }
+  @Delete('rangos/:id')
+  @ApiOperation({ summary: 'Eliminar rango de usuarios' })
+  eliminarRango(@Param('id', ParseIntPipe) id: number) {
+    return this.service.eliminarRango(id);
+  }
+
+  /* ---- Tarifas (región + rango + modalidad) ---- */
+  @Get('tarifas')
+  @ApiOperation({ summary: 'Listar tarifas' })
+  tarifas(@Query('incluirInactivos') incluirInactivos?: string) {
+    return this.service.listarTarifas(incluirInactivos === 'true' || incluirInactivos === '1');
+  }
+  @Post('tarifas')
+  @ApiOperation({ summary: 'Crear tarifa' })
+  crearTarifa(@Body() dto: CreateTarifaDto) {
+    return this.service.crearTarifa(dto);
+  }
+  @Put('tarifas/:id')
+  @ApiOperation({ summary: 'Actualizar tarifa' })
+  actualizarTarifa(@Param('id', ParseIntPipe) id: number, @Body() dto: CreateTarifaDto) {
+    return this.service.actualizarTarifa(id, dto);
+  }
+  @Delete('tarifas/:id')
+  @ApiOperation({ summary: 'Eliminar tarifa' })
+  eliminarTarifa(@Param('id', ParseIntPipe) id: number) {
+    return this.service.eliminarTarifa(id);
+  }
+
+  /* ---- Consultas de la tarifa (núcleo del requerimiento) ---- */
+  @Get('rango')
+  @ApiOperation({ summary: 'Rango que corresponde a un número de usuarios' })
+  rangoPorNroUser(@Query('nroUser', ParseIntPipe) nroUser: number) {
+    return this.service.resolverRango(nroUser);
+  }
+  @Get('tarifa')
+  @ApiOperation({ summary: 'Tarifa según región + nro de usuarios + modalidad' })
+  tarifa(
+    @Query('idRegion', ParseIntPipe) idRegion: number,
+    @Query('nroUser', ParseIntPipe) nroUser: number,
+    @Query('modalidad') modalidad: string,
+  ) {
+    return this.service.obtenerTarifa(idRegion, nroUser, modalidad);
   }
 
   /* ---- Cotizaciones (budget) ---- */

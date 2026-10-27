@@ -1,0 +1,140 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <button (click)="volver()" class="text-sm text-blue-600 hover:text-blue-800">← Volver a la bandeja</button>
+    <h1 class="text-xl font-bold text-gray-800">Nueva incidencia</h1>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Tipo *</label>
+        <select [(ngModel)]="type" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+          <option value="incidente">Incidente</option>
+          <option value="requerimiento">Requerimiento</option>
+          <option value="problema">Problema</option>
+          <option value="cambio">Cambio</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Canal</label>
+        <select [(ngModel)]="channel" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+          <option value="portal">Portal</option>
+          <option value="correo">Correo</option>
+          <option value="telefono">Teléfono</option>
+          <option value="whatsapp">WhatsApp</option>
+          <option value="presencial">Presencial</option>
+        </select>
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-xs text-gray-500 font-medium mb-1">Título *</label>
+      <input [(ngModel)]="title" placeholder="Resumen breve de la incidencia (mín. 5 caracteres)"
+             class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+    </div>
+
+    <div>
+      <label class="block text-xs text-gray-500 font-medium mb-1">Descripción *</label>
+      <textarea [(ngModel)]="description" rows="4" placeholder="Describe la incidencia con detalle (mín. 10 caracteres)"
+                class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Categoría</label>
+        <select [(ngModel)]="categoryId" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+          <option [ngValue]="null">— Sin categoría —</option>
+          <option *ngFor="let c of catalogos?.categorias" [ngValue]="c.id">{{ c.codigo ? c.codigo + ' - ' + c.nombre : c.nombre }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Grupo de soporte</label>
+        <select [(ngModel)]="groupId" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+          <option [ngValue]="null">— Sin grupo —</option>
+          <option *ngFor="let g of catalogos?.grupos" [ngValue]="g.id">{{ g.nombre }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Impacto</label>
+        <select [(ngModel)]="impact" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+          <option value="extenso">Extenso</option>
+          <option value="significativo">Significativo</option>
+          <option value="moderado">Moderado</option>
+          <option value="menor">Menor</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Urgencia</label>
+        <select [(ngModel)]="urgency" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+          <option value="critica">Crítica</option>
+          <option value="alta">Alta</option>
+          <option value="media">Media</option>
+          <option value="baja">Baja</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Servicio</label>
+        <input [(ngModel)]="service" placeholder="Servicio afectado"
+               class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Usuario afectado</label>
+        <input [(ngModel)]="affectedUser" placeholder="Persona/usuario afectado"
+               class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Cliente (ID)</label>
+        <input [(ngModel)]="idClient" type="number" placeholder="id_client"
+               class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Nombre del cliente</label>
+        <input [(ngModel)]="clientName" placeholder="Nombre del cliente (requerido si se usa el ID)"
+               class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">RIF del cliente</label>
+        <input [(ngModel)]="clientRif" placeholder="RIF del cliente"
+               class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+    </div>
+
+    <!-- Adjuntos -->
+    <div class="rounded-xl bg-gray-50 border border-gray-200 p-4">
+      <label class="block text-xs text-gray-500 font-medium mb-1">Adjuntar archivos (opcional)</label>
+      <div class="flex flex-wrap items-center gap-2">
+        <label class="inline-flex items-center gap-2 px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg cursor-pointer">
+          <input type="file" class="hidden" multiple (change)="onArchivosSeleccionados($event)" />
+          📎 Seleccionar archivos
+        </label>
+        <span *ngIf="archivosSeleccionados.length" class="text-xs text-gray-500">
+          {{ archivosSeleccionados.length }} archivo(s) listo(s) para adjuntar
+        </span>
+      </div>
+      <div *ngIf="archivosSeleccionados.length" class="mt-3 flex flex-wrap gap-2">
+        <span *ngFor="let a of archivosSeleccionados"
+              class="inline-flex items-center gap-2 text-xs bg-white border border-gray-200 rounded-lg px-2.5 py-1.5">
+          {{ a.name }}
+          <button type="button" (click)="quitarSeleccionado(a)" class="text-red-500 font-bold">×</button>
+        </span>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-2 pt-2">
+      <button (click)="volver()" class="px-4 py-2 text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg">Cancelar</button>
+      <button (click)="guardar()" [disabled]="enviando"
+              class="px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg disabled:opacity-50">
+        {{ enviando ? 'Creando…' : 'Crear ticket' }}
+      </button>
+    </div>
+  </div>
+</div>

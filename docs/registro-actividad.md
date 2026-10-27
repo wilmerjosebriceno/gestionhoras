@@ -43,7 +43,8 @@ La permisología se resuelve por `(sistema='SGH', pagina='actividades')` vía `s
 | `sgh_activity` | **Cabecera** de la actividad (numdoc, tipo, cliente, usuario, fecha/hora, responsable, nota, estado, visita, proyecto). |
 | `sgh_dt_activity` | **Detalle / líneas de horas**: ítem de actividad, proceso, situación, horas, nota, mantis. PK → `id_activity`. |
 | `sgh_id` | Control de **numeración** (prefijo = año) para `numdoc`. |
-| `sgh_metadata` | Metadatos opcionales por actividad (campo `file`). |
+| `sgh_metadata` | Metadatos opcionales por actividad (campo `file`). Legado. |
+| `sgh_activity_attachment` | Documentos adjuntos (PDF/JPG/PNG) por actividad; archivo físico en `storage/actividades/{yyyy}/{numdoc}/`. |
 | `sgh_process` | Módulos/procesos (se usan como `id_process` en el detalle). |
 | `sgh_type` | Tipos de actividad (referenciados por `id_type`). |
 | `sgh_client` | Clientes (referenciados por `id_client`). |
@@ -131,6 +132,7 @@ Acceso: **SGH → Procesos → Actividades / Horas** (`/sgh/actividades`).
 - **Filtros**: número de documento, fecha inicial y fecha final (rango). Se aplican con el botón *Buscar*.
 - **Paginación**: 50 registros por página, con controles de inicio/anterior/siguiente/fin.
 - **Acciones por fila**: Editar, Imprimir (PDF), Anular (pide motivo), Eliminar (pide confirmación).
+- **Indicador ADJUNTO**: columna con el número de documentos adjuntos vigentes (📎 n) que enlaza al formulario; `—` cuando no hay. El conteo lo entrega `getCatalogo` (`adjuntosCount`).
 - **Visibilidad por rol**: solo el perfil `rol = 'A'` (o `'S'`) del usuario en `sgh_users` ve **todas**; cualquier otro perfil solo ve **sus propias** actividades (filtro `doc.id_user = <su id>`).
 
 ---
@@ -196,6 +198,13 @@ Se ejecutan **cliente** (puras, en `actividad.validators.ts`) antes de enviar al
 | GET | `/reporte/pdf` | Igual que `/reporte` pero devuelve el **PDF**. |
 | GET | `/:id/pdf` | PDF del formato de una actividad. |
 | POST | `/:id/recalcular` | Recalcula `sgh_proyect_activity` del proyecto. |
+| GET | `/:id/attachments` | Lista los documentos adjuntos vigentes de la actividad. |
+| POST | `/:id/attachments` | Sube 1..N archivos (multipart, campo `archivos`): PDF/JPG/PNG, 5 MB c/u, máx. 10. |
+| GET | `/:id/attachments/:adjuntoId` | Descarga un adjunto con sesión. |
+| DELETE | `/:id/attachments/:adjuntoId` | Baja lógica + borrado físico del adjunto. |
+
+> Al **anular** una actividad se eliminan físicamente sus archivos adjuntos (baja lógica en BD);
+> al **eliminar** la actividad se borran también sus registros y la carpeta.
 
 ### Control de acceso por rol (reportes y listado)
 

@@ -1,0 +1,132 @@
+{
+  "info": {
+    "_postman_id": "b7c1e2a4-5f3d-4a8e-9c21-scrin0000001",
+    "name": "Scrin.io API",
+    "description": "Integración Scrin.io. Todos los endpoints v2 son POST con headers X-SSM-Token y Content-Type: application/json. v1 report es GET con token en query.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "token", "value": "TU_TOKEN_AQUI" },
+    { "key": "baseV2", "value": "https://scrin.io/api/v2" },
+    { "key": "baseV1", "value": "https://scrin.io/api/v1" },
+    { "key": "from", "value": "2026-08-15" },
+    { "key": "to", "value": "2026-08-21" }
+  ],
+  "item": [
+    {
+      "name": "Common",
+      "item": [
+        {
+          "name": "GetCommonData (catalogo)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "const company = j.companies[0];",
+                  "const catalog = {};",
+                  "company.projects.forEach(p => catalog[p.id] = p.name);",
+                  "",
+                  "// projectId (GUID) -> { name, employees[] }",
+                  "const map = {};",
+                  "company.projects.forEach(p => map[p.id] = { name: p.name, employees: [] });",
+                  "company.employments.forEach(e => {",
+                  "  (e.projects || []).forEach(rel => {",
+                  "    if (map[rel.projectId]) map[rel.projectId].employees.push({ id: e.id, name: e.name, email: e.email });",
+                  "  });",
+                  "});",
+                  "",
+                  "console.log('Empresa:', company.name, '| Empleados:', company.employments.length, '| Proyectos:', company.projects.length);",
+                  "console.log('Proyecto -> empleados:', JSON.stringify(map, null, 2));",
+                  "pm.collectionVariables.set('projectMap', JSON.stringify(map));",
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-SSM-Token", "value": "{{token}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{}" },
+            "url": { "raw": "{{baseV2}}/GetCommonData", "host": ["{{baseV2}}"], "path": ["GetCommonData"] },
+            "description": "Devuelve empresa, empleados, proyectos, relación empleado↔proyecto y config. Body vacío {}."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Activities",
+      "item": [
+        {
+          "name": "GetActivities (v2, epochs)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-SSM-Token", "value": "{{token}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  { \"employmentId\": 152159, \"from\": 1786752000, \"to\": 1787356800 }\n]"
+            },
+            "url": { "raw": "{{baseV2}}/GetActivities", "host": ["{{baseV2}}"], "path": ["GetActivities"] },
+            "description": "from/to en SEGUNDOS epoch. projectId viene como GUID sin nombre; se resuelve con GetCommonData."
+          }
+        }
+      ]
+    },
+    {
+      "name": "v1 (alternativa)",
+      "item": [
+        {
+          "name": "Report v1 (ya trae project_name)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": { "mode": "raw", "raw": "" },
+            "url": {
+              "raw": "{{baseV1}}/report?token={{token}}&from={{from}}&to={{to}}",
+              "host": ["{{baseV1}}"],
+              "path": ["report"],
+              "query": [
+                { "key": "token", "value": "{{token}}" },
+                { "key": "from", "value": "{{from}}" },
+                { "key": "to", "value": "{{to}}" }
+              ]
+            },
+            "description": "Una sola llamada con employee + project_name resueltos. Fechas YYYY-MM-DD. Ignora params extra."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Projects (escritura)",
+      "item": [
+        {
+          "name": "AssignProject",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-SSM-Token", "value": "{{token}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employmentIds\": [152159],\n  \"projectIds\": [\"0e8894f1-aaeb-3541-89c2-1967f8e66e27\"],\n  \"isAssign\": true\n}"
+            },
+            "url": { "raw": "{{baseV2}}/AssignProject", "host": ["{{baseV2}}"], "path": ["AssignProject"] },
+            "description": "Asigna (isAssign true) o quita (false) proyectos a empleados. Responde 200 Ok."
+          }
+        }
+      ]
+    }
+  ]
+}

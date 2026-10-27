@@ -13,11 +13,13 @@ import { CotBudgetHistory } from './entities/cot-budget-history.entity';
 import { Correlativo } from './entities/cot-correlativo.entity';
 import { CotEmpresa } from './entities/cot-empresa.entity';
 import { CotTasaIva } from './entities/cot-tasa-iva.entity';
+import { CotRangoUsuario } from './entities/cot-rango-usuario.entity';
+import { CotTarifa } from './entities/cot-tarifa.entity';
 import { Usuario } from '../usuarios/entities/usuario.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([CotClient, Region, CotTemplate, Budget, CotDtBudget, CotBudgetHistory, Correlativo, CotEmpresa, CotTasaIva, Usuario]),
+    TypeOrmModule.forFeature([CotClient, Region, CotTemplate, Budget, CotDtBudget, CotBudgetHistory, Correlativo, CotEmpresa, CotTasaIva, CotRangoUsuario, CotTarifa, Usuario]),
   ],
   controllers: [CotizacionesController],
   providers: [CotizacionesService, PdfCotizacionService, MailService],

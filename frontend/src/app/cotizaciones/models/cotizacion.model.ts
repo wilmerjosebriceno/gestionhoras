@@ -14,6 +14,7 @@ export interface CotRegion {
   idRegion: number;
   idClient?: number | null;
   name?: string | null;
+  code?: string | null;
   description?: string | null;
   price?: number;
   priceOnline?: number;
@@ -47,6 +48,27 @@ export interface CotTasaIva {
   orden?: number | null;
 }
 
+/** Rango de usuarios (desde/hasta). */
+export interface CotRangoUsuario {
+  idRango: number;
+  desde: number;
+  hasta: number;
+  descripcion?: string | null;
+  activo?: number | null;
+}
+
+/** Tarifa por región + rango de usuarios + modalidad. */
+export interface CotTarifa {
+  idTarifa: number;
+  idRegion: number;
+  idRango: number;
+  modalidad: string;
+  tarifa: number;
+  activo?: number | null;
+  region?: CotRegion | null;
+  rango?: CotRangoUsuario | null;
+}
+
 export interface BudgetDetail {
   idTemplate: number;
   secuencia?: number | null;
@@ -59,6 +81,10 @@ export interface BudgetDetail {
   total?: number;
   idRegion?: number | null;
   modalidad?: string | null;
+  idTarifa?: number | null;
+  tarifaAplicada?: number | null;
+  /** Marcado en runtime cuando no existe tarifa para la combinación. */
+  sinTarifa?: boolean;
   template?: CotTemplate | null;
   region?: CotRegion | null;
   tasaIva?: CotTasaIva | null;
@@ -76,6 +102,8 @@ export interface Budget {
   modalidad?: string | null;
   idClient?: number | null;
   idEmpresa?: number;
+  nroUser?: number | null;
+  idRango?: number | null;
   status?: number;
   emailSent?: number;
   totalUsd?: number;

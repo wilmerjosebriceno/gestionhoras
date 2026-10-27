@@ -1,0 +1,398 @@
+<div class="space-y-5">
+  <!-- ==================== Filtros ==================== -->
+  <div class="bg-white rounded-xl border border-gray-200 p-4">
+    <div class="flex flex-wrap items-end gap-3">
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Desde</label>
+        <input type="date" [(ngModel)]="desde"
+               class="text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Hasta</label>
+        <input type="date" [(ngModel)]="hasta"
+               class="text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white" />
+      </div>
+      <div class="min-w-[240px]">
+        <label class="block text-xs text-gray-500 font-medium mb-1">Proyecto</label>
+        <select [(ngModel)]="projectId"
+                class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+          <option [ngValue]="null">— Todos los proyectos —</option>
+          <option *ngFor="let p of proyectos" [ngValue]="p.id">{{ p.name }}</option>
+        </select>
+      </div>
+      <div class="min-w-[220px]">
+        <label class="block text-xs text-gray-500 font-medium mb-1">Responsable</label>
+        <select [(ngModel)]="handlerId"
+                class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+          <option [ngValue]="null">— Todos los responsables —</option>
+          <option *ngFor="let r of responsables" [ngValue]="r.id">{{ r.name }}</option>
+        </select>
+      </div>
+      <div class="min-w-[220px]">
+        <label class="block text-xs text-gray-500 font-medium mb-1">Informador</label>
+        <select [(ngModel)]="reporterId"
+                class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+          <option [ngValue]="null">— Todos los informadores —</option>
+          <option *ngFor="let u of informadores" [ngValue]="u.id">{{ u.name }}</option>
+        </select>
+      </div>
+      <div class="min-w-[200px]">
+        <label class="block text-xs text-gray-500 font-medium mb-1">Estatus</label>
+        <select [(ngModel)]="statusId"
+                class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+          <option [ngValue]="null">— Todos los estatus —</option>
+          <option *ngFor="let e of estatus" [ngValue]="e.id">{{ e.name }}</option>
+        </select>
+      </div>
+      <div class="relative">
+        <label class="block text-xs text-gray-500 font-medium mb-1">Excluir estatus</label>
+        <details class="group">
+          <summary class="cursor-pointer list-none text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white min-w-[200px] flex items-center justify-between gap-2">
+            <span [class.text-gray-400]="!excluirStatusIds.length">
+              {{ excluirStatusIds.length ? (excluirStatusIds.length + ' excluido(s)') : '— Ninguno —' }}
+            </span>
+            <span class="text-gray-400 text-xs">▾</span>
+          </summary>
+          <div class="absolute z-30 mt-1 w-64 max-h-60 overflow-auto bg-white border border-gray-200 rounded-lg shadow-lg p-1">
+            <label *ngFor="let e of estatus"
+                   class="flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-gray-50 rounded cursor-pointer">
+              <input type="checkbox" [checked]="estaExcluido(e.id)" (change)="toggleExcluir(e.id)" />
+              <span>{{ e.name }}</span>
+            </label>
+            <div *ngIf="!estatus.length" class="text-xs text-gray-400 px-2 py-2">
+              Consulte primero para cargar los estatus.
+            </div>
+          </div>
+        </details>
+      </div>
+      <div class="pb-2">
+        <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+          <input type="checkbox" [(ngModel)]="soloAbiertos" />
+          Solo casos abiertos
+        </label>
+      </div>
+      <div class="min-w-[180px]">
+        <label class="block text-xs text-gray-500 font-medium mb-1">Reapertura</label>
+        <select [(ngModel)]="reopened"
+                class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+          <option value="">— Todas —</option>
+          <option value="si">Solo reabiertas</option>
+          <option value="1">Reabiertas 1 vez</option>
+          <option value="2mas">Reabiertas 2+ veces</option>
+        </select>
+      </div>
+      <button (click)="consultar()" [disabled]="loading"
+              class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50">
+        {{ loading ? 'Consultando…' : 'Consultar' }}
+      </button>
+      <button (click)="limpiar()"
+              class="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg">
+        Limpiar
+      </button>
+
+      <div class="min-w-[280px]">
+        <label class="block text-xs text-gray-500 font-medium mb-1">Contenido del reporte PDF</label>
+        <div class="flex items-center gap-3 text-sm text-gray-700 h-[38px]">
+          <label class="flex items-center gap-1.5 cursor-pointer" title="Sin comentarios/respuestas (más rápido)">
+            <input type="radio" name="contenidoPdf" [value]="false" [(ngModel)]="conDetalle" />
+            Solo registro principal
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer" title="Incluye los comentarios de cada caso">
+            <input type="radio" name="contenidoPdf" [value]="true" [(ngModel)]="conDetalle" />
+            Con detalle
+          </label>
+        </div>
+      </div>
+      <div class="ml-auto text-right">
+        <div class="flex gap-2">
+          <button (click)="exportar('casos')"
+                  class="px-3 py-2 text-sm bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg">
+            📥 Casos
+          </button>
+          <button (click)="exportar('resumen')"
+                  class="px-3 py-2 text-sm bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg">
+            📊 Resumen
+          </button>
+          <button (click)="exportarPdf()"
+                  class="px-3 py-2 text-sm bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg">
+            🖨 PDF
+          </button>
+          <button (click)="enviarPdfPorCorreo()"
+                  class="px-3 py-2 text-sm bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg">
+            ✉ PDF
+          </button>
+          <button (click)="sincronizar()" [disabled]="sincronizando"
+                  class="px-4 py-2 text-sm bg-slate-700 hover:bg-slate-800 text-white rounded-lg disabled:opacity-50">
+            {{ sincronizando ? 'Sincronizando…' : '🔄 Sincronizar' }}
+          </button>
+        </div>
+        <div *ngIf="sync" class="mt-1 text-[11px] text-gray-400">
+          Espejo: {{ sync.casos | number }} casos
+          <span *ngIf="sync.ultimaSync"> · última {{ sync.ultimaSync | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="sincronizando" class="rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-800">
+    Sincronizando con Mantis… (≈10.000 casos, unos 5 minutos). Corre en segundo plano; puedes seguir usando el sistema.
+  </div>
+
+  <!-- ==================== Pestañas ==================== -->
+  <div class="flex flex-wrap gap-1 border-b border-gray-200">
+    <button (click)="cambiarTab('resumen')"
+            [class.border-blue-600]="tab==='resumen'" [class.text-blue-700]="tab==='resumen'"
+            class="px-4 py-2 text-sm font-medium border-b-2"
+            [class.border-transparent]="tab!=='resumen'">
+      📊 Resumen
+    </button>
+    <button (click)="cambiarTab('casos')"
+            [class.border-blue-600]="tab==='casos'" [class.text-blue-700]="tab==='casos'"
+            class="px-4 py-2 text-sm font-medium border-b-2"
+            [class.border-transparent]="tab!=='casos'">
+      📋 Casos
+    </button>
+    <button (click)="cambiarTab('seguimiento')"
+            [class.border-blue-600]="tab==='seguimiento'" [class.text-blue-700]="tab==='seguimiento'"
+            class="px-4 py-2 text-sm font-medium border-b-2"
+            [class.border-transparent]="tab!=='seguimiento'">
+      🔎 Seguimiento de caso
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="p-10 text-center text-gray-400">Cargando indicadores…</div>
+
+  <ng-container *ngIf="!loading && data && tab==='resumen'">
+    <p class="text-xs text-gray-400">
+      Rango analizado: <b>{{ data.rango.desde }}</b> → <b>{{ data.rango.hasta }}</b>
+      <span *ngIf="data.sincronizacion.detalle"> · espejo: {{ data.sincronizacion.detalle }}</span>
+    </p>
+
+    <!-- ==================== Tarjetas KPI ==================== -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div class="bg-white rounded-xl border border-gray-200 p-3">
+        <div class="text-[11px] text-gray-500">Casos</div>
+        <div class="text-xl font-bold text-gray-800">{{ data.kpis.total | number }}</div>
+      </div>
+      <div class="bg-white rounded-xl border border-amber-200 p-3">
+        <div class="text-[11px] text-amber-700">Abiertos</div>
+        <div class="text-xl font-bold text-amber-700">{{ data.kpis.abiertos | number }}</div>
+      </div>
+      <div class="bg-white rounded-xl border border-emerald-200 p-3">
+        <div class="text-[11px] text-emerald-700">Cerrados</div>
+        <div class="text-xl font-bold text-emerald-700">{{ data.kpis.cerrados | number }}</div>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-3">
+        <div class="text-[11px] text-gray-500">Sin asignar</div>
+        <div class="text-xl font-bold text-gray-800">{{ data.kpis.sinAsignar | number }}</div>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-3">
+        <div class="text-[11px] text-gray-500">Sin responsable</div>
+        <div class="text-xl font-bold text-gray-800">{{ data.kpis.sinResponsable | number }}</div>
+      </div>
+      <div class="bg-white rounded-xl border border-blue-200 p-3">
+        <div class="text-[11px] text-blue-700">MTTR (días)</div>
+        <div class="text-xl font-bold text-blue-700">{{ data.kpis.mttrDias ?? '—' }}</div>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-3">
+        <div class="text-[11px] text-gray-500">1.ª respuesta (días)</div>
+        <div class="text-xl font-bold text-gray-800">{{ data.kpis.primeraRespuestaDias ?? '—' }}</div>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-3">
+        <div class="text-[11px] text-gray-500">Cierre (días)</div>
+        <div class="text-xl font-bold text-gray-800">{{ data.kpis.cierreDias ?? '—' }}</div>
+      </div>
+      <div class="bg-white rounded-xl border border-red-200 p-3">
+        <div class="text-[11px] text-red-700">Reapertura</div>
+        <div class="text-xl font-bold text-red-700">{{ data.reapertura.tasa }}%</div>
+        <div class="text-[10px] text-gray-400">{{ data.reapertura.reabiertos | number }} de {{ data.reapertura.total | number }}</div>
+      </div>
+      <div class="bg-white rounded-xl border border-red-200 p-3">
+        <div class="text-[11px] text-red-700">Reaperturas (desglose)</div>
+        <div class="text-sm text-gray-700 leading-tight">
+          1 vez: <b class="text-gray-800">{{ data.reapertura.unaVez | number }}</b>
+        </div>
+        <div class="text-sm text-gray-700 leading-tight">
+          2+ veces: <b class="text-gray-800">{{ data.reapertura.dosOMas | number }}</b>
+        </div>
+        <div class="text-[10px] text-gray-400">máx. {{ data.reapertura.maxReaperturas }} en un caso</div>
+      </div>
+      <div class="bg-white rounded-xl border border-amber-300 p-3">
+        <div class="text-[11px] text-amber-700">Estancados (+{{ data.estancados.dias }} d)</div>
+        <div class="text-xl font-bold text-amber-700">{{ data.estancados.total | number }}</div>
+        <div class="text-[10px] text-gray-400">
+          más antiguo: {{ data.estancados.masAntiguo ? (data.estancados.masAntiguo | date:'dd/MM/yyyy') : '—' }}
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== Gráficos ==================== -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+      <div class="bg-white rounded-xl border border-gray-200 p-4"><div #chartProyecto></div></div>
+      <div class="bg-white rounded-xl border border-gray-200 p-4"><div #chartEstado></div></div>
+      <div class="bg-white rounded-xl border border-gray-200 p-4"><div #chartUsuario></div></div>
+      <div class="bg-white rounded-xl border border-gray-200 p-4"><div #chartMes></div></div>
+      <div class="bg-white rounded-xl border border-gray-200 p-4"><div #chartMttr></div></div>
+      <div class="bg-white rounded-xl border border-gray-200 p-4">
+        <div #chartTiempos></div>
+        <p class="mt-2 text-[11px] text-gray-400">
+          Resolución (p90): <b>{{ data.tiempos.resolucion.p90Dias ?? '—' }}</b> días ·
+          Casos con resolución: <b>{{ data.tiempos.resolucion.casos | number }}</b> ·
+          Con cierre: <b>{{ data.tiempos.cierre.casos | number }}</b>
+        </p>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-4"><div #chartAntiguedad></div></div>
+      <div class="bg-white rounded-xl border border-gray-200 p-4"><div #chartCategoria></div></div>
+    </div>
+
+    <!-- ==================== Casos estancados ==================== -->
+    <div class="bg-white rounded-xl border border-amber-200 p-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div>
+          <h2 class="font-semibold text-gray-800 text-sm">
+            Casos estancados · abiertos sin cambios en más de {{ data.estancados.dias }} días
+          </h2>
+          <p class="text-[11px] text-gray-400">
+            Total: <b>{{ data.estancados.total | number }}</b>
+            <span *ngIf="data.estancados.masAntiguo"> · más antiguo {{ data.estancados.masAntiguo | date:'dd/MM/yyyy' }}</span>
+            · se listan los {{ data.estancados.casos.length }} más antiguos
+          </p>
+        </div>
+        <button (click)="alertar()" [disabled]="alertando"
+                class="px-4 py-2 text-sm bg-amber-600 hover:bg-amber-700 text-white rounded-lg disabled:opacity-50">
+          {{ alertando ? 'Enviando…' : '📧 Enviar alerta por correo' }}
+        </button>
+      </div>
+
+      <div *ngIf="data.estancados.casos.length" class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead class="bg-gray-50 text-gray-500">
+            <tr>
+              <th class="text-left px-3 py-2">ID</th>
+              <th class="text-left px-3 py-2">Asunto</th>
+              <th class="text-left px-3 py-2">Proyecto</th>
+              <th class="text-left px-3 py-2">Estatus</th>
+              <th class="text-left px-3 py-2">Responsable</th>
+              <th class="text-right px-3 py-2">Días</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr *ngFor="let c of data.estancados.casos" class="hover:bg-gray-50">
+              <td class="px-3 py-1.5 font-mono text-gray-600">#{{ c.id }}</td>
+              <td class="px-3 py-1.5 text-gray-800">{{ c.summary }}</td>
+              <td class="px-3 py-1.5 text-gray-500">{{ c.projectName || '—' }}</td>
+              <td class="px-3 py-1.5 text-gray-500">{{ c.statusName || '—' }}</td>
+              <td class="px-3 py-1.5 text-gray-500">{{ c.responsable }}</td>
+              <td class="px-3 py-1.5 text-right font-semibold text-amber-700">{{ c.diasSinCambios }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p *ngIf="!data.estancados.casos.length" class="text-xs text-gray-400">
+        Sin casos estancados en el rango. 👍
+      </p>
+    </div>
+
+    <!-- ==================== Detalle por estado / prioridad / resolución ==================== -->
+    <div class="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+      <div>
+        <h2 class="font-semibold text-gray-800 mb-2 text-sm">Detalle por estatus</h2>
+        <div class="flex flex-wrap gap-2">
+          <span *ngFor="let e of data.porEstado"
+                class="inline-flex items-center gap-2 text-xs bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5">
+            <b class="text-gray-700">{{ e.estado }}</b>
+            <span class="text-gray-500">{{ e.total | number }}</span>
+          </span>
+        </div>
+      </div>
+      <div>
+        <h2 class="font-semibold text-gray-800 mb-2 text-sm">Por prioridad</h2>
+        <div class="flex flex-wrap gap-2">
+          <span *ngFor="let p of data.porPrioridad"
+                class="inline-flex items-center gap-2 text-xs bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5">
+            <b class="text-gray-700">{{ p.prioridad }}</b>
+            <span class="text-gray-500">{{ p.total | number }}</span>
+          </span>
+        </div>
+      </div>
+      <div>
+        <h2 class="font-semibold text-gray-800 mb-2 text-sm">Por resolución</h2>
+        <div class="flex flex-wrap gap-2">
+          <span *ngFor="let r of data.porResolucion"
+                class="inline-flex items-center gap-2 text-xs bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5">
+            <b class="text-gray-700">{{ r.resolucion }}</b>
+            <span class="text-gray-500">{{ r.total | number }}</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- ==================== Pestaña: Casos (listado filtrable) ==================== -->
+  <ng-container *ngIf="tab==='casos'">
+    <div class="bg-white rounded-xl border border-gray-200 p-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <h2 class="font-semibold text-gray-800 text-sm">
+          Casos filtrados (proyecto · responsable · estatus · fechas)
+        </h2>
+        <div class="flex items-center gap-2 text-xs text-gray-500">
+          <span>{{ casosTotal | number }} caso(s)</span>
+          <button (click)="paginaCasos(-1)" [disabled]="casosPage === 0 || casosLoading"
+                  class="px-2 py-1 border border-gray-300 rounded disabled:opacity-40">← Ant</button>
+          <span>pág. {{ casosPage + 1 }}</span>
+          <button (click)="paginaCasos(1)"
+                  [disabled]="(casosPage + 1) * casosPageSize >= casosTotal || casosLoading"
+                  class="px-2 py-1 border border-gray-300 rounded disabled:opacity-40">Sig →</button>
+        </div>
+      </div>
+      <div *ngIf="casosLoading" class="p-6 text-center text-gray-400">Cargando casos…</div>
+      <div *ngIf="!casosLoading && casos.length" class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead class="bg-gray-50 text-gray-500">
+            <tr>
+              <th class="text-left px-3 py-2">ID</th>
+              <th class="text-left px-3 py-2">Asunto</th>
+              <th class="text-left px-3 py-2">Proyecto</th>
+              <th class="text-left px-3 py-2">Estatus</th>
+              <th class="text-left px-3 py-2">Prioridad</th>
+              <th class="text-left px-3 py-2">Responsable</th>
+              <th class="text-left px-3 py-2">Creado</th>
+              <th class="text-left px-3 py-2"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr *ngFor="let c of casos" class="hover:bg-gray-50">
+              <td class="px-3 py-1.5 font-mono text-gray-600">#{{ c.id }}</td>
+              <td class="px-3 py-1.5 text-gray-800">{{ c.summary }}</td>
+              <td class="px-3 py-1.5 text-gray-500">{{ c.project_name || '—' }}</td>
+              <td class="px-3 py-1.5 text-gray-500">{{ c.status_name || '—' }}</td>
+              <td class="px-3 py-1.5 text-gray-500">{{ c.priority_name || '—' }}</td>
+              <td class="px-3 py-1.5 text-gray-500">{{ c.handler_name || '—' }}</td>
+              <td class="px-3 py-1.5 text-gray-500">
+                {{ c.created_at ? (c.created_at | date:'dd/MM/yyyy') : '—' }}
+              </td>
+              <td class="px-3 py-1.5">
+                <button (click)="verSeguimiento(c.id)"
+                        class="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded">
+                  Ver seguimiento
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p *ngIf="!casosLoading && !casos.length" class="text-xs text-gray-400">
+        Sin casos para el filtro seleccionado. Ajusta proyecto/responsable/estatus o el rango.
+      </p>
+    </div>
+  </ng-container>
+
+  <!-- ==================== Pestaña: Seguimiento de caso ==================== -->
+  <ng-container *ngIf="tab==='seguimiento'">
+    <app-mantis-seguimiento [issueId]="casoSeleccionadoId"></app-mantis-seguimiento>
+  </ng-container>
+
+  <div *ngIf="!loading && consultado && !data" class="p-10 text-center text-gray-400">
+    Sin datos para el rango seleccionado.
+  </div>
+</div>

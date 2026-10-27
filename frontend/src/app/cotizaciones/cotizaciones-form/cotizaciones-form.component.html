@@ -71,6 +71,25 @@
         <input type="number" [(ngModel)]="budget.tasaBcv" name="ctasa" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
       </div>
     </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">N° de usuarios</label>
+        <input type="number" min="1" [(ngModel)]="budget.nroUser" name="cnrousers"
+          (ngModelChange)="onNroUserCambia()"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+          placeholder="Ej: 45" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Rango de usuarios</label>
+        <input type="text" readonly
+          [value]="rangoActual ? (rangoActual.desde + ' – ' + rangoActual.hasta + (rangoActual.descripcion ? ' (' + rangoActual.descripcion + ')' : '')) : '—'"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 text-gray-600 cursor-not-allowed" />
+      </div>
+      <div class="md:col-span-2 flex items-end">
+        <p class="text-xs text-gray-400">La tarifa se resuelve con N° de usuarios + Región + Modalidad de cada línea.</p>
+      </div>
+    </div>
   </div>
 
   <div class="bg-white rounded-xl p-5 border border-gray-200 space-y-4">
@@ -82,6 +101,11 @@
       <label class="block text-xs text-gray-500 mb-1">Modalidad / Forma de Pago</label>
       <textarea [(ngModel)]="budget.modalidad" name="cmodalidad" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm whitespace-pre-wrap"></textarea>
     </div>
+  </div>
+
+  <div *ngIf="hayLineasSinTarifa()" class="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+    <span class="text-lg leading-none">⚠</span>
+    <span>Una o más líneas no tienen tarifa para la combinación <b>Región + Rango + Modalidad</b>. Revise el <b>Catálogo → Tarifas</b> o el <b>N° de usuarios</b> (más de 150 requiere levantamiento).</span>
   </div>
 
   <div class="bg-white rounded-xl border border-gray-200">
@@ -125,7 +149,10 @@
                 </select>
               </td>
               <td class="px-3 py-2"><input type="number" [(ngModel)]="d.quantity" (ngModelChange)="calcularTotales()" class="w-20 px-2 py-1.5 border border-gray-300 rounded-lg text-sm text-right" /></td>
-              <td class="px-3 py-2"><input type="number" [(ngModel)]="d.price" (ngModelChange)="calcularTotales()" class="w-24 px-2 py-1.5 border border-gray-300 rounded-lg text-sm text-right" /></td>
+              <td class="px-3 py-2 whitespace-nowrap">
+                <input type="number" [(ngModel)]="d.price" (ngModelChange)="calcularTotales()" class="w-24 px-2 py-1.5 border border-gray-300 rounded-lg text-sm text-right" />
+                <span *ngIf="d.sinTarifa" title="Sin tarifa para esta combinación" class="ml-1 text-amber-500">⚠</span>
+              </td>
               <td class="px-3 py-2">
                 <select [(ngModel)]="d.idTasaIva" (ngModelChange)="onTasaCambia(d)" class="w-40 px-2 py-1.5 border border-gray-300 rounded-lg text-sm">
                   <option [ngValue]="null">—</option>

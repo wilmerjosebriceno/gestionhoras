@@ -129,6 +129,7 @@ export class ActividadFormService {
       hours: d.hours,
       note: d.note,
       mantis: d.mantis,
+      online: d.online ?? 0,
     }));
     const cliente = a.cliente
       ? { idClient: a.cliente.idClient, rif: a.cliente.rif, name: a.cliente.name, active: 1 } as Cliente
@@ -148,6 +149,7 @@ export class ActividadFormService {
         hours: d.hours,
         note: d.note,
         mantis: d.mantis,
+        online: d.online ?? 0,
       }));
     return {
       idClient: header.idClient,

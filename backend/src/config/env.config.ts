@@ -15,4 +15,18 @@ export const env = {
     ttl: parseInt(process.env.THROTTLE_TTL || '60000', 10),
     limit: parseInt(process.env.THROTTLE_LIMIT || '10', 10),
   },
+  agente: {
+    enabled: (process.env.AGENTE_ENABLED || 'true') === 'true',
+    apiKey: process.env.AGENTE_API_KEY || '',
+    baseUrl: process.env.AGENTE_BASE_URL || 'https://opencode.ai/zen/v1',
+    model: process.env.AGENTE_MODEL || 'space-bunny-free',
+    temperature: parseFloat(process.env.AGENTE_TEMPERATURE || '0.2'),
+    maxSteps: parseInt(process.env.AGENTE_MAX_STEPS || '5', 10),
+    timeoutMs: parseInt(process.env.AGENTE_TIMEOUT_MS || '60000', 10),
+  },
+  mantis: {
+    baseUrl: process.env.MANTIS_BASE_URL || '',
+    apiToken: process.env.MANTIS_API_TOKEN || '',
+    timeoutMs: parseInt(process.env.MANTIS_TIMEOUT_MS || '15000', 10),
+  },
 };

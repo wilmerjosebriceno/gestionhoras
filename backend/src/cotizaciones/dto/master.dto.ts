@@ -1,4 +1,4 @@
-import { IsOptional, IsInt, IsString, MaxLength, IsIn } from 'class-validator';
+import { IsOptional, IsInt, IsString, IsNumber, MaxLength, IsIn } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateCotClientDto {
@@ -53,6 +53,11 @@ export class CreateRegionDto {
   @IsString()
   @MaxLength(100)
   name?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  code?: string;
 
   @IsOptional()
   @IsString()
@@ -142,4 +147,50 @@ export class CreateTasaIvaDto {
   @IsOptional()
   @IsInt()
   orden?: number;
+}
+
+export class CreateRangoUsuarioDto {
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  desde?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  hasta?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(60)
+  descripcion?: string;
+
+  @IsOptional()
+  @IsIn([0, 1])
+  activo?: number;
+}
+
+export class CreateTarifaDto {
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  idRegion?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  idRango?: number;
+
+  @IsOptional()
+  @IsIn(['PRESENCIAL', 'ONLINE'])
+  modalidad?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 4 })
+  tarifa?: number;
+
+  @IsOptional()
+  @IsIn([0, 1])
+  activo?: number;
 }

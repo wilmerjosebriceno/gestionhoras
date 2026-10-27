@@ -1,5 +1,6 @@
 import { NgModule, provideZoneChangeDetection } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { RouterModule, Routes } from '@angular/router';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
@@ -8,6 +9,7 @@ import { PermisoGuard } from './core/guards/permiso.guard';
 import { SinAccesoComponent } from './core/pages/sin-acceso/sin-acceso.component';
 import { LayoutComponent } from './layout/layout.component';
 import { HelpPanelComponent } from './core/components/help-panel/help-panel.component';
+import { AgenteChatComponent } from './agente/agente-chat.component';
 import { AppComponent } from './app.component';
 
 const routes: Routes = [
@@ -21,6 +23,8 @@ const routes: Routes = [
       { path: 'sec', canActivate: [PermisoGuard], loadChildren: () => import('./sec/sec.module').then((m) => m.SecModule) },
       { path: 'sgh', canActivate: [PermisoGuard], loadChildren: () => import('./sgh/sgh.module').then((m) => m.SghModule) },
       { path: 'cot', canActivate: [PermisoGuard], loadChildren: () => import('./cotizaciones/cotizaciones.module').then((m) => m.CotizacionesModule) },
+      { path: 'soporte', canActivate: [PermisoGuard], loadChildren: () => import('./soporte/soporte.module').then((m) => m.SoporteModule) },
+      { path: 'gpi', canActivate: [PermisoGuard], loadChildren: () => import('./gpi/gpi.module').then((m) => m.GpiModule) },
       { path: 'sin-acceso', component: SinAccesoComponent },
     ],
   },
@@ -28,9 +32,10 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  declarations: [AppComponent, LayoutComponent, SinAccesoComponent, HelpPanelComponent],
+  declarations: [AppComponent, LayoutComponent, SinAccesoComponent, HelpPanelComponent, AgenteChatComponent],
   imports: [
     BrowserModule,
+    FormsModule,
     HttpClientModule,
     RouterModule.forRoot(routes),
   ],

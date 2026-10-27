@@ -57,19 +57,17 @@ export class ProyectosService {
     return qb.getRawMany();
   }
 
-  async getDetailProyect(idProyect: number) {
-    return this.proyectoRepo.query(
-      `
-      SELECT * FROM (
-        SELECT dt.id_proyect AS "idProyect", ia.name, ps.name_process AS "nameProcess", dt.id_ep AS "idEp",
-               dt.hour, dt.active, dt.hour_e AS "hourE",
-               dt.id_proyect_activity AS "idProyectActivity", ep.id_process AS "idProcess",
-               ep.id_item_activity AS "idItemActivity", ps.orden
-        FROM sgh_proyect_activity dt
-        INNER JOIN sgh_estructure_proyect ep ON dt.id_ep = ep.id_ep
-        INNER JOIN sgh_item_activity ia ON ia.id_item_activity = ep.id_item_activity
-        INNER JOIN sgh_process ps ON ps.id_process = ep.id_process
-        WHERE dt.id_proyect = $1
+  async getDetailProyect(idProyect: number, soloActivos = false) {
+    // Modo reporte/detalle (soloActivos = true): se muestran UNICAMENTE las
+    // actividades del propio proyecto que tengan horas (contratadas o
+    // ejecutadas). El formulario de proyecto lo invoca sin filtro para poder
+    // listar y agregar items de la estructura.
+    const filtroActivo = soloActivos ? ' AND dt.active = 1' : '';
+
+    // Bloque de estructura: solo se incluye cuando alimenta al formulario.
+    const bloqueEstructura = soloActivos
+      ? ''
+      : `
         UNION ALL
         SELECT 0 AS "idProyect", ia.name, ps.name_process AS "nameProcess", ep.id_ep AS "idEp",
                ep.hours AS hour, 0 AS active, 0 AS "hourE", 0 AS "idProyectActivity",
@@ -84,8 +82,27 @@ export class ProyectosService {
           INNER JOIN sgh_item_activity ia ON ia.id_item_activity = ep.id_item_activity
           INNER JOIN sgh_process ps ON ps.id_process = ep.id_process
           WHERE dt.id_proyect = $1
-        )
+        )`;
+
+    // En el reporte se descartan las filas sin horas (0 contratadas y 0 ejecutadas).
+    const filtroHoras = soloActivos
+      ? 'WHERE TMP.hour > 0 OR TMP."hourE" > 0'
+      : '';
+
+    return this.proyectoRepo.query(
+      `
+      SELECT * FROM (
+        SELECT dt.id_proyect AS "idProyect", ia.name, ps.name_process AS "nameProcess", dt.id_ep AS "idEp",
+               dt.hour, dt.active, dt.hour_e AS "hourE",
+               dt.id_proyect_activity AS "idProyectActivity", ep.id_process AS "idProcess",
+               ep.id_item_activity AS "idItemActivity", ps.orden
+        FROM sgh_proyect_activity dt
+        INNER JOIN sgh_estructure_proyect ep ON dt.id_ep = ep.id_ep
+        INNER JOIN sgh_item_activity ia ON ia.id_item_activity = ep.id_item_activity
+        INNER JOIN sgh_process ps ON ps.id_process = ep.id_process
+        WHERE dt.id_proyect = $1${filtroActivo}${bloqueEstructura}
       ) TMP
+      ${filtroHoras}
       ORDER BY TMP.orden, TMP."nameProcess", TMP.name
       `,
       [idProyect],

@@ -1,0 +1,101 @@
+<div class="space-y-6">
+  <!-- Encabezado -->
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-xl font-bold text-gray-800">Dashboard · Proyectos Internos</h1>
+      <p class="text-sm text-gray-500">Indicadores, KPIs y alertas de la cartera de proyectos internos.</p>
+    </div>
+    <button (click)="cargar()" class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg">Actualizar</button>
+  </div>
+
+  <div *ngIf="cargando" class="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-400 text-sm">Cargando indicadores…</div>
+
+  <div *ngIf="!cargando && data" class="space-y-6">
+    <!-- KPIs -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-white rounded-xl border border-gray-200 p-4">
+        <div class="text-xs text-gray-500 font-medium">Proyectos</div>
+        <div class="mt-1 text-2xl font-bold text-gray-800">{{ data.resumen.proyectos }}</div>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-4">
+        <div class="text-xs text-gray-500 font-medium">En ejecución</div>
+        <div class="mt-1 text-2xl font-bold text-blue-600">{{ data.resumen.en_ejecucion }}</div>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-4">
+        <div class="text-xs text-gray-500 font-medium">Planificados</div>
+        <div class="mt-1 text-2xl font-bold text-gray-500">{{ data.resumen.planificados }}</div>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-4">
+        <div class="text-xs text-gray-500 font-medium">Cerrados</div>
+        <div class="mt-1 text-2xl font-bold text-emerald-600">{{ data.resumen.cerrados }}</div>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-4">
+        <div class="text-xs text-gray-500 font-medium">Horas estimadas</div>
+        <div class="mt-1 text-2xl font-bold text-indigo-600">{{ data.resumen.horas_estimadas }}</div>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-4">
+        <div class="text-xs text-gray-500 font-medium">Horas reales</div>
+        <div class="mt-1 text-2xl font-bold text-emerald-600">{{ data.resumen.horas_reales }}</div>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-4">
+        <div class="text-xs text-gray-500 font-medium">Avance promedio</div>
+        <div class="mt-1 text-2xl font-bold text-amber-600">{{ data.resumen.avance_promedio }}%</div>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-4">
+        <div class="text-xs text-gray-500 font-medium">En pausa</div>
+        <div class="mt-1 text-2xl font-bold text-red-500">{{ data.resumen.en_pausa }}</div>
+      </div>
+    </div>
+
+    <!-- Alertas / insights -->
+    <div class="bg-white rounded-xl border border-gray-200 p-4">
+      <h2 class="font-semibold text-gray-800 mb-3">Alertas inteligentes</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+        <div class="rounded-lg border p-3" [class]="data.alertas.vencidos.length ? 'border-red-200 bg-red-50' : 'border-gray-200'">
+          <div class="font-medium" [class]="data.alertas.vencidos.length ? 'text-red-700' : 'text-gray-600'">
+            Proyectos vencidos ({{ data.alertas.vencidos.length }})
+          </div>
+          <ul class="mt-1 text-xs text-gray-600 space-y-0.5">
+            <li *ngFor="let p of data.alertas.vencidos">• {{ p.codigo }} · {{ p.nombre }} ({{ p.avance_pct }}%)</li>
+            <li *ngIf="!data.alertas.vencidos.length" class="text-gray-400">Ninguno.</li>
+          </ul>
+        </div>
+        <div class="rounded-lg border p-3" [class]="data.alertas.desviacion.length ? 'border-amber-200 bg-amber-50' : 'border-gray-200'">
+          <div class="font-medium" [class]="data.alertas.desviacion.length ? 'text-amber-700' : 'text-gray-600'">
+            Desviación vs. línea base ({{ data.alertas.desviacion.length }})
+          </div>
+          <ul class="mt-1 text-xs text-gray-600 space-y-0.5">
+            <li *ngFor="let p of data.alertas.desviacion">• {{ p.codigo }} · {{ p.desviacion_dias }} día(s)</li>
+            <li *ngIf="!data.alertas.desviacion.length" class="text-gray-400">Sin desviaciones.</li>
+          </ul>
+        </div>
+        <div class="rounded-lg border p-3" [class]="data.alertas.sinAvance.length ? 'border-amber-200 bg-amber-50' : 'border-gray-200'">
+          <div class="font-medium" [class]="data.alertas.sinAvance.length ? 'text-amber-700' : 'text-gray-600'">
+            En ejecución sin avance ({{ data.alertas.sinAvance.length }})
+          </div>
+          <ul class="mt-1 text-xs text-gray-600 space-y-0.5">
+            <li *ngFor="let p of data.alertas.sinAvance">• {{ p.codigo }} · {{ p.nombre }}</li>
+            <li *ngIf="!data.alertas.sinAvance.length" class="text-gray-400">Ninguno.</li>
+          </ul>
+        </div>
+        <div class="rounded-lg border p-3" [class]="data.alertas.sinCalendario.length ? 'border-blue-200 bg-blue-50' : 'border-gray-200'">
+          <div class="font-medium" [class]="data.alertas.sinCalendario.length ? 'text-blue-700' : 'text-gray-600'">
+            Sin calendario definido ({{ data.alertas.sinCalendario.length }})
+          </div>
+          <ul class="mt-1 text-xs text-gray-600 space-y-0.5">
+            <li *ngFor="let p of data.alertas.sinCalendario">• {{ p.codigo }} · {{ p.nombre }}</li>
+            <li *ngIf="!data.alertas.sinCalendario.length" class="text-gray-400">Todos tienen calendario.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="bg-white rounded-xl border border-gray-200 p-4"><div #chartEstado></div></div>
+      <div class="bg-white rounded-xl border border-gray-200 p-4"><div #chartRecurso></div></div>
+      <div class="bg-white rounded-xl border border-gray-200 p-4"><div #chartAvance></div></div>
+      <div class="bg-white rounded-xl border border-gray-200 p-4"><div #chartHoras></div></div>
+    </div>
+  </div>
+</div>

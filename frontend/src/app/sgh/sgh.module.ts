@@ -17,6 +17,9 @@ import { EstructuraComponent } from './estructura/estructura.component';
 import { CronogramaComponent } from './cronograma/cronograma.component';
 import { ReportesComponent } from './reportes/reportes.component';
 import { LogosComponent } from './logos/logos.component';
+import { MonitorHorasComponent } from './monitor-horas/monitor-horas.component';
+import { ConsultaMonitorHorasComponent } from './consulta-monitor-horas/consulta-monitor-horas.component';
+import { MantisReportesComponent } from './mantis-reportes/mantis-reportes.component';
 
 const routes: Routes = [
   { path: '', component: SghDashboardComponent },
@@ -32,6 +35,9 @@ const routes: Routes = [
   { path: 'estructura', component: EstructuraComponent },
   { path: 'cronograma/:idProyect', component: CronogramaComponent },
   { path: 'reportes', component: ReportesComponent },
+  { path: 'monitor-horas', component: MonitorHorasComponent },
+  { path: 'monitor-horas-consulta', component: ConsultaMonitorHorasComponent },
+  { path: 'mantis-reportes', component: MantisReportesComponent },
   { path: 'logos', component: LogosComponent },
 ];
 
@@ -50,6 +56,9 @@ const routes: Routes = [
     CronogramaComponent,
     ReportesComponent,
     LogosComponent,
+    MonitorHorasComponent,
+    ConsultaMonitorHorasComponent,
+    MantisReportesComponent,
   ],
   imports: [CommonModule, FormsModule, RouterModule.forChild(routes), SharedModule],
   providers: [ActividadFormService],

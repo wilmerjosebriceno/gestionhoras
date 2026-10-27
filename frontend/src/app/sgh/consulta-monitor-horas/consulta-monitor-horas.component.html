@@ -1,0 +1,249 @@
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Consulta Monitor de Horas (Scrin)</h1>
+      <p class="text-sm text-gray-500">
+        Consulta las actividades de Scrin por rango de fechas para uno o varios usuarios con token e ID Scrin
+        asignado. Solo lectura.
+      </p>
+    </div>
+    <button
+      (click)="cargarUsuarios()"
+      class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm"
+    >
+      Actualizar usuarios
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-5">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Desde</label>
+        <input
+          type="date"
+          [(ngModel)]="from"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-800 text-sm"
+        />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Hasta</label>
+        <input
+          type="date"
+          [(ngModel)]="to"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-800 text-sm"
+        />
+      </div>
+      <div class="flex items-end">
+        <button
+          (click)="consultar()"
+          [disabled]="loadingConsulta"
+          class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm disabled:opacity-50"
+        >
+          {{ loadingConsulta ? 'Consultando…' : (modo === 'procesadas' ? 'Buscar procesadas' : (modo === 'todas' ? 'Buscar todas' : 'Consultar Scrin')) }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Modo de vista: Actual (Scrin) / Procesadas / Todas -->
+    <div class="flex flex-wrap items-center gap-3 mb-1">
+      <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-sm">
+        <button type="button" (click)="modo='actual'; alCambiarModo()"
+          [class.bg-blue-600]="modo==='actual'" [class.text-white]="modo==='actual'"
+          class="px-3 py-1.5 transition-colors">Actual (Scrin)</button>
+        <button type="button" (click)="modo='procesadas'; alCambiarModo()"
+          [class.bg-blue-600]="modo==='procesadas'" [class.text-white]="modo==='procesadas'"
+          class="px-3 py-1.5 border-l border-gray-300 transition-colors">Procesadas</button>
+        <button type="button" (click)="modo='todas'; alCambiarModo()"
+          [class.bg-blue-600]="modo==='todas'" [class.text-white]="modo==='todas'"
+          class="px-3 py-1.5 border-l border-gray-300 transition-colors">Todas</button>
+      </div>
+      <span class="text-xs px-2 py-0.5 rounded-full"
+        [class.bg-blue-100]="modo!=='todas'" [class.text-blue-700]="modo!=='todas'"
+        [class.bg-gray-100]="modo==='todas'" [class.text-gray-500]="modo==='todas'">
+        {{ modo === 'procesadas' ? 'Procesadas' : (modo === 'todas' ? 'Todas' : 'Actual (Scrin)') }}
+      </span>
+    </div>
+    <p class="text-xs text-gray-400 mb-4">
+      <ng-container [ngSwitch]="modo">
+        <span *ngSwitchCase="'procesadas'">No se consulta Scrin: se leen las horas ya procesadas y guardadas en el sistema (proyecto/cliente SGH asignado).</span>
+        <span *ngSwitchCase="'todas'">Muestra lo almacenado en el sistema (pendientes y procesadas) en el rango; la columna Estado las distingue.</span>
+        <span *ngSwitchDefault>Consulta en vivo Scrin para los usuarios seleccionados y guarda en staging (pendientes).</span>
+      </ng-container>
+    </p>
+
+    <!-- Selección de usuarios -->
+    <div class="border-t border-gray-100 pt-4">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-sm font-medium text-gray-700">Usuarios del sistema (SGH)</span>
+        <span class="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700">
+          {{ totalSeleccionados }} seleccionado(s)
+        </span>
+      </div>
+
+      <div *ngIf="loadingUsuarios" class="text-sm text-gray-400">Cargando usuarios…</div>
+      <div *ngIf="!loadingUsuarios && usuarios.length === 0" class="text-sm text-gray-400">
+        No hay usuarios activos en el sistema.
+      </div>
+
+      <div *ngIf="!loadingUsuarios && usuarios.length > 0" class="space-y-3">
+        <div class="flex flex-wrap items-end gap-2">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Filtrar</label>
+            <input
+              type="text"
+              [(ngModel)]="filtroUsuario"
+              placeholder="Buscar…"
+              class="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-800"
+            />
+          </div>
+          <div class="flex-1 min-w-[16rem]">
+            <label class="block text-xs text-gray-500 mb-1">Usuario</label>
+            <select
+              [(ngModel)]="usuarioParaAgregar"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-800 text-sm"
+            >
+              <option [ngValue]="undefined">— Seleccione —</option>
+              <option *ngFor="let u of usuariosDisponibles" [ngValue]="u.idUser">
+                {{ u.nameUser }} ({{ u.login }}){{ u.scrinConfigurado ? '' : ' — sin Scrin' }}
+              </option>
+            </select>
+          </div>
+          <button
+            (click)="agregarUsuario()"
+            [disabled]="!usuarioParaAgregar"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm disabled:opacity-50"
+          >
+            Agregar
+          </button>
+          <button
+            (click)="limpiarSeleccion()"
+            [disabled]="totalSeleccionados === 0"
+            class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm disabled:opacity-50"
+          >
+            Limpiar
+          </button>
+        </div>
+
+        <div *ngIf="usuariosSeleccionados.length > 0" class="flex flex-wrap gap-2">
+          <span
+            *ngFor="let u of usuariosSeleccionados"
+            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-sm text-gray-800"
+          >
+            {{ u.nameUser }}
+            <span *ngIf="u.scrinConfigurado; else sinScrin" class="text-xs text-gray-400">
+              Scrin {{ u.scrinEmploymentId }}
+            </span>
+            <ng-template #sinScrin>
+              <span class="text-xs text-amber-600">sin Scrin</span>
+            </ng-template>
+            <button
+              (click)="quitarUsuario(u)"
+              class="text-gray-400 hover:text-red-600 font-bold"
+              title="Quitar"
+            >
+              ✕
+            </button>
+          </span>
+        </div>
+        <div *ngIf="usuariosSeleccionados.length === 0" class="text-xs text-gray-400">
+          Ningún usuario agregado. Elija uno en la lista y pulse "Agregar".
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resultado por usuario (solo vista Actual / Scrin en vivo) -->
+  <div
+    *ngIf="modo === 'actual' && resultados.length > 0"
+    class="bg-white rounded-xl border border-gray-200 p-4"
+  >
+    <h2 class="font-semibold text-gray-800 mb-2 text-sm">Resultado de la consulta a Scrin</h2>
+    <div class="flex flex-wrap gap-2">
+      <span
+        *ngFor="let r of resultados"
+        class="px-3 py-1 rounded-full text-xs"
+        [class.bg-green-100]="r.ok"
+        [class.text-green-700]="r.ok"
+        [class.bg-red-100]="!r.ok"
+        [class.text-red-700]="!r.ok"
+      >
+        {{ r.nameUser || ('#' + r.idUser) }}:
+        <ng-container *ngIf="r.ok">
+          {{ r.fetched }} obtenidos · {{ r.inserted }} nuevos
+        </ng-container>
+        <ng-container *ngIf="!r.ok">{{ r.error }}</ng-container>
+      </span>
+    </div>
+  </div>
+
+  <!-- Tabla de actividades -->
+  <div class="bg-white rounded-xl overflow-hidden border border-gray-200">
+    <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+      <h2 class="font-semibold text-gray-800">Actividades</h2>
+      <div class="flex items-center gap-3">
+        <span class="text-sm text-gray-600">
+          {{ actividades.length }} registro(s) · Total: <b class="text-gray-800">{{ formatMin(totalMinutos()) }}</b>
+        </span>
+        <button
+          (click)="exportar()"
+          [disabled]="actividades.length === 0"
+          class="px-3 py-1.5 bg-green-700 hover:bg-green-600 text-white rounded-lg text-xs disabled:opacity-50"
+        >
+          Exportar CSV
+        </button>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+          <tr>
+            <th class="px-3 py-2 text-left">Usuario</th>
+            <th class="px-3 py-2 text-left">Estado</th>
+            <th class="px-3 py-2 text-left">Proyecto (Scrin)</th>
+            <th class="px-3 py-2 text-left">Empleado</th>
+            <th class="px-3 py-2 text-left">Proyecto SGH</th>
+            <th class="px-3 py-2 text-left">Cliente SGH</th>
+            <th class="px-3 py-2 text-left">Fecha</th>
+            <th class="px-3 py-2 text-left">Inicio</th>
+            <th class="px-3 py-2 text-left">Fin</th>
+            <th class="px-3 py-2 text-right">Duración</th>
+            <th class="px-3 py-2 text-center">Offline</th>
+            <th class="px-3 py-2 text-left">Nota</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <tr *ngFor="let a of actividades" class="hover:bg-gray-50">
+            <td class="px-3 py-2 text-gray-800">{{ a.userName || a.employeeName || ('#' + a.idUser) }}</td>
+            <td class="px-3 py-2">
+              <span class="px-2 py-0.5 rounded-full text-xs"
+                [class.bg-green-100]="a.syncStatus === 1" [class.text-green-700]="a.syncStatus === 1"
+                [class.bg-amber-100]="a.syncStatus !== 1" [class.text-amber-700]="a.syncStatus !== 1">
+                {{ a.syncStatus === 1 ? 'Procesada' : 'Actual' }}
+              </span>
+            </td>
+            <td class="px-3 py-2 text-gray-800">{{ a.scrinProjectName || 'Sin proyecto' }}</td>
+            <td class="px-3 py-2 text-gray-600">{{ a.employeeName || '—' }}</td>
+            <td class="px-3 py-2 text-gray-600">{{ a.proyectoLabel || '—' }}</td>
+            <td class="px-3 py-2 text-gray-600">{{ a.clienteLabel || '—' }}</td>
+            <td class="px-3 py-2 text-gray-600">{{ a.dateActivity }}</td>
+            <td class="px-3 py-2 text-gray-600">{{ a.hourIni }}</td>
+            <td class="px-3 py-2 text-gray-600">{{ a.hourFin }}</td>
+            <td class="px-3 py-2 text-right font-medium text-gray-800">{{ formatMin(a.durationMinutes) }}</td>
+            <td class="px-3 py-2 text-center">
+              <span *ngIf="a.offline === 1" class="px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700">Sí</span>
+              <span *ngIf="a.offline !== 1" class="text-gray-400">—</span>
+            </td>
+            <td class="px-3 py-2 text-gray-600 max-w-xs truncate" [title]="a.note || ''">{{ a.note || '—' }}</td>
+          </tr>
+          <tr *ngIf="actividades.length === 0">
+            <td colspan="9" class="px-3 py-8 text-center text-gray-400">
+              {{ consultado ? 'Sin registros en el rango consultado.' : 'Seleccione usuarios y pulse "Consultar Scrin".' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

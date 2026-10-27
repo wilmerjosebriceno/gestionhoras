@@ -12,14 +12,24 @@ import { ProyectoActividad } from './entities/proyecto-actividad.entity';
 import { Actividad } from './entities/actividad.entity';
 import { DetalleActividad } from './entities/detalle-actividad.entity';
 import { MetadataActividad } from './entities/metadata-actividad.entity';
+import { ActivityAttachment } from './entities/activity-attachment.entity';
 import { CronProyecto } from './entities/cron-proyecto.entity';
 import { CronHito } from './entities/cron-hito.entity';
 import { CronSeguimiento } from './entities/cron-seguimiento.entity';
 import { SghId } from './entities/sgh-id.entity';
+import { ScrinActivity } from './entities/scrin-activity.entity';
+import { ScrinSummary } from './entities/scrin-summary.entity';
+import { ScrinProjectMap } from './entities/scrin-project-map.entity';
+import { ScrinClientService } from './scrin-client.service';
+import { ScrinSchemaService } from './scrin-schema.service';
+import { ActividadesSchemaService } from './actividades-schema.service';
+import { MonitorHorasService } from './monitor-horas.service';
+import { MonitorHorasController } from './monitor-horas.controller';
 import { CatalogosService } from './catalogos.service';
 import { EstructuraService } from './estructura.service';
 import { ProyectosService } from './proyectos.service';
 import { ActividadesService } from './actividades.service';
+import { ActivityAttachmentsService } from './activity-attachments.service';
 import { PdfReportsService } from './pdf-reports.service';
 import { LogosService } from './logos.service';
 import { CronogramaService } from './cronograma.service';
@@ -36,6 +46,7 @@ import { ActividadesController } from './actividades.controller';
 import { LogosController } from './logos.controller';
 import { CronogramaController } from './cronograma.controller';
 import { DashboardController } from './dashboard.controller';
+import { SoporteModule } from '../soporte/soporte.module';
 
 @Module({
   imports: [
@@ -52,23 +63,34 @@ import { DashboardController } from './dashboard.controller';
       Actividad,
       DetalleActividad,
       MetadataActividad,
+      ActivityAttachment,
       CronProyecto,
       CronHito,
       CronSeguimiento,
       SghId,
+      ScrinActivity,
+      ScrinSummary,
+      ScrinProjectMap,
     ]),
+    SoporteModule,
   ],
   providers: [
+    ScrinClientService,
+    ScrinSchemaService,
+    ActividadesSchemaService,
+    MonitorHorasService,
     CatalogosService,
     EstructuraService,
     ProyectosService,
     ActividadesService,
+    ActivityAttachmentsService,
     PdfReportsService,
     LogosService,
     CronogramaService,
     DashboardService,
   ],
   controllers: [
+    MonitorHorasController,
     ProcesosController,
     ItemsController,
     CategoriasController,

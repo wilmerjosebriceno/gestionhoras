@@ -45,6 +45,10 @@ async function seed() {
     { sistema: 'SIV', denominacion: 'Inventario', descripcion: 'Control de inventario y almacenes', ruta: '/siv' },
     { sistema: 'LAB', denominacion: 'Laboratorio', descripcion: 'Gestión de análisis de laboratorio', ruta: '/lab' },
     { sistema: 'SEC', denominacion: 'Seguridad', descripcion: 'Control de perfiles, accesos de usuarios y log de transacciones', ruta: '/sec' },
+    { sistema: 'SGH', denominacion: 'Gestion de Horas', descripcion: 'Registro de actividades y horas a clientes', ruta: '/sgh' },
+    { sistema: 'COT', denominacion: 'Cotizaciones', descripcion: 'Cotizaciones, tarifas y normativa', ruta: '/cot' },
+    { sistema: 'SOP', denominacion: 'Soporte', descripcion: 'Incidencias y tickets de soporte', ruta: '/soporte' },
+    { sistema: 'GPI', denominacion: 'Proyectos Internos', descripcion: 'Gestion de proyectos internos: equipo, actividades, fechas y horas', ruta: '/gpi' },
   ];
   for (const def of sistemasDef) {
     let sistema = await sistemaRepo.findOne({ where: { sistema: def.sistema } });

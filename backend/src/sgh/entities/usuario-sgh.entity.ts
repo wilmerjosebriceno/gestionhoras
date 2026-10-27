@@ -25,4 +25,13 @@ export class UsuarioSgh {
 
   @Column({ name: 'rol', type: 'varchar', length: 1, nullable: true })
   rol?: string;
+
+  @Column({ name: 'scrin_company_id', type: 'int', nullable: true })
+  scrinCompanyId?: number;
+
+  @Column({ name: 'scrin_employment_id', type: 'int', nullable: true })
+  scrinEmploymentId?: number;
+
+  @Column({ name: 'scrin_token', type: 'text', nullable: true })
+  scrinToken?: string;
 }

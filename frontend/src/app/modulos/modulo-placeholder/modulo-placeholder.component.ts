@@ -23,6 +23,7 @@ export class ModuloPlaceholderComponent implements OnInit {
     SEC: '/icons/seguridad.svg',
     SGH: '/icons/documents.svg',
     COT: '/icons/cotizacion.png',
+    SOP: '/icons/soporte.jpeg',
   };
 
   constructor(private service: SistemaService, private router: Router) {}

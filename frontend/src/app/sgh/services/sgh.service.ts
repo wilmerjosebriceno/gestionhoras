@@ -13,12 +13,14 @@ import {
   Proyecto,
   ProyectoActividadRow,
   Actividad,
+  ActividadAttachment,
   DetalleActividadRow,
   Fase,
   Seguimiento,
   Hito,
   PaginadoActividades,
 } from '../models/sgh.models';
+import type { VerificacionScrin, ExploracionScrin } from './monitor-horas.service';
 
 @Injectable({ providedIn: 'root' })
 export class SghService {
@@ -168,6 +170,31 @@ export class SghService {
     return this.http.delete<void>(`${this.api}/usuarios/${id}`);
   }
 
+  /**
+   * "Probar conexión" de Scrin para un usuario SGH (pantalla Usuarios SGH).
+   * Valida el token y el ID contra Scrin en vivo. Solo administradores (rol A/S).
+   */
+  verificarScrinUsuario(
+    id: number,
+    dto: { scrinEmploymentId?: number; scrinToken?: string } = {},
+  ): Observable<VerificacionScrin> {
+    return this.http.post<VerificacionScrin>(
+      `${this.api}/scrin/monitor/usuarios/${id}/verificar`,
+      dto,
+    );
+  }
+
+  /**
+   * Consulta un token de Scrin y devuelve TODOS los IDs de empleado que expone.
+   * Sirve para saber qué ID asignar a cada usuario (incluso con un token nuevo).
+   * Solo administradores (rol A/S).
+   */
+  explorarTokenScrin(scrinToken: string): Observable<ExploracionScrin> {
+    return this.http.post<ExploracionScrin>(`${this.api}/scrin/monitor/token/empleados`, {
+      scrinToken,
+    });
+  }
+
   /* ==================== ESTRUCTURA ==================== */
   listEstructura(): Observable<EstructuraFila[]> {
     return this.http.get<EstructuraFila[]>(`${this.api}/estructura`);
@@ -198,8 +225,10 @@ export class SghService {
     return this.http.get<Proyecto>(`${this.api}/proyectos/${id}`);
   }
 
-  detalleProyecto(id: number): Observable<ProyectoActividadRow[]> {
-    return this.http.get<ProyectoActividadRow[]>(`${this.api}/proyectos/${id}/detalle`);
+  detalleProyecto(id: number, soloActivos?: boolean): Observable<ProyectoActividadRow[]> {
+    return this.http.get<ProyectoActividadRow[]>(`${this.api}/proyectos/${id}/detalle`, {
+      params: soloActivos ? { soloActivos: 1 } : {},
+    });
   }
 
   actividadesDelProyecto(id: number): Observable<Actividad[]> {
@@ -266,6 +295,27 @@ export class SghService {
     return this.http.delete<void>(`${this.api}/actividades/${id}`);
   }
 
+  /* ==================== ADJUNTOS DE ACTIVIDAD ==================== */
+  listAdjuntos(id: number): Observable<ActividadAttachment[]> {
+    return this.http.get<ActividadAttachment[]>(`${this.api}/actividades/${id}/attachments`);
+  }
+
+  subirAdjuntos(id: number, archivos: File[]): Observable<ActividadAttachment[]> {
+    const fd = new FormData();
+    archivos.forEach((a) => fd.append('archivos', a, a.name));
+    return this.http.post<ActividadAttachment[]>(`${this.api}/actividades/${id}/attachments`, fd);
+  }
+
+  descargarAdjunto(id: number, adjuntoId: number): Observable<Blob> {
+    return this.http.get(`${this.api}/actividades/${id}/attachments/${adjuntoId}`, {
+      responseType: 'blob',
+    });
+  }
+
+  eliminarAdjunto(id: number, adjuntoId: number): Observable<any> {
+    return this.http.delete<any>(`${this.api}/actividades/${id}/attachments/${adjuntoId}`);
+  }
+
   reporteActividades(params: {
     fecini?: string;
     fecfin?: string;
@@ -273,6 +323,7 @@ export class SghService {
     idProcess?: number;
     idUser?: number;
     idClient?: number;
+    online?: number;
   }): Observable<Actividad[]> {
     const q: Record<string, string> = {};
     if (params.fecini) q['fecini'] = params.fecini;
@@ -281,6 +332,7 @@ export class SghService {
     if (params.idProcess) q['idProcess'] = String(params.idProcess);
     if (params.idUser) q['idUser'] = String(params.idUser);
     if (params.idClient) q['idClient'] = String(params.idClient);
+    if (params.online === 0 || params.online === 1) q['online'] = String(params.online);
     return this.http.get<Actividad[]>(`${this.api}/actividades/reporte`, { params: q });
   }
 
@@ -294,6 +346,24 @@ export class SghService {
     return this.http.get(`${this.api}/proyectos/${id}/pdf`, { responseType: 'blob' });
   }
 
+  /** PDF del formato de habilitación de generación de tickets de la institución (cliente). */
+  pdfFormatoHabilitacionCliente(id: number): Observable<Blob> {
+    return this.http.get(`${this.api}/clientes/${id}/formato-habilitacion/pdf`, {
+      responseType: 'blob',
+    });
+  }
+
+  /** Envía por correo el formato de habilitación (PDF) a la institución o a calidad. */
+  enviarFormatoHabilitacionCliente(
+    id: number,
+    payload: { destinatario?: string; mensaje?: string } = {},
+  ): Observable<any> {
+    return this.http.post<any>(
+      `${this.api}/clientes/${id}/formato-habilitacion/enviar-correo`,
+      payload,
+    );
+  }
+
   /** PDF del reporte de actividades con los filtros indicados. */
   pdfReporte(params: {
     fecini?: string;
@@ -302,6 +372,7 @@ export class SghService {
     idProcess?: number;
     idUser?: number;
     idClient?: number;
+    online?: number;
   }): Observable<Blob> {
     const q: Record<string, string> = {};
     if (params.fecini) q['fecini'] = params.fecini;
@@ -310,6 +381,7 @@ export class SghService {
     if (params.idProcess) q['idProcess'] = String(params.idProcess);
     if (params.idUser) q['idUser'] = String(params.idUser);
     if (params.idClient) q['idClient'] = String(params.idClient);
+    if (params.online === 0 || params.online === 1) q['online'] = String(params.online);
     return this.http.get(`${this.api}/actividades/reporte/pdf`, { params: q, responseType: 'blob' });
   }
 

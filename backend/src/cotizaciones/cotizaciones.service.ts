@@ -10,10 +10,12 @@ import { CotBudgetHistory } from './entities/cot-budget-history.entity';
 import { Correlativo } from './entities/cot-correlativo.entity';
 import { CotEmpresa } from './entities/cot-empresa.entity';
 import { CotTasaIva } from './entities/cot-tasa-iva.entity';
+import { CotRangoUsuario } from './entities/cot-rango-usuario.entity';
+import { CotTarifa } from './entities/cot-tarifa.entity';
 import { CreateBudgetDto, BudgetDetailDto } from './dto/budget.dto';
-import { CreateCotClientDto, CreateRegionDto, CreateCotTemplateDto, CreateEmpresaDto, CreateTasaIvaDto } from './dto/master.dto';
+import { CreateCotClientDto, CreateRegionDto, CreateCotTemplateDto, CreateEmpresaDto, CreateTasaIvaDto, CreateRangoUsuarioDto, CreateTarifaDto } from './dto/master.dto';
 
-const IVA_DEFAULT = 8; // % por defecto cuando la línea no tiene tasa asociada
+const IVA_DEFAULT = 16; // % por defecto cuando la línea no tiene tasa asociada (alícuota más alta)
 const ESTADO_ELIMINADA = 4; // borrado lógico de cotizaciones
 
 @Injectable()
@@ -28,13 +30,37 @@ export class CotizacionesService {
     @InjectRepository(Correlativo) private readonly correlativoRepo: Repository<Correlativo>,
     @InjectRepository(CotEmpresa) private readonly empresaRepo: Repository<CotEmpresa>,
     @InjectRepository(CotTasaIva) private readonly tasaRepo: Repository<CotTasaIva>,
+    @InjectRepository(CotRangoUsuario) private readonly rangoRepo: Repository<CotRangoUsuario>,
+    @InjectRepository(CotTarifa) private readonly tarifaRepo: Repository<CotTarifa>,
   ) {}
 
   /* ============ CLIENTE ============ */
+  /**
+   * Lista los clientes activos. Si recibe `q`, filtra por NOMBRE o RIF
+   * (sin distinguir mayusculas y ignorando guiones/puntos del RIF, de modo que
+   * buscar "G-20008147-3" tambien encuentra el RIF guardado como "G200081473").
+   */
   async listarClientes(q?: string): Promise<CotClient[]> {
-    const where: any = { active: 1 };
-    if (q) where.nameClient = Like(`%${q}%`);
-    return this.clientRepo.find({ where, order: { nameClient: 'ASC' } });
+    const termino = (q ?? '').trim();
+    const qb = this.clientRepo
+      .createQueryBuilder('c')
+      .where('c.active = :active', { active: 1 })
+      .orderBy('c.name_client', 'ASC');
+
+    if (termino) {
+      const condiciones = ['c.name_client ILIKE :like', 'c.rif ILIKE :like'];
+      const params: Record<string, string> = { like: `%${termino}%` };
+      const rifNormalizado = termino.replace(/[^a-zA-Z0-9]/g, '');
+      if (rifNormalizado) {
+        condiciones.push(
+          "regexp_replace(coalesce(c.rif, ''), '[^a-zA-Z0-9]', '', 'g') ILIKE :rifLike",
+        );
+        params['rifLike'] = `%${rifNormalizado}%`;
+      }
+      qb.andWhere(`(${condiciones.join(' OR ')})`, params);
+    }
+
+    return qb.getMany();
   }
 
   /**
@@ -98,11 +124,13 @@ export class CotizacionesService {
   }
 
   /* ============ REGION ============ */
-  async listarRegiones(): Promise<Region[]> {
-    return this.regionRepo.find({ where: { active: 1 }, order: { name: 'ASC' }, relations: ['client'] });
+  async listarRegiones(incluirInactivos = false): Promise<Region[]> {
+    const where: any = {};
+    if (!incluirInactivos) where.active = 1;
+    return this.regionRepo.find({ where, order: { name: 'ASC' }, relations: ['client'] });
   }
   async crearRegion(dto: CreateRegionDto): Promise<Region> {
-    const e = this.regionRepo.create({ ...dto, active: dto.active ?? 1 });
+    const e = this.regionRepo.create({ ...dto, code: dto.code || null, active: dto.active ?? 1 });
     return this.regionRepo.save(e);
   }
   async actualizarRegion(id: number, dto: Partial<CreateRegionDto>): Promise<Region> {
@@ -110,6 +138,7 @@ export class CotizacionesService {
     if (!r) throw new NotFoundException('Región no encontrada');
     if (dto.idClient !== undefined) r.idClient = dto.idClient;
     if (dto.name !== undefined) r.name = dto.name;
+    if (dto.code !== undefined) r.code = dto.code || null;
     if (dto.description !== undefined) r.description = dto.description;
     if (dto.price !== undefined) r.price = Number(dto.price);
     if (dto.priceOnline !== undefined) r.priceOnline = Number(dto.priceOnline);
@@ -183,6 +212,95 @@ export class CotizacionesService {
     return this.tasaRepo.save(t);
   }
 
+  /* ============ RANGOS DE USUARIOS ============ */
+  async listarRangos(): Promise<CotRangoUsuario[]> {
+    return this.rangoRepo.find({ order: { desde: 'ASC' } });
+  }
+  async crearRango(dto: CreateRangoUsuarioDto): Promise<CotRangoUsuario> {
+    return this.rangoRepo.save(this.rangoRepo.create({ ...dto, activo: dto.activo ?? 1 }));
+  }
+  async actualizarRango(id: number, dto: Partial<CreateRangoUsuarioDto>): Promise<CotRangoUsuario> {
+    const r = await this.rangoRepo.findOne({ where: { idRango: id } });
+    if (!r) throw new NotFoundException('Rango de usuarios no encontrado');
+    if (dto.desde !== undefined) r.desde = Number(dto.desde);
+    if (dto.hasta !== undefined) r.hasta = Number(dto.hasta);
+    if (dto.descripcion !== undefined) r.descripcion = dto.descripcion;
+    if (dto.activo !== undefined) r.activo = dto.activo;
+    return this.rangoRepo.save(r);
+  }
+  async eliminarRango(id: number): Promise<void> {
+    const r = await this.rangoRepo.findOne({ where: { idRango: id } });
+    if (!r) throw new NotFoundException('Rango de usuarios no encontrado');
+    await this.rangoRepo.remove(r);
+  }
+
+  /** Devuelve el rango que contiene el número de usuarios indicado. */
+  async resolverRango(nroUser: number): Promise<CotRangoUsuario | null> {
+    if (nroUser == null) return null;
+    return this.rangoRepo.createQueryBuilder('r')
+      .where('r.desde <= :nroUser AND :nroUser <= r.hasta', { nroUser })
+      .andWhere('r.activo = 1')
+      .orderBy('r.desde', 'ASC')
+      .getOne();
+  }
+
+  /** Resuelve el id del rango a partir de un id explícito o del número de usuarios. */
+  private async resolverIdRango(idRango?: number | null, nroUser?: number | null): Promise<number | null> {
+    if (idRango != null) return idRango;
+    if (nroUser != null) {
+      const r = await this.resolverRango(nroUser);
+      return r?.idRango ?? null;
+    }
+    return null;
+  }
+
+  /* ============ TARIFAS (región + rango + modalidad) ============ */
+  async listarTarifas(incluirInactivos = false): Promise<CotTarifa[]> {
+    const where: any = {};
+    if (!incluirInactivos) where.activo = 1;
+    return this.tarifaRepo.find({ where, relations: ['region', 'rango'], order: { idTarifa: 'ASC' } });
+  }
+  async crearTarifa(dto: CreateTarifaDto): Promise<CotTarifa> {
+    return this.tarifaRepo.save(this.tarifaRepo.create({
+      idRegion: dto.idRegion,
+      idRango: dto.idRango,
+      modalidad: dto.modalidad,
+      tarifa: Number(dto.tarifa ?? 0),
+      activo: dto.activo ?? 1,
+    }));
+  }
+  async actualizarTarifa(id: number, dto: Partial<CreateTarifaDto>): Promise<CotTarifa> {
+    const t = await this.tarifaRepo.findOne({ where: { idTarifa: id } });
+    if (!t) throw new NotFoundException('Tarifa no encontrada');
+    if (dto.idRegion !== undefined) t.idRegion = Number(dto.idRegion);
+    if (dto.idRango !== undefined) t.idRango = Number(dto.idRango);
+    if (dto.modalidad !== undefined) t.modalidad = dto.modalidad;
+    if (dto.tarifa !== undefined) t.tarifa = Number(dto.tarifa);
+    if (dto.activo !== undefined) t.activo = dto.activo;
+    return this.tarifaRepo.save(t);
+  }
+  async eliminarTarifa(id: number): Promise<void> {
+    const t = await this.tarifaRepo.findOne({ where: { idTarifa: id } });
+    if (!t) throw new NotFoundException('Tarifa no encontrada');
+    await this.tarifaRepo.remove(t);
+  }
+
+  /**
+   * Núcleo del requerimiento: obtiene la tarifa por
+   * REGIÓN + RANGO (según el número de usuarios) + MODALIDAD.
+   * Se usa al insertar una actividad (línea de cotización).
+   */
+  async obtenerTarifa(idRegion: number, nroUser: number, modalidad: string): Promise<CotTarifa | null> {
+    if (idRegion == null || nroUser == null || !modalidad) return null;
+    return this.tarifaRepo.createQueryBuilder('t')
+      .innerJoinAndSelect('t.rango', 'r', 'r.desde <= :nroUser AND :nroUser <= r.hasta', { nroUser })
+      .leftJoinAndSelect('t.region', 'reg')
+      .where('t.id_region = :idRegion', { idRegion })
+      .andWhere('t.modalidad = :modalidad', { modalidad: String(modalidad).toUpperCase() })
+      .andWhere('t.activo = 1 AND r.activo = 1')
+      .getOne();
+  }
+
   /** Resuelve el % de IVA efectivo de una línea a partir de su tasa asociada (o del % legacy). */
   private resolverPorcentaje(d: CotDtBudget, mapTasas: Map<number, number>): number {
     if (d.idTasaIva != null && mapTasas.has(d.idTasaIva)) return Number(mapTasas.get(d.idTasaIva) ?? 0);
@@ -190,7 +308,7 @@ export class CotizacionesService {
   }
 
   /** Construye una línea de detalle resolviendo precio, descripción y tasa de IVA desde el catálogo. */
-  private async mapearDetalle(d: BudgetDetailDto, idBudget: number): Promise<CotDtBudget> {
+  private async mapearDetalle(d: BudgetDetailDto, idBudget: number, nroUser?: number | null): Promise<CotDtBudget> {
     const e = new CotDtBudget();
     e.idBudget = idBudget;
     e.idTemplate = d.idTemplate;
@@ -213,9 +331,14 @@ export class CotizacionesService {
     // Plantilla: precio por defecto y autocompletar descripción
     const tpl = await this.templateRepo.findOne({ where: { idTemplate: d.idTemplate } });
     if (!e.description && tpl?.name) e.description = tpl.name;
-    // Precio: si no se indica, se toma de la región (online/presencial) o plantilla
+    // Precio: 1) tarifa (región + rango por nro_user + modalidad); 2) región; 3) plantilla
     let price = Number(d.price ?? 0) || 0;
-    if ((!price || price === 0) && d.idRegion) {
+    const tarifa = await this.obtenerTarifa(d.idRegion as number, nroUser as number, d.modalidad as string);
+    if (tarifa) {
+      e.idTarifa = tarifa.idTarifa;
+      e.tarifaAplicada = Number(tarifa.tarifa);
+      price = Number(tarifa.tarifa);
+    } else if ((!price || price === 0) && d.idRegion) {
       const reg = await this.regionRepo.findOne({ where: { idRegion: d.idRegion } });
       const esOnline = (d.modalidad || '').toUpperCase() === 'ONLINE';
       price = Number(esOnline ? reg?.priceOnline : reg?.price) || 0;
@@ -491,6 +614,8 @@ export class CotizacionesService {
     // Si no se envÃ­a un codeBudget explÃ­cito, se genera el secuencial "AÃ‘O-NNNNNN" por empresa
     const code = dto.codeBudget && dto.codeBudget.trim() ? dto.codeBudget : await this.generarCodigoSecuencial(idEmpresa);
     const dateBudget = dto.dateBudget || new Date().toISOString().slice(0, 10);
+    const nroUser = dto.nroUser ?? null;
+    const idRango = await this.resolverIdRango(dto.idRango, nroUser);
     const b = this.budgetRepo.create({
       codeBudget: code,
       dateBudget,
@@ -503,6 +628,8 @@ export class CotizacionesService {
       modalidad: dto.modalidad ?? 'FORMA DE PAGO: El 20 % con la instalación del comité de implantación y el SIGESP ERP en el servidor de INVEVAL, 30% con la configuración y migración de datos de maestros básicos, adecuación de formatos básicos, y el 50% con la capacitación simulada y en vivo.',
       idClient: dto.idClient ?? null,
       idEmpresa,
+      nroUser,
+      idRango,
       status: dto.status ?? 0,
       emailSent: 0,
       tasaBcv: dto.tasaBcv ?? 0,
@@ -510,7 +637,7 @@ export class CotizacionesService {
     const guardado = await this.budgetRepo.save(b);
 
     if (dto.detalles?.length) {
-      const dets = dto.detalles.map((d) => this.mapearDetalle(d, guardado.idBudget));
+      const dets = dto.detalles.map((d) => this.mapearDetalle(d, guardado.idBudget, nroUser));
       await this.dtRepo.save(await Promise.all(dets));
       await this.recalcular(guardado.idBudget);
     }
@@ -529,7 +656,17 @@ export class CotizacionesService {
     let exento = 0;
     let baseImponible = 0;
     let ivaTotal = 0;
+    const nroUser = b.nroUser ?? null;
     for (const d of dets) {
+      // Recalcula el precio con la tarifa vigente (región + rango + modalidad) cuando hay nro_user.
+      if (nroUser != null) {
+        const tarifa = await this.obtenerTarifa(d.idRegion as number, nroUser, d.modalidad as string);
+        if (tarifa) {
+          d.idTarifa = tarifa.idTarifa;
+          d.tarifaAplicada = Number(tarifa.tarifa);
+          d.price = Number(tarifa.tarifa);
+        }
+      }
       const sub = Number(d.quantity ?? 0) * Number(d.price ?? 0);
       const porc = this.resolverPorcentaje(d, mapTasas);
       const tax = porc === 0 ? 0 : sub * (porc / 100);
@@ -584,6 +721,8 @@ export class CotizacionesService {
     b.modalidad = dto.modalidad ?? b.modalidad;
     b.idClient = dto.idClient ?? b.idClient;
     b.idEmpresa = dto.idEmpresa ?? b.idEmpresa;
+    if (dto.nroUser !== undefined) b.nroUser = dto.nroUser;
+    b.idRango = await this.resolverIdRango(dto.idRango, b.nroUser);
     b.status = dto.status ?? b.status;
     b.tasaBcv = dto.tasaBcv ?? b.tasaBcv;
     await this.budgetRepo.save(b);
@@ -593,7 +732,7 @@ export class CotizacionesService {
     if (existentes.length) await this.dtRepo.remove(existentes);
 
     if (dto.detalles?.length) {
-      const dets = dto.detalles.map((d) => this.mapearDetalle(d, id));
+      const dets = dto.detalles.map((d) => this.mapearDetalle(d, id, b.nroUser));
       await this.dtRepo.save(await Promise.all(dets));
     }
     await this.recalcular(id);

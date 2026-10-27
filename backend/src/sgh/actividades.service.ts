@@ -10,6 +10,7 @@ import { DetalleActividad } from './entities/detalle-actividad.entity';
 import { MetadataActividad } from './entities/metadata-actividad.entity';
 import { SghId } from './entities/sgh-id.entity';
 import { UsuarioSgh } from './entities/usuario-sgh.entity';
+import { ActivityAttachmentsService } from './activity-attachments.service';
 import {
   CreateActividadDto,
   UpdateActividadDto,
@@ -29,6 +30,7 @@ export class ActividadesService {
     private readonly sghIdRepo: Repository<SghId>,
     @InjectRepository(UsuarioSgh)
     private readonly usuarioSghRepo: Repository<UsuarioSgh>,
+    private readonly adjuntos: ActivityAttachmentsService,
   ) {}
 
   async getCatalogo(
@@ -86,7 +88,8 @@ export class ActividadesService {
 
     const data = await this.actividadRepo.query(
       `
-      SELECT DISTINCT TMP.*, COALESCE(mt.file, '') AS file
+      SELECT DISTINCT TMP.*, COALESCE(mt.file, '') AS file,
+             COALESCE(att.total, 0) AS "adjuntosCount"
       FROM (
         SELECT DISTINCT client.rif, client.name, doc.id_proyect AS "idProyect", doc.id_type AS "idType",
                doc.id_activity AS "idActivity", doc.id_client AS "idClient", doc.numdoc,
@@ -96,6 +99,12 @@ export class ActividadesService {
         ${where}
       ) TMP
       LEFT OUTER JOIN sgh_metadata mt ON mt.id_activity = TMP."idActivity"
+      LEFT OUTER JOIN (
+        SELECT id_activity, COUNT(*) AS total
+        FROM sgh_activity_attachment
+        WHERE deleted_at IS NULL
+        GROUP BY id_activity
+      ) att ON att.id_activity = TMP."idActivity"
       ORDER BY TMP."dateDocument" DESC, TMP."numdoc" DESC
       LIMIT $${params.length + 1} OFFSET $${params.length + 2}
       `,
@@ -220,6 +229,7 @@ export class ActividadesService {
             hours: d.hours ?? 0,
             note: d.note,
             mantis: d.mantis,
+            online: d.online ?? 0,
           }),
         );
       if (filas.length > 0) await this.detalleRepo.save(filas);
@@ -262,6 +272,7 @@ export class ActividadesService {
             hours: det.hours ?? 0,
             note: det.note,
             mantis: det.mantis,
+            online: det.online ?? 0,
           });
         } else if (det.hours !== undefined) {
           await this.detalleRepo.save(
@@ -273,6 +284,7 @@ export class ActividadesService {
               hours: det.hours,
               note: det.note,
               mantis: det.mantis,
+              online: det.online ?? 0,
             }),
           );
         }
@@ -298,6 +310,7 @@ export class ActividadesService {
     await this.verificarPuedeModificar(actividad, login, isSystemAdmin);
     await this.detalleRepo.delete({ idActivity: id });
     await this.metadataRepo.delete({ idActivity: id });
+    await this.adjuntos.eliminarTodosDeActividad(id);
     await this.actividadRepo.remove(actividad);
     if (actividad.idProyect && actividad.idProyect !== 0) {
       await this.recalcularProyecto(actividad.idProyect);
@@ -318,6 +331,7 @@ export class ActividadesService {
       .toString()
       .padStart(2, '0')}:${ahora.getSeconds().toString().padStart(2, '0')}`;
     await this.actividadRepo.save(actividad);
+    await this.adjuntos.eliminarFisicosDeActividad(id);
     return { message: 'Actividad anulada' };
   }
 
@@ -385,6 +399,8 @@ export class ActividadesService {
       idProcess?: number;
       idUser?: number;
       idClient?: number;
+      /** 1 = solo online · 0 = solo presencial · ausente = todas */
+      online?: number;
     },
     login?: string,
   ) {
@@ -432,6 +448,11 @@ export class ActividadesService {
       condiciones.push(`client.id_client = $${valores.length + 1}`);
       valores.push(params.idClient);
     }
+    // Modalidad: 1 = online, 0 = presencial (los nulos cuentan como presencial).
+    if (params.online === 0 || params.online === 1) {
+      condiciones.push(`COALESCE(dt.online, 0) = $${valores.length + 1}`);
+      valores.push(params.online);
+    }
     const whereAdicional = condiciones.length ? `AND ${condiciones.join(' AND ')}` : '';
 
     return this.actividadRepo.query(
@@ -443,7 +464,7 @@ export class ActividadesService {
                doc.note, doc.responsible, doc.status, doc.visit,
                users.name_user AS "nameUser", typ.name_type AS "nameType",
                dt.id_detail AS "idDetail", p.name_process AS "nameProcess",
-               dt.situation, dt.mantis, dt.note AS "detalleNota", dt.hours
+               dt.situation, dt.mantis, dt.note AS "detalleNota", dt.hours, dt.online
         FROM sgh_activity doc
         INNER JOIN sgh_dt_activity dt ON dt.id_activity = doc.id_activity
         INNER JOIN sgh_process p ON p.id_process = dt.id_process
@@ -453,9 +474,83 @@ export class ActividadesService {
         WHERE doc.date_document BETWEEN $1::date AND $2::date ${whereAdicional}
       ) TMP
       LEFT OUTER JOIN sgh_metadata mt ON mt.id_activity = TMP."idActivity"
-      ORDER BY TMP."idActivity", TMP."idDetail"
+      ORDER BY "dateDocument" ASC, "hourDocument" ASC, "idActivity" ASC, "idDetail" ASC
       `,
       valores,
     );
+  }
+
+  /**
+   * Resumen de horas por rango de fechas agrupado por usuario, proyecto o
+   * cliente. Respeta el rol de sgh_users: un no administrador solo ve sus
+   * propias horas (igual que `getCatalogo` y `reporteActividades`).
+   */
+  async resumenHoras(
+    de?: string,
+    hasta?: string,
+    agrupacion: 'usuario' | 'proyecto' | 'cliente' = 'usuario',
+    login?: string,
+    incluirAnuladas = false,
+  ) {
+    const params: unknown[] = [de || '1900-01-01', hasta || '2999-12-31'];
+    const condiciones: string[] = [];
+
+    if (login) {
+      const usuario = await this.usuarioSghRepo.findOne({ where: { login } });
+      const esAdmin = usuario?.rol === 'A' || usuario?.rol === 'S';
+      if (!esAdmin) {
+        if (usuario) {
+          condiciones.push(`doc.id_user = $${params.length + 1}`);
+          params.push(usuario.idUser);
+        } else {
+          // Login sin perfil SGH: no puede ver datos de otros.
+          condiciones.push('1 = 0');
+        }
+      }
+    }
+    if (!incluirAnuladas) condiciones.push('doc.status <> 2');
+    const whereAdicional = condiciones.length ? `AND ${condiciones.join(' AND ')}` : '';
+
+    const base = `
+      FROM sgh_activity doc
+      INNER JOIN sgh_dt_activity dt ON dt.id_activity = doc.id_activity
+      LEFT JOIN sgh_client c ON c.id_client = doc.id_client
+      LEFT JOIN sgh_proyect p ON p.id_proyect = doc.id_proyect
+      LEFT JOIN sgh_users u ON u.id_user = doc.id_user
+      WHERE doc.date_document BETWEEN $1::date AND $2::date ${whereAdicional}
+    `;
+
+    let select: string;
+    let groupBy: string;
+    if (agrupacion === 'cliente') {
+      select = `c.id_client AS clave, COALESCE(c.name, 'Sin cliente') AS etiqueta`;
+      groupBy = `c.id_client, c.name`;
+    } else if (agrupacion === 'proyecto') {
+      select = `doc.id_proyect AS clave, COALESCE(p.numdoc || ' - ' || c.name, 'Proyecto ' || doc.id_proyect) AS etiqueta`;
+      groupBy = `doc.id_proyect, p.numdoc, c.name`;
+    } else {
+      select = `doc.id_user AS clave, COALESCE(u.name_user, 'Sin usuario') AS etiqueta`;
+      groupBy = `doc.id_user, u.name_user`;
+    }
+
+    const rows = await this.actividadRepo.query(
+      `
+      SELECT ${select},
+             ROUND(SUM(dt.hours)::numeric, 2) AS horas,
+             COUNT(DISTINCT doc.id_activity) AS actividades
+      ${base}
+      GROUP BY ${groupBy}
+      ORDER BY horas DESC
+      LIMIT 50
+      `,
+      params,
+    );
+
+    return (rows as any[]).map((r) => ({
+      clave: r.clave,
+      etiqueta: r.etiqueta,
+      horas: Number(r.horas || 0),
+      actividades: Number(r.actividades || 0),
+    }));
   }
 }

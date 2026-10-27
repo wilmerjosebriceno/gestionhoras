@@ -28,4 +28,10 @@ export class Cliente {
 
   @Column({ name: 'active', type: 'smallint', default: 0 })
   active: number;
+
+  @Column({ name: 'mantenimiento', type: 'integer', default: 0, nullable: true })
+  mantenimiento?: number;
+
+  @Column({ name: 'id_mantis_proyect', type: 'integer', default: 0, nullable: true })
+  idMantisProyect?: number;
 }

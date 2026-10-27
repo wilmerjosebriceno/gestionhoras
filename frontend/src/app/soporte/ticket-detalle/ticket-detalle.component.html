@@ -1,0 +1,586 @@
+<div *ngIf="cargando" class="p-10 text-center text-gray-400">Cargando incidencia…</div>
+
+<div *ngIf="!cargando && ticket" class="space-y-6">
+  <div class="flex items-center justify-between">
+    <button (click)="volver()" class="text-sm text-blue-600 hover:text-blue-800">← Volver a la bandeja</button>
+    <div class="flex items-center gap-2">
+      <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium"
+            [ngClass]="{
+              'bg-blue-100 text-blue-700': ticket.state === 'nuevo',
+              'bg-amber-100 text-amber-700': ticket.state === 'asignado',
+              'bg-cyan-100 text-cyan-700': ticket.state === 'en_progreso',
+              'bg-slate-100 text-slate-600': ticket.state === 'en_espera',
+              'bg-emerald-100 text-emerald-700': ticket.state === 'resuelto',
+              'bg-gray-200 text-gray-600': ticket.state === 'cerrado',
+              'bg-red-100 text-red-600': ticket.state === 'cancelado'
+            }">{{ estadoLabel(ticket.state) }}</span>
+      <span class="inline-flex px-2 py-1 rounded-full text-xs font-bold text-white"
+            [ngClass]="{
+              'bg-red-600': ticket.priority === 'P1',
+              'bg-orange-500': ticket.priority === 'P2',
+              'bg-yellow-400 text-black': ticket.priority === 'P3',
+              'bg-gray-300 text-gray-700': ticket.priority === 'P4'
+            }">{{ ticket.priority }}</span>
+    </div>
+  </div>
+
+  <!-- Encabezado del ticket -->
+  <div class="bg-white rounded-xl border border-gray-200 p-6">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <div class="font-mono text-xs text-blue-700">{{ ticket.number }}</div>
+        <h1 class="mt-1 text-xl font-bold text-gray-800">{{ ticket.title }}</h1>
+        <div class="mt-2 flex flex-wrap gap-4 text-sm text-gray-500">
+          <span *ngIf="ticket.clientName"><b class="text-gray-700">Cliente:</b> {{ ticket.clientName }} <span *ngIf="ticket.clientRif">({{ ticket.clientRif }})</span></span>
+          <span><b class="text-gray-700">Solicitante:</b> {{ ticket.requesterName }}</span>
+          <span *ngIf="ticket.requesterEmail">{{ ticket.requesterEmail }}</span>
+          <span><b class="text-gray-700">Tipo:</b> {{ ticket.type }}</span>
+          <span><b class="text-gray-700">Canal:</b> {{ ticket.channel }}</span>
+          <span><b class="text-gray-700">Grupo:</b> {{ ticket.groupNombre || '—' }}</span>
+          <span><b class="text-gray-700">Módulo:</b> {{ ticket.categoryCodigo ? ticket.categoryCodigo + ' - ' : '' }}{{ ticket.categoryNombre || '—' }}</span>
+        </div>
+      </div>
+      <div class="text-right text-xs text-gray-500">
+        <div>Creado: {{ ticket.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+        <div *ngIf="ticket.resolutionDueAt">Vence: {{ ticket.resolutionDueAt | date:'dd/MM/yyyy HH:mm' }}</div>
+        <div *ngIf="ticket.slaVencido" class="font-bold text-red-600">SLA vencido</div>
+        <div *ngIf="!ticket.slaVencido && ticket.slaPorVencer" class="font-semibold text-amber-600">SLA por vencer</div>
+      </div>
+    </div>
+    <p class="mt-4 text-sm text-gray-700 whitespace-pre-line">{{ ticket.description }}</p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Columna izquierda: conversación -->
+    <div class="lg:col-span-2 space-y-6">
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h2 class="font-semibold text-gray-800 mb-3">Conversación</h2>
+        <div class="space-y-3" *ngIf="ticket.mensajes.length > 0">
+          <div *ngFor="let m of ticket.mensajes"
+               class="rounded-xl p-3 text-sm"
+               [ngClass]="m.is_internal ? 'bg-amber-50 border border-amber-200' : 'bg-gray-50 border border-gray-200'">
+            <div class="flex items-center justify-between text-xs text-gray-500">
+              <span><b class="text-gray-700">{{ m.author_name }}</b>
+                <span *ngIf="m.is_internal" class="ml-2 inline-flex px-1.5 py-0.5 rounded bg-amber-200 text-amber-800 text-[10px] font-bold">NOTA INTERNA</span>
+              </span>
+              <span class="flex items-center gap-2">
+                <span>{{ m.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+                <button (click)="eliminarMensaje(m)"
+                        title="Eliminar comentario"
+                        class="text-gray-400 hover:text-red-600">🗑</button>
+              </span>
+            </div>
+            <p class="mt-1.5 text-gray-800 whitespace-pre-line">{{ m.body }}</p>
+          </div>
+        </div>
+        <div *ngIf="ticket.mensajes.length === 0" class="text-sm text-gray-400">Sin mensajes todavía.</div>
+      </div>
+
+      <!-- Responder -->
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h2 class="font-semibold text-gray-800 mb-3">Responder</h2>
+        <textarea [ngModel]="nuevoMensaje" (ngModelChange)="onRespuestaCambiada($event)" rows="3"
+                  class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Escribe una respuesta para el solicitante…"></textarea>
+        <div class="mt-2 flex items-center justify-between">
+          <label class="flex items-center gap-2 text-sm text-amber-700">
+            <input type="checkbox" [ngModel]="mensajeInterno" (ngModelChange)="onTipoMensaje($event)" class="rounded" /> Nota interna (no visible para el cliente)
+          </label>
+          <button (click)="enviarMensaje()" [disabled]="enviandoMensaje"
+                  class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50">
+            {{ enviandoMensaje ? 'Enviando…' : 'Enviar mensaje' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Adjuntos -->
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-semibold text-gray-800">Adjuntos</h2>
+          <span class="text-xs text-gray-400">{{ ticket.adjuntos.length }} archivo(s)</span>
+        </div>
+
+        <!-- Listado -->
+        <div *ngIf="ticket.adjuntos.length > 0" class="space-y-2">
+          <div *ngFor="let a of ticket.adjuntos" class="flex items-center gap-3 text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+            <span class="text-gray-600">📎</span>
+            <div class="min-w-0 flex-1">
+              <p class="font-medium text-gray-800 truncate">{{ a.filename }}</p>
+              <p class="text-xs text-gray-400">{{ a.size_bytes | number }} bytes · {{ a.uploaded_by_name || 'Sistema' }}</p>
+            </div>
+            <button (click)="descargarAdjunto(a)" class="text-xs text-blue-600 hover:text-blue-800"
+                    title="Descargar">⬇ Descargar</button>
+            <button (click)="eliminarAdjunto(a)" [disabled]="eliminandoAdjunto === a.id"
+                    class="text-xs text-red-600 hover:text-red-800 disabled:opacity-50"
+                    title="Eliminar">✕ Eliminar</button>
+          </div>
+        </div>
+        <div *ngIf="ticket.adjuntos.length === 0" class="text-sm text-gray-400">Sin archivos adjuntos.</div>
+
+        <!-- Subida múltiple -->
+        <div class="mt-4 border-t border-gray-100 pt-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <label class="inline-flex items-center gap-2 px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg cursor-pointer">
+              <input type="file" class="hidden" multiple (change)="onArchivosSeleccionados($event)" />
+              📎 Seleccionar archivos
+            </label>
+            <button *ngIf="archivosSeleccionados.length" (click)="subirAdjuntos()" [disabled]="subiendoAdjuntos"
+                    class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50">
+              {{ subiendoAdjuntos ? 'Subiendo…' : `Subir ${archivosSeleccionados.length} archivo(s)` }}
+            </button>
+          </div>
+
+          <div *ngIf="archivosSeleccionados.length" class="mt-3 flex flex-wrap gap-2">
+            <span *ngFor="let a of archivosSeleccionados"
+                  class="inline-flex items-center gap-2 text-xs bg-gray-100 rounded-lg px-2.5 py-1.5">
+              {{ a.name }}
+              <button type="button" (click)="quitarSeleccionado(a)" class="text-red-500 font-bold">×</button>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Historial -->
+      <div class="bg-white rounded-xl border border-gray-200 p-5" *ngIf="ticket.historial.length > 0">
+        <h2 class="font-semibold text-gray-800 mb-3">Historial</h2>
+        <div class="space-y-2">
+          <div *ngFor="let h of ticket.historial"
+               class="flex items-start gap-3 text-sm rounded-lg px-2 py-1"
+               [ngClass]="h.field === 'cierre_automatico_mantis'
+                  ? 'bg-emerald-50 border border-emerald-200'
+                  : ''">
+            <span class="text-xs text-gray-400 shrink-0 w-32">{{ h.created_at | date:'dd/MM HH:mm' }}</span>
+
+            <!-- Cierre automático desde Mantis (destacado) -->
+            <span *ngIf="h.field === 'cierre_automatico_mantis'"
+                  class="inline-flex flex-wrap items-center gap-1 text-emerald-800 font-semibold">
+              🤖 Cierre automático desde Mantis
+              <span *ngIf="h.new_value" class="font-mono text-xs bg-emerald-100 px-1.5 rounded">Caso {{ h.new_value }}</span>
+              · por <b>{{ h.user_name }}</b>
+            </span>
+
+            <!-- Resto de cambios -->
+            <span *ngIf="h.field !== 'cierre_automatico_mantis'" class="text-gray-500">
+              <b class="text-gray-700">{{ h.user_name }}</b> cambió
+              <span class="font-mono text-xs">{{ h.field }}</span>:
+              <span *ngIf="h.old_value" class="text-gray-400 line-through">{{ h.old_value }}</span>
+              <span *ngIf="h.old_value"> → </span>
+              <span class="text-gray-800" *ngIf="h.new_value">{{ h.new_value }}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Columna derecha: gestión -->
+    <div class="space-y-6">
+      <!-- Asignación -->
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h2 class="font-semibold text-gray-800 mb-3">Asignación</h2>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Agente</label>
+        <select [(ngModel)]="asignarId" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white mb-3">
+          <option *ngFor="let a of catalogos?.agentes" [ngValue]="a.id">{{ a.username }}</option>
+        </select>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Grupo</label>
+        <select [(ngModel)]="grupoId" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white mb-3">
+          <option [ngValue]="null">— Sin grupo —</option>
+          <option *ngFor="let g of catalogos?.grupos" [ngValue]="g.id">{{ g.nombre }}</option>
+        </select>
+        <button (click)="asignar()" [disabled]="asignando"
+                class="w-full px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50">
+          {{ asignando ? 'Guardando…' : 'Guardar asignación' }}
+        </button>
+      </div>
+
+      <!-- Clasificación (módulo/categoría) -->
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h2 class="font-semibold text-gray-800 mb-3">Clasificación</h2>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Módulo / Categoría</label>
+        <select [(ngModel)]="categoriaId" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white mb-3">
+          <option [ngValue]="null">— Sin categoría —</option>
+          <option *ngFor="let c of catalogos?.categorias" [ngValue]="c.id">{{ c.codigo ? c.codigo + ' - ' + c.nombre : c.nombre }}</option>
+        </select>
+        <button (click)="guardarCategoria()" [disabled]="guardandoCategoria"
+                class="w-full px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg disabled:opacity-50">
+          {{ guardandoCategoria ? 'Guardando…' : 'Guardar clasificación' }}
+        </button>
+      </div>
+
+      <!-- Cambio de estado -->
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h2 class="font-semibold text-gray-800 mb-3">Cambiar estado</h2>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Estado destino</label>
+        <select [(ngModel)]="destinoEstado" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white mb-3">
+          <option *ngFor="let s of estadosPosibles" [value]="s">{{ estadoLabel(s) }}</option>
+        </select>
+
+        <div *ngIf="destinoEstado === 'en_espera'" class="mb-3">
+          <label class="block text-xs text-gray-500 font-medium mb-1">Motivo de espera</label>
+          <select [(ngModel)]="holdReason" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+            <option value="espera_usuario">Espera del usuario</option>
+            <option value="espera_proveedor">Espera del proveedor</option>
+            <option value="espera_ventana_cambio">Ventana de cambio</option>
+            <option value="espera_tercero">Espera de tercero</option>
+          </select>
+        </div>
+
+        <div *ngIf="destinoEstado === 'resuelto'" class="mb-3 space-y-3">
+          <div>
+            <label class="block text-xs text-gray-500 font-medium mb-1">Código de resolución</label>
+            <select [(ngModel)]="resolutionCode" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+              <option value="solucionado">Solucionado</option>
+              <option value="workaround">Mitigación (workaround)</option>
+              <option value="no_reproducible">No reproducible</option>
+              <option value="duplicado">Duplicado</option>
+              <option value="error_del_usuario">Error del usuario</option>
+              <option value="cancelado_usuario">Cancelado por el usuario</option>
+              <option value="requiere_cambio">Requiere cambio</option>
+            </select>
+          </div>
+          <textarea [(ngModel)]="resolutionNotes" rows="2" placeholder="Notas de la solución"
+                    class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2"></textarea>
+        </div>
+
+        <div *ngIf="destinoEstado === 'cancelado'" class="mb-3">
+          <input [(ngModel)]="motivo" placeholder="Motivo de la cancelación"
+                 class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+        </div>
+
+        <label *ngIf="destinoEstado === 'resuelto' || destinoEstado === 'cerrado'"
+               class="flex items-center gap-2 text-xs text-blue-800 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mb-3">
+          <input type="checkbox" [(ngModel)]="cartaEnviarAlCerrar" class="rounded" />
+          Enviar carta de cierre al cliente por correo
+        </label>
+
+        <button (click)="cambiarEstado()" [disabled]="cambiandoEstado || estadosPosibles.length === 0"
+                class="w-full px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg disabled:opacity-50">
+          {{ cambiandoEstado ? 'Cambiando…' : 'Aplicar estado' }}
+        </button>
+      </div>
+
+      <!-- Forzar prioridad -->
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h2 class="font-semibold text-gray-800 mb-3">Prioridad</h2>
+        <p class="text-xs text-gray-500 mb-3">Prioridad actual: <b>{{ ticket.priority }}</b></p>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Nueva prioridad</label>
+        <select [(ngModel)]="nuevaPrioridad" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white mb-3">
+          <option value="P1">P1 - Crítica</option>
+          <option value="P2">P2 - Alta</option>
+          <option value="P3">P3 - Media</option>
+          <option value="P4">P4 - Baja</option>
+        </select>
+        <input [(ngModel)]="justificacion" placeholder="Motivo del cambio de prioridad"
+               class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 mb-3" />
+        <button (click)="forzarPrioridad()" [disabled]="forzandoPrioridad"
+                class="w-full px-4 py-2 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg disabled:opacity-50">
+          {{ forzandoPrioridad ? 'Guardando…' : 'Forzar prioridad' }}
+        </button>
+      </div>
+
+      <!-- Carta de cierre al cliente -->
+      <div *ngIf="ticket.state === 'resuelto' || ticket.state === 'cerrado'"
+           class="bg-white rounded-xl border border-gray-200 p-5">
+        <h2 class="font-semibold text-gray-800 mb-1">Carta de cierre al cliente</h2>
+        <p class="text-xs text-gray-500 mb-3">
+          Envía por correo una carta formal con el caso y su seguimiento a
+          <b class="text-gray-700">{{ ticket.requesterEmail || 'el correo del cliente' }}</b>.
+        </p>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Comentario adicional (opcional)</label>
+        <textarea [(ngModel)]="cartaMensaje" rows="3"
+                  class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 mb-2"
+                  placeholder="Agradecimiento o nota final para el cliente…"></textarea>
+        <label class="flex items-center gap-2 text-xs text-gray-600 mb-3">
+          <input type="checkbox" [(ngModel)]="cartaIncluirConversacion" class="rounded" />
+          Incluir la conversación con el cliente
+        </label>
+        <div class="flex gap-2">
+          <button (click)="previsualizarCarta()"
+                  class="flex-1 px-4 py-2 text-sm bg-white border border-blue-700 text-blue-800 hover:bg-blue-50 rounded-lg">
+            👁 Vista previa
+          </button>
+          <button (click)="enviarCarta()" [disabled]="cartaEnviando"
+                  class="flex-1 px-4 py-2 text-sm bg-blue-700 hover:bg-blue-800 text-white rounded-lg disabled:opacity-50">
+            {{ cartaEnviando ? 'Enviando…' : '📧 Enviar carta' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Seguimiento manual al cliente (solo comentarios públicos) -->
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h2 class="font-semibold text-gray-800 mb-1">Enviar seguimiento al cliente</h2>
+            <p class="text-xs text-gray-500">
+              Elige los <b>comentarios públicos</b> del caso para enviarlos por correo a
+              <b class="text-gray-700">{{ ticket.requesterEmail || 'el correo del cliente' }}</b>.
+              Las <b>notas internas nunca se envían</b>.
+            </p>
+          </div>
+          <button (click)="seguimientoPanel ? cerrarSeguimiento() : abrirSeguimiento()"
+                  class="shrink-0 px-3 py-2 text-sm rounded-lg border border-blue-700 text-blue-800 hover:bg-blue-50">
+            {{ seguimientoPanel ? 'Cerrar' : '✉ Preparar envío' }}
+          </button>
+        </div>
+
+        <div *ngIf="seguimientoPanel" class="mt-4 space-y-3">
+          <div>
+            <label class="block text-xs text-gray-500 font-medium mb-1">Destinatario</label>
+            <input [(ngModel)]="seguimientoDestinatario" type="email"
+                   class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2"
+                   placeholder="correo@cliente.com" />
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-500 font-medium mb-1">
+              Comentarios a incluir ({{ seleccionCount() }} seleccionado(s))
+            </label>
+            <div class="max-h-64 overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-100">
+              <div *ngIf="!ticket.mensajes.length" class="px-3 py-3 text-sm text-gray-400">Sin comentarios.</div>
+              <label *ngFor="let m of ticket.mensajes" class="flex items-start gap-2 px-3 py-2 text-sm"
+                     [class.bg-amber-50]="m.is_internal"
+                     [class.cursor-pointer]="!m.is_internal">
+                <input *ngIf="!m.is_internal" type="checkbox" class="rounded mt-0.5"
+                       [checked]="seguimientoSeleccion[m.id]"
+                       (change)="toggleSeguimiento(m)" />
+                <span *ngIf="m.is_internal" class="mt-0.5 text-amber-600" title="No se envía al cliente">🔒</span>
+                <span class="min-w-0 flex-1">
+                  <span class="block text-[11px] text-gray-400">
+                    {{ m.author_name }} · {{ m.created_at | date:'dd/MM/yyyy HH:mm' }}
+                    <span *ngIf="m.is_internal"
+                          class="ml-1 px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-semibold">INTERNO · no se envía</span>
+                  </span>
+                  <span class="block text-gray-700 whitespace-pre-line">{{ m.body }}</span>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-500 font-medium mb-1">Mensaje introductorio (opcional)</label>
+            <textarea [(ngModel)]="seguimientoMensaje" rows="3"
+                      class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2"
+                      placeholder="Nota breve para el cliente…"></textarea>
+          </div>
+
+          <label class="flex items-center gap-2 text-xs text-gray-600">
+            <input type="checkbox" [(ngModel)]="seguimientoIncluirAdjuntos" class="rounded" />
+            Incluir los documentos adjuntos del ticket
+          </label>
+
+          <div class="flex gap-2">
+            <button (click)="previsualizarSeguimiento()"
+                    class="flex-1 px-4 py-2 text-sm bg-white border border-blue-700 text-blue-800 hover:bg-blue-50 rounded-lg">
+              👁 Vista previa
+            </button>
+            <button (click)="enviarSeguimiento()" [disabled]="seguimientoEnviando"
+                    class="flex-1 px-4 py-2 text-sm bg-blue-700 hover:bg-blue-800 text-white rounded-lg disabled:opacity-50">
+              {{ seguimientoEnviando ? 'Enviando…' : '📧 Enviar seguimiento' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Enviar por correo -->
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h2 class="font-semibold text-gray-800 mb-1">Enviar por correo</h2>
+        <p class="text-xs text-gray-500 mb-3">
+          Envía la incidencia con sus <b>documentos adjuntos</b> a
+          <b class="text-gray-700">calidad@sigesp.com.ve</b>.
+        </p>
+        <textarea [(ngModel)]="correoMensaje" rows="2"
+                  class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 mb-2"
+                  placeholder="Mensaje o nota adicional (opcional)…"></textarea>
+        <label class="flex items-center gap-2 text-xs text-gray-600 mb-3">
+          <input type="checkbox" [(ngModel)]="correoIncluirConversacion" class="rounded" />
+          Incluir la conversación (respuestas al cliente)
+        </label>
+        <button (click)="enviarCorreoCalidad()" [disabled]="enviandoCorreo"
+                class="w-full px-4 py-2 text-sm bg-slate-700 hover:bg-slate-800 text-white rounded-lg disabled:opacity-50">
+          {{ enviandoCorreo ? 'Enviando…' : '📧 Enviar a calidad@sigesp.com.ve' }}
+        </button>
+      </div>
+
+      <!-- MantisBT -->
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h2 class="font-semibold text-gray-800 mb-3">MantisBT</h2>
+
+        <!-- Ya enviado: estado en vivo + comentarios -->
+        <div *ngIf="ticket.mantisIssueId; else noEnviado" class="space-y-3">
+          <div class="flex items-center justify-between gap-2">
+            <p class="text-sm text-emerald-700">
+              ✅ Enviado a Mantis: <b>#{{ ticket.mantisIssueId }}</b>
+            </p>
+            <button (click)="sincronizarMantis()" [disabled]="mantisSyncCargando"
+                    title="Traer el estado y los comentarios actuales de Mantis"
+                    class="text-xs px-2.5 py-1 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 disabled:opacity-50">
+              {{ mantisSyncCargando ? 'Sincronizando…' : '🔄 Sincronizar' }}
+            </button>
+          </div>
+
+          <p *ngIf="mantisSyncError" class="text-xs text-red-600">{{ mantisSyncError }}</p>
+
+          <ng-container *ngIf="mantisEstado">
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+              <span class="inline-flex px-2 py-0.5 rounded-full font-medium"
+                    [ngClass]="estadoMantisClase(mantisEstado)">
+                {{ mantisEstado.status?.label || mantisEstado.status?.name || '—' }}
+              </span>
+              <span *ngIf="mantisEstado.resolucion" class="text-gray-500">
+                Resolución: {{ mantisEstado.resolucion.label }}
+              </span>
+            </div>
+
+            <div *ngIf="mantisEstado.cerrado || mantisEstado.resuelto"
+                 class="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
+              <div>
+                El caso está <b>{{ mantisEstado.cerrado ? 'cerrado' : 'resuelto' }}</b> en Mantis.
+                <span *ngIf="mantisEstado.actualizadoAt"> · actualizado {{ mantisEstado.actualizadoAt | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <button *ngIf="mantisEstado.cerrado && ticket.state !== 'cerrado'"
+                      (click)="abrirDialogoCierreMantis()" [disabled]="cerrandoDesdeMantis"
+                      class="mt-2 px-3 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg disabled:opacity-50">
+                {{ cerrandoDesdeMantis ? 'Cerrando…' : '✅ Cerrar el ticket y notificar al cliente' }}
+              </button>
+            </div>
+
+            <div class="text-xs text-gray-500">
+              Responsable: <b class="text-gray-700">{{ mantisEstado.responsable || '—' }}</b>
+              <span *ngIf="mantisEstado.actualizadoAt"> · Actualizado: {{ mantisEstado.actualizadoAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+
+            <div *ngIf="mantisEstado.notas.length"
+                 class="border border-gray-200 rounded-lg divide-y divide-gray-100 max-h-56 overflow-y-auto">
+              <div *ngFor="let n of mantisEstado.notas" class="px-3 py-2 text-xs">
+                <div class="flex items-center justify-between text-gray-500">
+                  <span>
+                    <b class="text-gray-700">{{ n.autor }}</b>
+                    <span *ngIf="!n.publico"
+                          class="ml-1 inline-flex px-1.5 py-0.5 rounded bg-amber-200 text-amber-800 text-[10px] font-bold">PRIVADA</span>
+                  </span>
+                  <span>{{ n.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+                <p class="mt-1 text-gray-800 whitespace-pre-line">{{ n.texto }}</p>
+              </div>
+            </div>
+            <p *ngIf="!mantisEstado.notas.length" class="text-xs text-gray-400">Sin comentarios en Mantis.</p>
+          </ng-container>
+
+          <a *ngIf="ticket.mantisUrl" [href]="ticket.mantisUrl" target="_blank" rel="noopener"
+             class="inline-block text-sm text-blue-600 hover:text-blue-800 underline">
+            Abrir en Mantis ↗
+          </a>
+        </div>
+
+        <!-- Botón / panel de envío -->
+        <ng-template #noEnviado>
+          <p class="text-xs text-gray-500 mb-3">
+            Crea una incidencia en Mantis para el cliente de este ticket.
+          </p>
+          <button *ngIf="!mantisPanel" (click)="abrirMantis()"
+                  class="w-full px-4 py-2 text-sm bg-slate-700 hover:bg-slate-800 text-white rounded-lg">
+            Enviar a Mantis
+          </button>
+
+          <div *ngIf="mantisPanel" class="space-y-3">
+            <div *ngIf="!ticket.idClient" class="text-xs text-red-600">
+              El ticket no tiene cliente asociado; no se puede resolver el proyecto.
+            </div>
+
+            <div>
+              <label class="block text-xs text-gray-500 font-medium mb-1">Proyecto en Mantis</label>
+              <select [ngModel]="mantisProyectoId" (ngModelChange)="mantisProyectoId = $event; cambiarProyectoMantis()"
+                      class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+                <option [ngValue]="null">
+                  {{ mantisCargandoProyectos ? 'Cargando…' : '— Usar el del cliente —' }}
+                </option>
+                <option *ngFor="let p of mantisProyectos" [ngValue]="p.id">
+                  {{ p.id }} · {{ p.name }}
+                </option>
+              </select>
+              <p class="mt-1 text-[11px] text-gray-400">
+                Si no eliges uno, se usa el «ID Mantis Proyecto» del cliente.
+              </p>
+            </div>
+
+            <div>
+              <label class="block text-xs text-gray-500 font-medium mb-1">Responsable (Mantis)</label>
+              <select [(ngModel)]="mantisHandlerId"
+                      [disabled]="mantisCargandoUsuarios || mantisUsuarios.length === 0"
+                      class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white disabled:bg-gray-100 disabled:text-gray-400">
+                <option [ngValue]="null">
+                  {{ mantisCargandoUsuarios ? 'Cargando…' : '— Sin responsable —' }}
+                </option>
+                <option *ngFor="let u of mantisUsuarios" [ngValue]="u.id">
+                  {{ u.real_name || u.name }} ({{ u.name }})
+                </option>
+              </select>
+              <p *ngIf="mantisUsuariosError" class="mt-1 text-[11px] text-red-500">
+                No se pudieron cargar los responsables: {{ mantisUsuariosError }}
+              </p>
+              <p *ngIf="!mantisUsuariosError && !mantisCargandoUsuarios && mantisUsuarios.length"
+                 class="mt-1 text-[11px] text-gray-400">
+                {{ mantisUsuarios.length }} usuario(s) con acceso al proyecto.
+              </p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs text-gray-500 font-medium mb-1">Prioridad</label>
+                <select [(ngModel)]="mantisPrioridad"
+                        class="w-full text-sm border border-gray-300 rounded-lg px-2 py-2 bg-white">
+                  <option value="P1">P1</option>
+                  <option value="P2">P2</option>
+                  <option value="P3">P3</option>
+                  <option value="P4">P4</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 font-medium mb-1">Severidad</label>
+                <select [(ngModel)]="mantisSeveridad"
+                        class="w-full text-sm border border-gray-300 rounded-lg px-2 py-2 bg-white">
+                  <option value="">(auto)</option>
+                  <option value="block">Bloqueo</option>
+                  <option value="crash">Fallo</option>
+                  <option value="major">Mayor</option>
+                  <option value="minor">Menor</option>
+                  <option value="tweak">Ajuste</option>
+                  <option value="text">Texto</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Campos obligatorios del proyecto (p. ej. MODULOS ERP) -->
+            <div *ngIf="mantisCampos.length" class="space-y-2">
+              <div *ngFor="let campo of mantisCampos">
+                <label class="block text-xs text-gray-500 font-medium mb-1">
+                  {{ campo.name }} <span class="text-red-500">*</span>
+                </label>
+                <select *ngIf="campo.possibleValues.length; else campoTexto"
+                        [(ngModel)]="mantisCamposValores[campo.id]"
+                        class="w-full text-sm border border-gray-300 rounded-lg px-2 py-2 bg-white">
+                  <option value="">— Seleccione —</option>
+                  <option *ngFor="let v of campo.possibleValues" [ngValue]="v">{{ v }}</option>
+                </select>
+                <ng-template #campoTexto>
+                  <input [(ngModel)]="mantisCamposValores[campo.id]"
+                         class="w-full text-sm border border-gray-300 rounded-lg px-2 py-2" />
+                </ng-template>
+              </div>
+            </div>
+
+            <div class="flex gap-2">
+              <button (click)="enviarAMantis()" [disabled]="mantisEnviando"
+                      class="flex-1 px-4 py-2 text-sm bg-slate-700 hover:bg-slate-800 text-white rounded-lg disabled:opacity-50">
+                {{ mantisEnviando ? 'Enviando…' : 'Confirmar envío' }}
+              </button>
+              <button (click)="cerrarMantis()"
+                      class="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</div>

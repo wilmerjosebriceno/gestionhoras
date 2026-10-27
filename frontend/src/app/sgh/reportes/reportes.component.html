@@ -32,6 +32,15 @@
         </select>
       </div>
       <div>
+        <label class="block text-xs text-gray-500 mb-1">Modalidad</label>
+        <select [(ngModel)]="online" name="ronline"
+          class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 text-sm">
+          <option [ngValue]="undefined">Todas</option>
+          <option [ngValue]="1">Online</option>
+          <option [ngValue]="0">Presencial</option>
+        </select>
+      </div>
+      <div>
         <label class="block text-xs text-gray-500 mb-1">Cliente</label>
         <select [(ngModel)]="idClient" name="ridclient"
           class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 text-sm">

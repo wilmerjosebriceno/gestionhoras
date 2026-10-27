@@ -1,0 +1,275 @@
+<div class="space-y-6">
+  <h1 class="text-2xl font-bold text-gray-800">Monitor de Horas (Scrin.io)</h1>
+
+  <!-- Configuracion -->
+  <div class="bg-white rounded-xl p-5 border border-gray-200">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-semibold text-gray-800">Mi identidad Scrin</h2>
+      <div class="flex items-center gap-2">
+        <button (click)="verificarConexion()" [disabled]="verificando"
+          title="Valida el token y el ID contra Scrin en vivo"
+          class="px-4 py-1.5 bg-white border border-blue-600 text-blue-700 hover:bg-blue-50 rounded-lg text-sm disabled:opacity-50">
+          {{ verificando ? 'Verificando...' : 'Probar conexión' }}
+        </button>
+        <button (click)="toggleConfig()"
+          class="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm">
+          {{ editandoConfig ? 'Cancelar' : 'Configurar' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Resultado de "Probar conexion" -->
+    <div *ngIf="verificacion" class="mb-4 rounded-lg border p-3 text-sm"
+      [class.border-green-300]="verificacion.veredicto === 'OK'"
+      [class.bg-green-50]="verificacion.veredicto === 'OK'"
+      [class.border-amber-300]="verificacion.veredicto !== 'OK'"
+      [class.bg-amber-50]="verificacion.veredicto !== 'OK'">
+      <div class="flex items-start gap-2">
+        <span class="leading-5">{{ verificacion.veredicto === 'OK' ? '✅' : '⚠️' }}</span>
+        <div class="flex-1">
+          <div [class]="verificacion.veredicto === 'OK' ? 'font-medium text-green-800' : 'font-medium text-amber-800'">
+            {{ verificacion.mensaje }}
+          </div>
+          <div *ngIf="verificacion.tokenOk" class="text-xs text-gray-600 mt-1">
+            Token válido<span *ngIf="verificacion.duenoToken"> · cuenta de {{ verificacion.duenoToken!.name }} (ID {{ verificacion.duenoToken!.id }})</span><span *ngIf="verificacion.empresaToken"> · empresa {{ verificacion.empresaToken }}</span>
+          </div>
+          <div *ngIf="verificacion.empleados.length" class="text-xs text-gray-600 mt-1">
+            Este token da acceso a {{ verificacion.empleados.length }} empleado(s) en ScreenMonitor.
+          </div>
+          <div *ngIf="haySugerencia" class="mt-2 flex flex-wrap items-center gap-2">
+            <span class="text-xs text-gray-700">
+              Por su nombre parece que le corresponde
+              <b>{{ verificacion.sugerido?.id }}</b> — {{ verificacion.sugerido?.name }}.
+            </span>
+            <button (click)="usarIdSugerido()"
+              class="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg">Usar este ID</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!editandoConfig" class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+      <div>
+        <div class="text-xs text-gray-500">Usuario</div>
+        <div class="text-gray-800 font-medium">{{ config?.nameUser || '—' }}</div>
+      </div>
+      <div>
+        <div class="text-xs text-gray-500">ID Scrin (employment)</div>
+        <div class="text-gray-800">{{ config?.scrinEmploymentId ?? 'No configurado' }}</div>
+      </div>
+      <div>
+        <div class="text-xs text-gray-500">Empresa Scrin</div>
+        <div class="text-gray-800">{{ config?.scrinCompanyId ?? '—' }}</div>
+      </div>
+      <div>
+        <div class="text-xs text-gray-500">Token</div>
+        <div class="text-gray-800">{{ config?.hasToken ? config?.tokenPreview : 'No configurado' }}</div>
+      </div>
+    </div>
+
+    <div *ngIf="editandoConfig" class="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">ID Scrin (employment)</label>
+        <input type="number" [(ngModel)]="form.scrinEmploymentId" name="memp"
+          class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 text-sm" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Empresa Scrin (company)</label>
+        <input type="number" [(ngModel)]="form.scrinCompanyId" name="mcomp"
+          class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 text-sm" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Token API</label>
+        <input type="password" [(ngModel)]="form.scrinToken" name="mtoken"
+          placeholder="Dejar vacío para conservar el actual"
+          class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 text-sm" />
+      </div>
+      <div class="col-span-2 md:col-span-3">
+        <button (click)="guardarConfig()" [disabled]="loadingConfig"
+          class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm disabled:opacity-50">
+          Guardar configuración
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rango y consulta -->
+  <div class="bg-white rounded-xl p-5 border border-gray-200">
+    <h2 class="font-semibold text-gray-800 mb-4">Consultar actividades</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Desde</label>
+        <input type="date" [(ngModel)]="from" name="mfrom"
+          class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 text-sm" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Hasta</label>
+        <input type="date" [(ngModel)]="to" name="mto"
+          class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 text-sm" />
+      </div>
+    </div>
+    <div class="flex gap-3 mt-5">
+      <button (click)="consultar()" [disabled]="loadingFetch"
+        class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm flex items-center gap-2 disabled:opacity-50">
+        <span *ngIf="loadingFetch" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+        {{ loadingFetch ? 'Consultando...' : 'Consultar Scrin' }}
+      </button>
+      <button (click)="cargarActividades()" class="px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm">
+        Ver registros guardados
+      </button>
+    </div>
+  </div>
+
+  <!-- Registros -->
+  <div *ngIf="consultado" class="bg-white rounded-xl overflow-hidden border border-gray-200">
+    <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between flex-wrap gap-3">
+      <h2 class="font-semibold text-gray-800">Registros de Scrin</h2>
+      <div class="flex items-center gap-2 text-sm">
+        <button (click)="marcarTodos(true)" [disabled]="loadingCheckAll"
+          class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 disabled:opacity-50">Marcar válidos</button>
+        <button (click)="marcarTodos(false)" [disabled]="loadingCheckAll"
+          class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 disabled:opacity-50">Quitar marcas</button>
+        <span class="text-gray-500">Seleccionado: <b class="text-gray-800">{{ formatMin(totalMinutosSeleccionados()) }}</b></span>
+        <button (click)="generarResumen()" [disabled]="loadingSummary"
+          class="px-4 py-1.5 bg-green-700 hover:bg-green-600 text-white rounded-lg disabled:opacity-50">
+          {{ loadingSummary ? 'Generando...' : 'Generar resumen' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+          <tr>
+            <th class="px-3 py-2 text-center">
+              <input type="checkbox" [checked]="todosSeleccionados()" [indeterminate]="seleccionParcial()"
+                (change)="marcarTodos($any($event.target).checked)" [disabled]="loadingCheckAll"
+                title="Seleccionar / quitar todos los registros pendientes"
+                class="w-4 h-4 accent-blue-600 align-middle" />
+            </th>
+            <th class="px-3 py-2 text-left">Fecha</th>
+            <th class="px-3 py-2 text-left">Inicio</th>
+            <th class="px-3 py-2 text-left">Fin</th>
+            <th class="px-3 py-2 text-right">Duración</th>
+            <th class="px-3 py-2 text-left">Proyecto (Scrin)</th>
+            <th class="px-3 py-2 text-left">Nota</th>
+            <th class="px-3 py-2 text-center">Estado</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <tr *ngFor="let a of activities" [class.bg-green-50]="a.selected === 1">
+            <td class="px-3 py-2 text-center">
+              <input type="checkbox" [checked]="a.selected === 1" [disabled]="a.syncStatus === 1"
+                (change)="toggle(a)" class="w-4 h-4 accent-blue-600" />
+            </td>
+            <td class="px-3 py-2 text-gray-800 whitespace-nowrap">{{ a.dateActivity }}</td>
+            <td class="px-3 py-2 text-gray-600 whitespace-nowrap">{{ a.hourIni }}</td>
+            <td class="px-3 py-2 text-gray-600 whitespace-nowrap">{{ a.hourFin }}</td>
+            <td class="px-3 py-2 text-right text-gray-800">{{ formatMin(a.durationMinutes) }}</td>
+            <td class="px-3 py-2 text-gray-800">{{ a.scrinProjectName || 'Sin proyecto' }}</td>
+            <td class="px-3 py-2 text-gray-600 max-w-md truncate" [title]="a.note || ''">{{ a.note }}</td>
+            <td class="px-3 py-2 text-center">
+              <span *ngIf="a.syncStatus === 1" class="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700">Procesado</span>
+              <span *ngIf="a.syncStatus === 0 && a.selected === 1" class="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700">Válido</span>
+              <span *ngIf="a.syncStatus === 0 && a.selected === 0" class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-500">Pendiente</span>
+            </td>
+          </tr>
+          <tr *ngIf="activities.length === 0">
+            <td colspan="8" class="px-3 py-8 text-center text-gray-400">Sin registros en el rango consultado.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Resumen por proyecto -->
+  <div class="bg-white rounded-xl overflow-hidden border border-gray-200">
+    <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+      <h2 class="font-semibold text-gray-800">Resumen por proyecto y nota</h2>
+      <button (click)="cargarResumen()" class="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm">
+        Actualizar
+      </button>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+          <tr>
+            <th class="px-3 py-2 text-left">Proyecto (Scrin)</th>
+            <th class="px-3 py-2 text-left">Nota</th>
+            <th class="px-3 py-2 text-right">Registros</th>
+            <th class="px-3 py-2 text-right">Total</th>
+            <th class="px-3 py-2 text-left">Tipo</th>
+            <th class="px-3 py-2 text-left">Módulo / Proceso</th>
+            <th class="px-3 py-2 text-left">Ítem</th>
+            <th class="px-3 py-2 text-left">Proyecto SGH</th>
+            <th class="px-3 py-2 text-left">Cliente</th>
+            <th class="px-3 py-2 text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <tr *ngFor="let s of summaries" [class.bg-green-50]="s.status === 1">
+            <td class="px-3 py-2 text-gray-800">{{ s.scrinProjectName || 'Sin proyecto' }}</td>
+            <td class="px-3 py-2 text-gray-700 max-w-md" [title]="s.note || ''">
+              <span *ngIf="s.note; else sinNota">{{ s.note }}</span>
+              <ng-template #sinNota><span class="text-gray-400">—</span></ng-template>
+            </td>
+            <td class="px-3 py-2 text-right text-gray-700">{{ s.activitiesCount }}</td>
+            <td class="px-3 py-2 text-right font-medium text-gray-800">{{ formatMin(s.totalMinutes) }}</td>
+            <td class="px-3 py-2">
+              <select [(ngModel)]="s.idType" [ngModelOptions]="{ standalone: true }" [disabled]="s.status === 1"
+                class="w-40 px-2 py-1 border border-gray-300 rounded-lg text-gray-800 text-sm">
+                <option [ngValue]="undefined">—</option>
+                <option *ngFor="let t of tipos" [ngValue]="t.idType">{{ t.nameType }}</option>
+              </select>
+            </td>
+            <td class="px-3 py-2">
+              <select [(ngModel)]="s.idProcess" [ngModelOptions]="{ standalone: true }" [disabled]="s.status === 1"
+                class="w-48 px-2 py-1 border border-gray-300 rounded-lg text-gray-800 text-sm">
+                <option [ngValue]="undefined">—</option>
+                <option *ngFor="let p of procesos" [ngValue]="p.idProcess">{{ p.nameProcess }}</option>
+              </select>
+            </td>
+            <td class="px-3 py-2">
+              <select [(ngModel)]="s.idItemActivity" [ngModelOptions]="{ standalone: true }" [disabled]="s.status === 1"
+                class="w-48 px-2 py-1 border border-gray-300 rounded-lg text-gray-800 text-sm">
+                <option [ngValue]="undefined">—</option>
+                <option *ngFor="let i of items" [ngValue]="i.idItemActivity">{{ i.name }}</option>
+              </select>
+            </td>
+            <td class="px-3 py-2">
+              <select [(ngModel)]="s.idProyect" [ngModelOptions]="{ standalone: true }" [disabled]="s.status === 1"
+                class="w-64 px-2 py-1 border border-gray-300 rounded-lg text-gray-800 text-sm">
+                <option [ngValue]="undefined">— Seleccione —</option>
+                <option *ngFor="let p of proyectos" [ngValue]="p.idProyect">{{ p.numdoc }} — {{ p.nameClient }}</option>
+              </select>
+              <div *ngIf="s.idProyect" class="text-xs text-gray-400 mt-0.5">{{ nombreProyecto(s.idProyect) }}</div>
+            </td>
+            <td class="px-3 py-2 text-gray-700">
+              <span *ngIf="s.idProyect; else sinCliente">{{ clienteProyecto(s.idProyect) }}</span>
+              <ng-template #sinCliente><span class="text-gray-400">Seleccione proyecto</span></ng-template>
+              <div *ngIf="s.idProyect && idClienteProyecto(s.idProyect)" class="text-xs text-gray-400 mt-0.5">
+                Cliente #{{ idClienteProyecto(s.idProyect) }}
+              </div>
+            </td>
+            <td class="px-3 py-2 text-center whitespace-nowrap">
+              <span *ngIf="s.status === 1" class="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700">Procesado</span>
+              <ng-container *ngIf="s.status !== 1">
+                <button (click)="guardarAsignacion(s)"
+                  class="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs mr-1">Guardar</button>
+                <button (click)="procesar(s)" [disabled]="loadingProcess"
+                  class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs disabled:opacity-50">Procesar</button>
+              </ng-container>
+            </td>
+          </tr>
+          <tr *ngIf="summaries.length === 0">
+            <td colspan="10" class="px-3 py-8 text-center text-gray-400">
+              Genere un resumen a partir de los registros marcados como válidos. Se agrupan por
+              proyecto y nota.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

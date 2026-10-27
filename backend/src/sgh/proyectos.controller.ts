@@ -43,15 +43,18 @@ export class ProyectosController {
   }
 
   @Get(':id/detalle')
-  getDetail(@Param('id', ParseIntPipe) id: number) {
-    return this.proyectos.getDetailProyect(id);
+  getDetail(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('soloActivos') soloActivos?: string,
+  ) {
+    return this.proyectos.getDetailProyect(id, soloActivos === '1' || soloActivos === 'true');
   }
 
   @Get(':id/pdf')
   async pdfProyecto(@Param('id', ParseIntPipe) id: number, @Res() res?: Response) {
     const [proyecto, filas] = await Promise.all([
       this.proyectos.findOne(id),
-      this.proyectos.getDetailProyect(id),
+      this.proyectos.getDetailProyect(id, true),
     ]);
     if (!res) return;
     const buf = await this.pdf.proyecto(proyecto, filas);

@@ -38,6 +38,14 @@ export class Budget {
   @Column({ name: 'id_empresa', type: 'int', nullable: true })
   idEmpresa?: number | null;
 
+  /** Número de usuarios de la institución (dispara horas y tarifa). */
+  @Column({ name: 'nro_user', type: 'int', nullable: true })
+  nroUser?: number | null;
+
+  /** Rango de usuarios asociado (snapshot del rango usado). */
+  @Column({ name: 'id_rango', type: 'int', nullable: true })
+  idRango?: number | null;
+
   @Column({ name: 'status', type: 'smallint', nullable: true, default: 0 })
   status?: number | null;
 

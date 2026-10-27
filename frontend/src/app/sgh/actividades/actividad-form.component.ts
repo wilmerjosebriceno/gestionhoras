@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { SwalService } from '../../core/services/swal.service';
 import { abrirPdf } from '../../core/utils/pdf.util';
 import { SghService } from '../services/sgh.service';
@@ -12,6 +12,7 @@ import {
   UsuarioSgh,
   EstructuraProceso,
   ActividadHeader,
+  ActividadAttachment,
 } from '../models/sgh.models';
 import { ActividadFormService } from './actividad-form.service';
 import { validarActividad } from './actividad.validators';
@@ -41,6 +42,11 @@ export class ActividadFormComponent implements OnInit {
   loading = false;
   error = '';
   errosDetalle: string[] = [];
+
+  adjuntos: ActividadAttachment[] = [];
+  /** Archivos elegidos en una actividad nueva; se suben al guardar. */
+  archivosPendientes: File[] = [];
+  subiendo = false;
 
   private id?: number;
 
@@ -76,6 +82,7 @@ export class ActividadFormComponent implements OnInit {
         this.clienteSeleccionado = data.cliente ?? null;
         this.detalles = data.detalles as FilaDetalle[];
         if (this.header.idClient) this.cargarProyectos(this.header.idClient);
+        this.cargarAdjuntos();
       },
       error: (err) => this.mostrarError(err),
     });
@@ -108,6 +115,132 @@ export class ActividadFormComponent implements OnInit {
     this.service.proyectosDelCliente(idClient).subscribe((p: ProyectoCliente[]) => (this.proyectos = p));
   }
 
+  /* ==================== Documentos adjuntos ==================== */
+
+  /** Carga la lista de adjuntos de la actividad actual (solo si ya existe). */
+  cargarAdjuntos(): void {
+    if (!this.id) return;
+    this.sgh.listAdjuntos(this.id).subscribe({
+      next: (a) => (this.adjuntos = a),
+      error: () => (this.adjuntos = []),
+    });
+  }
+
+  /**
+   * Procesa los archivos seleccionados (PDF/JPG/PNG, máx. 5 MB c/u).
+   * - Actividad existente: se suben de inmediato.
+   * - Actividad nueva: quedan pendientes y se suben al guardar.
+   */
+  onArchivosSeleccionados(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const archivos = Array.from(input.files ?? []);
+    input.value = '';
+    if (!archivos.length) return;
+
+    const permitidos = ['application/pdf', 'image/jpeg', 'image/png'];
+    const invalido = archivos.find((a) => !permitidos.includes(a.type));
+    if (invalido) {
+      this.swal.advertencia('Formato no permitido', `"${invalido.name}" no es PDF, JPG o PNG.`);
+      return;
+    }
+    const grande = archivos.find((a) => a.size > 5 * 1024 * 1024);
+    if (grande) {
+      this.swal.advertencia('Archivo muy grande', `"${grande.name}" supera los 5 MB.`);
+      return;
+    }
+
+    // Actividad nueva (sin id): se conservan y se suben al guardar.
+    if (!this.id) {
+      this.archivosPendientes = [...this.archivosPendientes, ...archivos];
+      this.swal.exito(`${archivos.length} archivo(s) listo(s). Se subirán al guardar.`);
+      return;
+    }
+
+    this.subir(this.id, archivos);
+  }
+
+  /** Sube archivos a una actividad ya persistida. */
+  private subir(id: number, archivos: File[]): void {
+    this.subiendo = true;
+    this.swal.cargando('Subiendo archivos...');
+    this.sgh.subirAdjuntos(id, archivos).subscribe({
+      next: (nuevos) => {
+        this.swal.cerrar();
+        this.subiendo = false;
+        this.adjuntos = [...nuevos, ...this.adjuntos];
+        this.swal.exito(`${nuevos.length} archivo(s) adjuntado(s)`);
+      },
+      error: (err: any) => {
+        this.swal.cerrar();
+        this.subiendo = false;
+        this.swal.error('Error al subir', this.mensajeError(err));
+      },
+    });
+  }
+
+  /** Sube los archivos pendientes a la actividad recién creada. */
+  private async subirPendientes(id?: number): Promise<void> {
+    if (!id || !this.archivosPendientes.length) return;
+    this.swal.cargando(`Subiendo ${this.archivosPendientes.length} archivo(s)...`);
+    try {
+      const nuevos = await firstValueFrom(this.sgh.subirAdjuntos(id, this.archivosPendientes));
+      this.adjuntos = [...nuevos, ...this.adjuntos];
+      this.archivosPendientes = [];
+    } catch (err: any) {
+      this.swal.error('Error al subir', this.mensajeError(err));
+    } finally {
+      this.swal.cerrar();
+    }
+  }
+
+  /** Quita un archivo pendiente antes de guardar. */
+  quitarPendiente(i: number): void {
+    this.archivosPendientes.splice(i, 1);
+  }
+
+  /** Descarga un adjunto conservando su nombre original. */
+  descargarAdjunto(adjunto: ActividadAttachment): void {
+    if (!this.id) return;
+    this.sgh.descargarAdjunto(this.id, adjunto.id).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = adjunto.filename;
+        link.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => this.swal.error('Error al descargar', 'No se pudo descargar el archivo'),
+    });
+  }
+
+  /** Elimina un adjunto (con confirmación). */
+  async eliminarAdjunto(adjunto: ActividadAttachment): Promise<void> {
+    if (!this.id) return;
+    const ok = await this.swal.confirmar({
+      titulo: 'Eliminar adjunto',
+      texto: `¿Eliminar "${adjunto.filename}"? Esta acción no se puede deshacer.`,
+      textoConfirmar: 'Sí, eliminar',
+      icono: 'warning',
+    });
+    if (!ok) return;
+
+    this.sgh.eliminarAdjunto(this.id, adjunto.id).subscribe({
+      next: () => {
+        this.adjuntos = this.adjuntos.filter((a) => a.id !== adjunto.id);
+        this.swal.exito('Adjunto eliminado');
+      },
+      error: (err: any) => this.swal.error('Error al eliminar', this.mensajeError(err)),
+    });
+  }
+
+  /** Tamaño legible (KB/MB). */
+  tamanoLegible(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
   guardar(): void {
     this.error = '';
     this.errosDetalle = [];
@@ -123,10 +256,12 @@ export class ActividadFormComponent implements OnInit {
     this.service.guardar(this.header, this.detalles).subscribe({
       next: (a) => {
         this.swal.cerrar();
-        this.swal.exito(this.editando ? 'Actividad actualizada' : 'Actividad creada');
         const id = a?.idActivity ?? this.header.idActivity;
-        this.preguntarImprimir(id);
-        this.router.navigate(['/sgh/actividades']);
+        this.subirPendientes(id).finally(() => {
+          this.swal.exito(this.editando ? 'Actividad actualizada' : 'Actividad creada');
+          this.preguntarImprimir(id);
+          this.router.navigate(['/sgh/actividades']);
+        });
       },
       error: (err: any) => {
         this.swal.cerrar();

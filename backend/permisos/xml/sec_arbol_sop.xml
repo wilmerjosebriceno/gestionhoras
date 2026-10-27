@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sistema nombre="Soporte" id="sop">
+
+  <menu nombre="Procesos">
+    <item nombre="Incidencias / Tickets" pagina="tickets"/>
+    <item nombre="Dashboard Mantis" pagina="mantis"/>
+  </menu>
+
+</sistema>

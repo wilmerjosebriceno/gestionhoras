@@ -8,6 +8,19 @@ import {
   MaxLength,
 } from 'class-validator';
 
+/** Envío por correo del formato de habilitación de tickets. */
+export class EnviarFormatoHabilitacionDto {
+  @IsOptional()
+  @IsEmail({}, { message: 'El correo del destinatario no es válido' })
+  @MaxLength(150)
+  destinatario?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  mensaje?: string;
+}
+
 export class CreateClienteDto {
   @IsString()
   @IsNotEmpty()
@@ -46,6 +59,14 @@ export class CreateClienteDto {
   @IsOptional()
   @IsInt()
   active?: number;
+
+  @IsOptional()
+  @IsInt()
+  mantenimiento?: number;
+
+  @IsOptional()
+  @IsInt()
+  idMantisProyect?: number;
 }
 
 export class UpdateClienteDto {
@@ -82,4 +103,12 @@ export class UpdateClienteDto {
   @IsOptional()
   @IsInt()
   active?: number;
+
+  @IsOptional()
+  @IsInt()
+  mantenimiento?: number;
+
+  @IsOptional()
+  @IsInt()
+  idMantisProyect?: number;
 }

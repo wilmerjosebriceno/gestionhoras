@@ -12,6 +12,8 @@
     <item nombre="Regiones" pagina="regiones"/>
     <item nombre="Plantillas" pagina="plantillas"/>
     <item nombre="Tasas de IVA" pagina="tasas-iva"/>
+    <item nombre="Rangos de Usuarios" pagina="rangos"/>
+    <item nombre="Tarifas" pagina="tarifas"/>
   </menu>
 
 </sistema>

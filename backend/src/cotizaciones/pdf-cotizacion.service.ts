@@ -180,11 +180,11 @@ export class PdfCotizacionService {
       { text: moneda(Number(d.subtotal ?? 0)), style: 'cellTextNum', alignment: 'right' },
     ]));
 
-    const logoImage = logo ? { image: logo, width: 56, fit: [56, 40] } : null;
+    const logoImage = logo ? { image: logo, width: 119, fit: [119, 84] } : null;
 
     const headerColumns: any = logoImage
       ? [
-          { width: 60, stack: [logoImage] },
+          { width: 126, stack: [logoImage] },
         ]
       : [
           {

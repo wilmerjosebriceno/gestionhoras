@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { CotClient, CotRegion, CotTemplate, CotEmpresa, CotTasaIva, Budget, CotVencidas } from '../models/cotizacion.model';
+import { CotClient, CotRegion, CotTemplate, CotEmpresa, CotTasaIva, Budget, CotVencidas, CotRangoUsuario, CotTarifa } from '../models/cotizacion.model';
 
 @Injectable({ providedIn: 'root' })
 export class CotizacionesService {
@@ -30,8 +30,10 @@ export class CotizacionesService {
   }
 
   /* Regiones */
-  listarRegiones(): Observable<CotRegion[]> {
-    return this.http.get<CotRegion[]>(`${this.api}/regiones`);
+  listarRegiones(incluirInactivos = false): Observable<CotRegion[]> {
+    return this.http.get<CotRegion[]>(`${this.api}/regiones`, {
+      params: incluirInactivos ? new HttpParams().set('incluirInactivos', 'true') : undefined,
+    });
   }
   crearRegion(dto: Partial<CotRegion>): Observable<CotRegion> {
     return this.http.post<CotRegion>(`${this.api}/regiones`, dto);
@@ -79,6 +81,52 @@ export class CotizacionesService {
   }
   actualizarTasa(id: number, dto: Partial<CotTasaIva>): Observable<CotTasaIva> {
     return this.http.put<CotTasaIva>(`${this.api}/tasas-iva/${id}`, dto);
+  }
+
+  /* Rangos de usuarios */
+  listarRangos(): Observable<CotRangoUsuario[]> {
+    return this.http.get<CotRangoUsuario[]>(`${this.api}/rangos`);
+  }
+  crearRango(dto: Partial<CotRangoUsuario>): Observable<CotRangoUsuario> {
+    return this.http.post<CotRangoUsuario>(`${this.api}/rangos`, dto);
+  }
+  actualizarRango(id: number, dto: Partial<CotRangoUsuario>): Observable<CotRangoUsuario> {
+    return this.http.put<CotRangoUsuario>(`${this.api}/rangos/${id}`, dto);
+  }
+  eliminarRango(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.api}/rangos/${id}`);
+  }
+
+  /* Tarifas (región + rango + modalidad) */
+  listarTarifas(incluirInactivos = false): Observable<CotTarifa[]> {
+    return this.http.get<CotTarifa[]>(`${this.api}/tarifas`, {
+      params: incluirInactivos ? new HttpParams().set('incluirInactivos', 'true') : undefined,
+    });
+  }
+  crearTarifa(dto: Partial<CotTarifa>): Observable<CotTarifa> {
+    return this.http.post<CotTarifa>(`${this.api}/tarifas`, dto);
+  }
+  actualizarTarifa(id: number, dto: Partial<CotTarifa>): Observable<CotTarifa> {
+    return this.http.put<CotTarifa>(`${this.api}/tarifas/${id}`, dto);
+  }
+  eliminarTarifa(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.api}/tarifas/${id}`);
+  }
+
+  /** Rango que corresponde a un número de usuarios. */
+  getRango(nroUser: number): Observable<CotRangoUsuario | null> {
+    return this.http.get<CotRangoUsuario | null>(`${this.api}/rango`, {
+      params: new HttpParams().set('nroUser', String(nroUser)),
+    });
+  }
+
+  /** Tarifa por región + nro de usuarios + modalidad. */
+  getTarifa(idRegion: number, nroUser: number, modalidad: string): Observable<CotTarifa | null> {
+    const params = new HttpParams()
+      .set('idRegion', String(idRegion))
+      .set('nroUser', String(nroUser))
+      .set('modalidad', modalidad);
+    return this.http.get<CotTarifa | null>(`${this.api}/tarifa`, { params });
   }
 
   /* Cotizaciones */

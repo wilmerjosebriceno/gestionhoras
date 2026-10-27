@@ -36,12 +36,13 @@
           <th class="px-4 py-3 text-left text-gray-600 font-medium">Responsable</th>
           <th class="px-4 py-3 text-center text-gray-600 font-medium">Fecha</th>
           <th class="px-4 py-3 text-center text-gray-600 font-medium">Status</th>
+          <th class="px-4 py-3 text-center text-gray-600 font-medium">Adjunto</th>
           <th class="px-4 py-3 text-right text-gray-600 font-medium">Acciones</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200">
         <tr *ngIf="loading && actividades.length === 0">
-          <td colspan="6" class="px-4 py-8 text-center text-gray-500">Cargando...</td>
+          <td colspan="7" class="px-4 py-8 text-center text-gray-500">Cargando...</td>
         </tr>
         <tr *ngFor="let a of actividades" class="hover:bg-gray-100">
           <td class="px-4 py-3">
@@ -55,6 +56,14 @@
               {{ a.status === 0 ? 'Abierto' : (a.status === 1 ? 'Procesado' : 'Anulado') }}
             </span>
           </td>
+          <td class="px-4 py-3 text-center">
+            <a *ngIf="a.adjuntosCount" [routerLink]="['/sgh/actividades', a.idActivity]"
+              class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-sky-100 text-sky-700 hover:bg-sky-200"
+              [title]="a.adjuntosCount + ' documento(s) adjunto(s)'">
+              📎 {{ a.adjuntosCount }}
+            </a>
+            <span *ngIf="!a.adjuntosCount" class="text-gray-300">—</span>
+          </td>
           <td class="px-4 py-3 text-right space-x-2">
             <a [routerLink]="['/sgh/actividades', a.idActivity]" class="text-blue-400 hover:text-blue-300">Ver</a>
             <button (click)="imprimir(a)" class="text-indigo-400 hover:text-indigo-300">Imprimir</button>
@@ -63,7 +72,7 @@
           </td>
         </tr>
         <tr *ngIf="!loading && actividades.length === 0">
-          <td colspan="6" class="px-4 py-8 text-center text-gray-500">No hay actividades registradas</td>
+          <td colspan="7" class="px-4 py-8 text-center text-gray-500">No hay actividades registradas</td>
         </tr>
       </tbody>
     </table>

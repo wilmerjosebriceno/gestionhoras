@@ -1,5 +1,16 @@
 import { IsOptional, IsInt, IsString, IsNumber, IsIn, MaxLength, ValidateNested, ArrayMaxSize } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+/**
+ * Convierte a numero y lo redondea a `decimales`. Evita que la precision
+ * flotante (p. ej. 16.080000000000002) haga fallar `@IsNumber({ maxDecimalPlaces })`.
+ */
+const redondear = (decimales: number) => ({ value }: { value: unknown }) => {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return value;
+  const factor = 10 ** decimales;
+  return Math.round(n * factor) / factor;
+};
 
 export class BudgetDetailDto {
   @IsInt()
@@ -15,11 +26,13 @@ export class BudgetDetailDto {
 
   @IsOptional()
   @Type(() => Number)
+  @Transform(redondear(2))
   @IsNumber({ maxDecimalPlaces: 2 })
   quantity?: number;
 
   @IsOptional()
   @Type(() => Number)
+  @Transform(redondear(4))
   @IsNumber({ maxDecimalPlaces: 4 })
   price?: number;
 
@@ -39,6 +52,11 @@ export class BudgetDetailDto {
   @IsOptional()
   @IsIn(['ONLINE', 'PRESENCIAL'])
   modalidad?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  idTarifa?: number;
 }
 
 export class CreateBudgetDto {
@@ -80,6 +98,16 @@ export class CreateBudgetDto {
   idEmpresa?: number;
 
   @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  nroUser?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  idRango?: number;
+
+  @IsOptional()
   @IsIn([0, 1, 2, 3])
   status?: number;
 
@@ -89,26 +117,31 @@ export class CreateBudgetDto {
 
   @IsOptional()
   @Type(() => Number)
+  @Transform(redondear(4))
   @IsNumber({ maxDecimalPlaces: 4 })
   montoSubtotal?: number;
 
   @IsOptional()
   @Type(() => Number)
+  @Transform(redondear(4))
   @IsNumber({ maxDecimalPlaces: 4 })
   montoExento?: number;
 
   @IsOptional()
   @Type(() => Number)
+  @Transform(redondear(4))
   @IsNumber({ maxDecimalPlaces: 4 })
   montoBaseImponible?: number;
 
   @IsOptional()
   @Type(() => Number)
+  @Transform(redondear(4))
   @IsNumber({ maxDecimalPlaces: 4 })
   montoIva?: number;
 
   @IsOptional()
   @Type(() => Number)
+  @Transform(redondear(4))
   @IsNumber({ maxDecimalPlaces: 4 })
   montoTotal?: number;
 

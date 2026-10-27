@@ -30,6 +30,13 @@ export const RUTAS_PERMISOS: Record<string, RutaPermiso> = {
   '/sgh/catalogos/tipos': { sistema: 'SGH', pagina: 'tipos' },
   '/sgh/catalogos/usuarios': { sistema: 'SGH', pagina: 'usuarios_sgh' },
   '/sgh/logos': { sistema: 'SGH', pagina: 'logos' },
+  '/sgh/monitor-horas': { sistema: 'SGH', pagina: 'monitor_horas' },
+  '/sgh/monitor-horas-consulta': { sistema: 'SGH', pagina: 'monitor_horas_consulta' },
+  '/sgh/mantis-reportes': { sistema: 'SGH', pagina: 'mantis_reportes' },
+
+  // SOP (Soporte - Incidencias del portal web)
+  '/soporte/tickets': { sistema: 'SOP', pagina: 'tickets' },
+  '/soporte/mantis': { sistema: 'SOP', pagina: 'mantis' },
 
   // COT
   '/cot': { sistema: 'COT', pagina: 'cotizaciones' },
@@ -39,6 +46,15 @@ export const RUTAS_PERMISOS: Record<string, RutaPermiso> = {
   '/cot/catalogos/regiones': { sistema: 'COT', pagina: 'regiones' },
   '/cot/catalogos/plantillas': { sistema: 'COT', pagina: 'plantillas' },
   '/cot/catalogos/tasas-iva': { sistema: 'COT', pagina: 'tasas-iva' },
+  '/cot/catalogos/rangos': { sistema: 'COT', pagina: 'rangos' },
+  '/cot/catalogos/tarifas': { sistema: 'COT', pagina: 'tarifas' },
+
+  // GPI (Proyectos Internos)
+  '/gpi': { sistema: 'GPI', pagina: 'proyectos' },
+  '/gpi/dashboard': { sistema: 'GPI', pagina: 'dashboard' },
+  '/gpi/proyectos': { sistema: 'GPI', pagina: 'proyectos' },
+  '/gpi/recursos': { sistema: 'GPI', pagina: 'recursos' },
+  '/gpi/roles': { sistema: 'GPI', pagina: 'roles' },
 };
 
 /**

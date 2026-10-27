@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sistema nombre="Proyectos Internos" id="gpi">
+
+  <menu nombre="Procesos">
+    <item nombre="Dashboard" pagina="dashboard"/>
+    <item nombre="Proyectos" pagina="proyectos"/>
+    <item nombre="Actividades" pagina="actividades"/>
+    <item nombre="Asignacion de Horas" pagina="asignaciones"/>
+    <item nombre="Gantt" pagina="gantt"/>
+    <item nombre="Carga por Recurso" pagina="carga"/>
+    <item nombre="Partes de Horas" pagina="partes_horas"/>
+  </menu>
+
+  <menu nombre="Catalogos">
+    <item nombre="Recursos" pagina="recursos"/>
+    <item nombre="Roles" pagina="roles"/>
+    <item nombre="Calendario" pagina="calendario"/>
+  </menu>
+
+</sistema>

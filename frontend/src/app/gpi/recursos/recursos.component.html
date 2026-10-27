@@ -1,0 +1,77 @@
+<div class="space-y-6">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-xl font-bold text-gray-800">Recursos</h1>
+      <p class="text-sm text-gray-500">Consultores, desarrolladores y demás integrantes de proyectos internos.</p>
+    </div>
+    <button (click)="nuevo()" class="px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg">+ Nuevo recurso</button>
+  </div>
+
+  <div *ngIf="mostrarForm" class="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <div class="md:col-span-2">
+        <label class="block text-xs text-gray-500 font-medium mb-1">Nombre *</label>
+        <input [(ngModel)]="form.nombre" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Tipo</label>
+        <select [(ngModel)]="form.tipo" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+          <option *ngFor="let t of tipos" [value]="t">{{ t }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Cargo</label>
+        <input [(ngModel)]="form.cargo" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Email</label>
+        <input [(ngModel)]="form.email" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Área</label>
+        <input [(ngModel)]="form.area" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Capacidad semanal (h)</label>
+        <input type="number" min="0" [(ngModel)]="form.capacidadSemanal" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Tarifa/hora</label>
+        <input type="number" min="0" [(ngModel)]="form.tarifaHora" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <button (click)="guardar()" [disabled]="guardando" class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50">
+        {{ guardando ? 'Guardando…' : 'Guardar' }}
+      </button>
+      <button (click)="mostrarForm = false" class="px-4 py-2 text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg">Cancelar</button>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div *ngIf="cargando" class="p-8 text-center text-gray-400 text-sm">Cargando recursos…</div>
+    <table *ngIf="!cargando" class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-xs text-gray-500 uppercase tracking-wider border-b border-gray-200 bg-gray-50">
+          <th class="px-4 py-3">Nombre</th>
+          <th class="px-4 py-3">Tipo</th>
+          <th class="px-4 py-3">Cargo</th>
+          <th class="px-4 py-3">Área</th>
+          <th class="px-4 py-3 text-right">Capacidad sem.</th>
+          <th class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        <tr *ngFor="let r of recursos" class="hover:bg-gray-50">
+          <td class="px-4 py-2 text-gray-800">{{ r.nombre }}</td>
+          <td class="px-4 py-2 text-gray-600">{{ r.tipo }}</td>
+          <td class="px-4 py-2 text-gray-600">{{ r.cargo || '—' }}</td>
+          <td class="px-4 py-2 text-gray-600">{{ r.area || '—' }}</td>
+          <td class="px-4 py-2 text-right text-gray-700">{{ r.capacidad_semanal }}</td>
+          <td class="px-4 py-2 text-right"><button (click)="eliminar(r)" class="text-red-600 hover:underline text-xs">Eliminar</button></td>
+        </tr>
+        <tr *ngIf="!recursos.length"><td colspan="6" class="px-4 py-6 text-center text-gray-400">Sin recursos.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,142 @@
+<div class="space-y-6">
+  <!-- Encabezado -->
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-xl font-bold text-gray-800">Proyectos Internos</h1>
+      <p class="text-sm text-gray-500">Planificación de proyectos internos: equipo, actividades y horas.</p>
+    </div>
+    <button (click)="nuevo()" class="px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg">
+      + Nuevo proyecto
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="bg-white rounded-xl border border-gray-200 p-4 flex flex-wrap items-end gap-3">
+    <div class="flex-1 min-w-[200px]">
+      <label class="block text-xs text-gray-500 font-medium mb-1">Buscar</label>
+      <input [(ngModel)]="search" (keyup.enter)="buscar()"
+             class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+             placeholder="Código o nombre" />
+    </div>
+    <div>
+      <label class="block text-xs text-gray-500 font-medium mb-1">Estado</label>
+      <select [(ngModel)]="estado" class="text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+        <option value="">Todos</option>
+        <option *ngFor="let e of estados" [value]="e">{{ etiquetaEstado(e) }}</option>
+      </select>
+    </div>
+    <button (click)="buscar()" class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg">Filtrar</button>
+  </div>
+
+  <!-- Formulario de alta -->
+  <div *ngIf="mostrarForm" class="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+    <h2 class="font-semibold text-gray-800">Nuevo proyecto</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Código *</label>
+        <input [(ngModel)]="form.codigo" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" placeholder="GPI-2026-01" />
+      </div>
+      <div class="md:col-span-2">
+        <label class="block text-xs text-gray-500 font-medium mb-1">Nombre *</label>
+        <input [(ngModel)]="form.nombre" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Gerente</label>
+        <select [(ngModel)]="form.idGerente" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+          <option [ngValue]="null">— Sin asignar —</option>
+          <option *ngFor="let r of recursos" [ngValue]="r.id_recurso">{{ r.nombre }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Estado</label>
+        <select [(ngModel)]="form.estado" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white">
+          <option *ngFor="let e of estados" [value]="e">{{ etiquetaEstado(e) }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Prioridad (1 alta - 5 baja)</label>
+        <input type="number" min="1" max="5" [(ngModel)]="form.prioridad" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Inicio plan</label>
+        <input type="date" [(ngModel)]="form.fechaIniPlan" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Fin plan</label>
+        <input type="date" [(ngModel)]="form.fechaFinPlan" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Horas estimadas</label>
+        <input type="number" min="0" [(ngModel)]="form.horasEstimadas" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" />
+      </div>
+      <div class="md:col-span-3">
+        <label class="block text-xs text-gray-500 font-medium mb-1">Descripción</label>
+        <textarea rows="2" [(ngModel)]="form.descripcion" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2"></textarea>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <button (click)="guardar()" [disabled]="guardando"
+              class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50">
+        {{ guardando ? 'Guardando…' : 'Guardar' }}
+      </button>
+      <button (click)="cancelar()" class="px-4 py-2 text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div *ngIf="cargando" class="p-8 text-center text-gray-400 text-sm">Cargando proyectos…</div>
+    <table *ngIf="!cargando" class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-xs text-gray-500 uppercase tracking-wider border-b border-gray-200 bg-gray-50">
+          <th class="px-4 py-3">Código</th>
+          <th class="px-4 py-3">Nombre</th>
+          <th class="px-4 py-3">Estado</th>
+          <th class="px-4 py-3">Gerente</th>
+          <th class="px-4 py-3 text-right">Horas est.</th>
+          <th class="px-4 py-3 text-center">Act.</th>
+          <th class="px-4 py-3 text-center">Equipo</th>
+          <th class="px-4 py-3 text-right">Avance</th>
+          <th class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        <tr *ngFor="let p of proyectos" class="hover:bg-gray-50 cursor-pointer" (click)="abrir(p)">
+          <td class="px-4 py-2 font-mono text-gray-700">{{ p.codigo }}</td>
+          <td class="px-4 py-2 text-gray-800">{{ p.nombre }}</td>
+          <td class="px-4 py-2">
+            <span class="px-2 py-0.5 rounded-full text-xs" [class]="claseEstado(p.estado)">{{ etiquetaEstado(p.estado) }}</span>
+          </td>
+          <td class="px-4 py-2 text-gray-600">{{ p.gerente_nombre || '—' }}</td>
+          <td class="px-4 py-2 text-right text-gray-700">{{ p.horas_estimadas }}</td>
+          <td class="px-4 py-2 text-center text-gray-600">{{ p.actividades }}</td>
+          <td class="px-4 py-2 text-center text-gray-600">{{ p.miembros }}</td>
+          <td class="px-4 py-2 text-right">
+            <div class="flex items-center justify-end gap-2">
+              <div class="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div class="h-full bg-emerald-500" [style.width.%]="p.avance_pct"></div>
+              </div>
+              <span class="text-xs text-gray-600">{{ p.avance_pct }}%</span>
+            </div>
+          </td>
+          <td class="px-4 py-2 text-right">
+            <button (click)="eliminar(p, $event)" class="text-red-600 hover:underline text-xs">Eliminar</button>
+          </td>
+        </tr>
+        <tr *ngIf="!proyectos.length">
+          <td colspan="9" class="px-4 py-8 text-center text-gray-400">No hay proyectos.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginación -->
+  <div *ngIf="totalPaginas > 1" class="flex items-center justify-between text-sm text-gray-600">
+    <span>{{ total }} proyecto(s)</span>
+    <div class="flex gap-2">
+      <button (click)="irAPagina(page - 1)" [disabled]="page <= 1" class="px-3 py-1 rounded border border-gray-300 disabled:opacity-40">Anterior</button>
+      <span class="px-2 py-1">Página {{ page }} / {{ totalPaginas }}</span>
+      <button (click)="irAPagina(page + 1)" [disabled]="page >= totalPaginas" class="px-3 py-1 rounded border border-gray-300 disabled:opacity-40">Siguiente</button>
+    </div>
+  </div>
+</div>

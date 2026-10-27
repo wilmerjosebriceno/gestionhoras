@@ -1,0 +1,55 @@
+<div class="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+  <div class="flex flex-wrap items-end gap-3">
+    <div>
+      <label class="block text-xs text-gray-500 font-medium mb-1">Desde</label>
+      <input type="date" [(ngModel)]="desde" class="text-sm border border-gray-300 rounded-lg px-3 py-2" />
+    </div>
+    <div>
+      <label class="block text-xs text-gray-500 font-medium mb-1">Hasta</label>
+      <input type="date" [(ngModel)]="hasta" class="text-sm border border-gray-300 rounded-lg px-3 py-2" />
+    </div>
+    <button (click)="cargar()" class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg">Consultar</button>
+    <span *ngIf="filas.length && filas.some(f => f.sobrecarga)" class="text-xs text-red-600 font-medium">
+      ⚠ Hay recursos sobre-asignados (celdas en rojo)
+    </span>
+  </div>
+
+  <div *ngIf="cargando" class="p-6 text-center text-gray-400 text-sm">Calculando carga…</div>
+
+  <div *ngIf="!cargando && !filas.length" class="p-6 text-center text-gray-400 text-sm">
+    Sin horas asignadas en el rango seleccionado. Distribuye horas por fecha en "Asignación de horas".
+  </div>
+
+  <div *ngIf="!cargando && filas.length" class="overflow-x-auto">
+    <table class="text-xs border-collapse">
+      <thead>
+        <tr class="bg-gray-50 text-gray-500">
+          <th class="text-left px-3 py-2 sticky left-0 bg-gray-50 z-10">Recurso</th>
+          <th *ngFor="let f of fechas" class="px-2 py-2 text-right whitespace-nowrap border-l border-gray-100">{{ f | date:'dd/MM' }}</th>
+          <th class="px-3 py-2 text-right border-l border-gray-200">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let fila of filas" class="border-t border-gray-100 hover:bg-gray-50">
+          <td class="px-3 py-1.5 text-gray-800 whitespace-nowrap sticky left-0 bg-white z-10">
+            {{ fila.recurso }}
+            <span class="text-gray-400">({{ fila.capacidadDia }} h/d)</span>
+          </td>
+          <td *ngFor="let f of fechas"
+              class="px-2 py-1.5 text-right border-l border-gray-100"
+              [class.bg-red-50]="celdaExcede(fila, f)"
+              [class.text-red-700]="celdaExcede(fila, f)"
+              [class.font-semibold]="celdaExcede(fila, f)">
+            {{ fila.horasPorFecha[f] ? fila.horasPorFecha[f] : '' }}
+          </td>
+          <td class="px-3 py-1.5 text-right font-semibold text-gray-800 border-l border-gray-200">{{ fila.total }}</td>
+        </tr>
+        <tr class="border-t-2 border-gray-200 bg-gray-50 font-medium">
+          <td class="px-3 py-2 sticky left-0 bg-gray-50 z-10">Total por día</td>
+          <td *ngFor="let f of fechas" class="px-2 py-2 text-right border-l border-gray-100">{{ totalFecha(f) || '' }}</td>
+          <td class="px-3 py-2 border-l border-gray-200"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -8,6 +8,9 @@
     <item nombre="Cronograma de Proyecto" pagina="cronograma"/>
     <item nombre="Estructura de Proyecto" pagina="estructura"/>
     <item nombre="Reportes" pagina="reportes"/>
+    <item nombre="Monitor de Horas" pagina="monitor_horas"/>
+    <item nombre="Consulta Monitor de Horas" pagina="monitor_horas_consulta"/>
+    <item nombre="Reportes Mantis" pagina="mantis_reportes"/>
     <item nombre="Migracion" pagina="migracion"/>
   </menu>
 

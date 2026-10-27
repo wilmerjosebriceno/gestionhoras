@@ -6,6 +6,7 @@ import { AuthService } from '../core/services/auth.service';
 import { AuthResponse } from '../core/models/auth.model';
 import { MENUS, ModuleMenu } from '../core/config/menu.config';
 import { buscarPermisoDeRuta } from '../core/config/permisos.map';
+import { AyudaContextoService } from '../core/services/ayuda-contexto.service';
 import { HelpPanelComponent } from '../core/components/help-panel/help-panel.component';
 
 @Component({
@@ -27,7 +28,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   helpPagina = '';
   helpTitulo = '';
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router, private ayudaCtx: AyudaContextoService) {}
 
   ngOnInit(): void {
     this.authService.currentUser$.subscribe((u) => (this.usuario = u));
@@ -80,8 +81,10 @@ export class LayoutComponent implements OnInit, OnDestroy {
   }
 
   private actualizarModulo(url: string): string {
-    const seg = url.split('?')[0].split('/')[1] || '';
-    return seg.toUpperCase();
+    const seg = (url.split('?')[0].split('/')[1] || '').toUpperCase();
+    // El modulo de Soporte vive en /soporte/... pero su sistema es 'SOP'.
+    const ALIAS: Record<string, string> = { SOPORTE: 'SOP' };
+    return ALIAS[seg] ?? seg;
   }
 
   private actualizarMenu(url: string): void {
@@ -100,6 +103,14 @@ export class LayoutComponent implements OnInit, OnDestroy {
   }
 
   abrirAyuda(): void {
+    // Contexto explicito (pantallas sin ruta propia, p. ej. pestañas GPI)
+    if (this.ayudaCtx.pagina && this.ayudaCtx.sistema) {
+      this.helpSistema = this.ayudaCtx.sistema;
+      this.helpPagina = this.ayudaCtx.pagina;
+      this.helpTitulo = this.titulo;
+      this.helpVisible = true;
+      return;
+    }
     const permiso = buscarPermisoDeRuta(this.router.url);
     if (!permiso) {
       this.helpSistema = '';

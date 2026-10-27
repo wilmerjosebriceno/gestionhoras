@@ -1,0 +1,95 @@
+<div class="space-y-4">
+  <!-- ==================== Buscador ==================== -->
+  <div class="bg-white rounded-xl border border-gray-200 p-4">
+    <div class="flex flex-wrap items-end gap-3">
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">ID de incidencia de Mantis</label>
+        <input type="number" [(ngModel)]="busquedaId"
+               class="text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white w-48"
+               placeholder="Ej. 12345" (keyup.enter)="buscar()" />
+      </div>
+      <button (click)="buscar()" [disabled]="cargando"
+              class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50">
+        {{ cargando ? 'Consultando…' : '🔎 Buscar caso' }}
+      </button>
+      <span *ngIf="issueId" class="text-xs text-gray-400">Caso preseleccionado: #{{ issueId }}</span>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+    {{ error }}
+  </div>
+
+  <div *ngIf="cargando" class="p-10 text-center text-gray-400">Consultando Mantis…</div>
+
+  <ng-container *ngIf="caso">
+    <!-- ==================== Cabecera ==================== -->
+    <div class="bg-white rounded-xl border border-gray-200 p-4">
+      <div class="text-[11px] text-gray-400 uppercase tracking-wide">Caso Mantis #{{ caso.id }}</div>
+      <h2 class="font-semibold text-gray-800 text-lg">{{ caso.summary }}</h2>
+      <div class="mt-1 text-xs text-gray-500">
+        <span class="inline-block mr-3">Proyecto: <b>{{ caso.project?.name || '—' }}</b></span>
+        <span class="inline-block mr-3">Estatus: <b>{{ caso.status?.name || '—' }}</b></span>
+        <span class="inline-block mr-3">Prioridad: <b>{{ caso.priority?.name || '—' }}</b></span>
+        <span class="inline-block mr-3">Severidad: <b>{{ caso.severity?.name || '—' }}</b></span>
+      </div>
+      <div class="mt-1 text-xs text-gray-500">
+        <span class="inline-block mr-3">Responsable: <b>{{ caso.handler?.real_name || caso.handler?.name || '—' }}</b></span>
+        <span class="inline-block mr-3">Informador: <b>{{ caso.reporter?.real_name || caso.reporter?.name || '—' }}</b></span>
+        <span class="inline-block mr-3">Creado: <b>{{ caso.created_at | date:'dd/MM/yyyy HH:mm' }}</b></span>
+        <span class="inline-block mr-3">Total días abierto: <b>{{ caso.totalDias }}</b></span>
+      </div>
+    </div>
+
+    <!-- ==================== Gráficos ==================== -->
+    <div class="grid grid-cols-1 gap-4">
+      <div class="bg-white rounded-xl border border-gray-200 p-4"><div #chartHitos></div></div>
+      <div class="bg-white rounded-xl border border-gray-200 p-4"><div #chartDuracion></div></div>
+    </div>
+
+    <!-- ==================== Etapas ==================== -->
+    <div class="bg-white rounded-xl border border-gray-200 p-4">
+      <h3 class="font-semibold text-gray-800 text-sm mb-2">Etapas (recorrido de gestión)</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead class="bg-gray-50 text-gray-500">
+            <tr>
+              <th class="text-left px-3 py-2">#</th>
+              <th class="text-left px-3 py-2">Estado</th>
+              <th class="text-left px-3 py-2">Inicio</th>
+              <th class="text-left px-3 py-2">Fin</th>
+              <th class="text-right px-3 py-2">Duración (días)</th>
+              <th class="text-left px-3 py-2">Informador</th>
+              <th class="text-left px-3 py-2">Responsable</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr *ngFor="let t of caso.timeline">
+              <td class="px-3 py-1.5">{{ t.etapa }}</td>
+              <td class="px-3 py-1.5 font-medium text-gray-700">{{ t.estado }}</td>
+              <td class="px-3 py-1.5 text-gray-500">{{ t.inicio | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td class="px-3 py-1.5 text-gray-500">{{ t.fin | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td class="px-3 py-1.5 text-right font-semibold text-gray-700">{{ t.duracionDias }}</td>
+              <td class="px-3 py-1.5 text-gray-500">{{ t.informador || '—' }}</td>
+              <td class="px-3 py-1.5 text-gray-500">{{ t.responsable || '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== Notas ==================== -->
+    <div class="bg-white rounded-xl border border-gray-200 p-4">
+      <h3 class="font-semibold text-gray-800 text-sm mb-2">Notas / comentarios ({{ caso.notas.length }})</h3>
+      <div *ngIf="!caso.notas.length" class="text-xs text-gray-400">Sin notas registradas.</div>
+      <ul class="space-y-2">
+        <li *ngFor="let n of caso.notas" class="text-xs border border-gray-100 rounded-lg p-2">
+          <div class="text-gray-400">
+            <b class="text-gray-600">{{ n.autor }}</b> · {{ n.fecha | date:'dd/MM/yyyy HH:mm' }}
+          </div>
+          <div class="text-gray-700 whitespace-pre-line mt-1">{{ n.texto }}</div>
+        </li>
+      </ul>
+    </div>
+  </ng-container>
+</div>

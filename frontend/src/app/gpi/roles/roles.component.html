@@ -1,0 +1,47 @@
+<div class="space-y-6">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-xl font-bold text-gray-800">Roles de Proyecto</h1>
+      <p class="text-sm text-gray-500">Catálogo de roles del equipo (Líder, Consultor, Desarrollador, QA...).</p>
+    </div>
+    <button (click)="nuevo()" class="px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg">+ Nuevo rol</button>
+  </div>
+
+  <div *ngIf="mostrarForm" class="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div>
+        <label class="block text-xs text-gray-500 font-medium mb-1">Código *</label>
+        <input [(ngModel)]="form.codigo" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" placeholder="DEV" />
+      </div>
+      <div class="md:col-span-2">
+        <label class="block text-xs text-gray-500 font-medium mb-1">Nombre *</label>
+        <input [(ngModel)]="form.nombre" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2" placeholder="Desarrollador" />
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <button (click)="guardar()" [disabled]="guardando" class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50">
+        {{ guardando ? 'Guardando…' : 'Guardar' }}
+      </button>
+      <button (click)="mostrarForm = false" class="px-4 py-2 text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg">Cancelar</button>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div *ngIf="cargando" class="p-8 text-center text-gray-400 text-sm">Cargando roles…</div>
+    <table *ngIf="!cargando" class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-xs text-gray-500 uppercase tracking-wider border-b border-gray-200 bg-gray-50">
+          <th class="px-4 py-3">Código</th>
+          <th class="px-4 py-3">Nombre</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        <tr *ngFor="let r of roles" class="hover:bg-gray-50">
+          <td class="px-4 py-2 font-mono text-gray-700">{{ r.codigo }}</td>
+          <td class="px-4 py-2 text-gray-800">{{ r.nombre }}</td>
+        </tr>
+        <tr *ngIf="!roles.length"><td colspan="2" class="px-4 py-6 text-center text-gray-400">Sin roles.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>

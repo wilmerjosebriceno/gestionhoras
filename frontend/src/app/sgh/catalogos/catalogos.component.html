@@ -8,6 +8,11 @@
       <a routerLink="/sgh/catalogos/categorias" [class.hidden]="tipo==='categorias'" class="text-xs text-gray-500 hover:text-gray-600">Categorías</a>
       <a routerLink="/sgh/catalogos/tipos" [class.hidden]="tipo==='tipos'" class="text-xs text-gray-500 hover:text-gray-600">Tipos</a>
       <a routerLink="/sgh/catalogos/usuarios" [class.hidden]="tipo==='usuarios'" class="text-xs text-gray-500 hover:text-gray-600">Usuarios SGH</a>
+      <button *ngIf="tipo === 'usuarios'" (click)="abrirToken()"
+        title="Consultar un token de Scrin y ver todos los IDs de empleado que expone"
+        class="px-4 py-2 bg-white border border-emerald-600 text-emerald-700 hover:bg-emerald-50 rounded-lg text-sm">
+        Consultar token
+      </button>
       <button (click)="nuevo()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors">Nuevo</button>
     </div>
   </div>
@@ -25,23 +30,32 @@
     <table class="w-full text-sm">
       <thead class="bg-gray-100">
         <tr>
-          <th *ngFor="let c of config.campos" class="px-4 py-3 text-left text-gray-600 font-medium">{{ c.label }}</th>
+          <th *ngFor="let c of camposTabla()" class="px-4 py-3 text-left text-gray-600 font-medium">{{ c.label }}</th>
           <th class="px-4 py-3 text-right text-gray-600 font-medium">Acciones</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200">
         <tr *ngIf="loading && filas.length === 0">
-          <td [attr.colspan]="config.campos.length + 1" class="px-4 py-8 text-center text-gray-500">Cargando...</td>
+          <td [attr.colspan]="camposTabla().length + 1" class="px-4 py-8 text-center text-gray-500">Cargando...</td>
         </tr>
         <tr *ngFor="let f of filas" class="hover:bg-gray-100">
-          <td *ngFor="let c of config.campos" class="px-4 py-3 text-gray-600">{{ val(f, c.key) }}</td>
+          <td *ngFor="let c of camposTabla()" class="px-4 py-3 text-gray-600">{{ val(f, c.key) }}</td>
           <td class="px-4 py-3 text-right space-x-2">
+            <button *ngIf="tipo === 'clientes'" (click)="imprimirFormato(f)"
+              title="Imprimir el formato de habilitación de generación de tickets"
+              class="text-slate-600 hover:text-slate-700">🖨 Formato</button>
+            <button *ngIf="tipo === 'clientes'" (click)="abrirEnviarFormato(f)"
+              title="Enviar el formato de habilitación por correo"
+              class="text-slate-600 hover:text-slate-700">✉ Enviar</button>
+            <button *ngIf="tipo === 'usuarios'" (click)="abrirScrin(f)"
+              title="Validar el token y el ID de Scrin contra Scrin en vivo"
+              class="text-emerald-600 hover:text-emerald-700">Validar Scrin</button>
             <button (click)="editar(f)" class="text-blue-600 hover:text-blue-700">Editar</button>
             <button (click)="eliminar(f)" class="text-red-600 hover:text-red-700">Eliminar</button>
           </td>
         </tr>
         <tr *ngIf="!loading && filas.length === 0">
-          <td [attr.colspan]="config.campos.length + 1" class="px-4 py-8 text-center text-gray-500">Sin registros</td>
+          <td [attr.colspan]="camposTabla().length + 1" class="px-4 py-8 text-center text-gray-500">Sin registros</td>
         </tr>
       </tbody>
     </table>
@@ -52,7 +66,7 @@
   <div *ngIf="mostrandoFormulario" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
     <form (ngSubmit)="guardar()" class="bg-white rounded-xl p-6 w-full max-w-lg space-y-4 max-h-[90vh] overflow-y-auto">
       <h2 class="text-lg font-semibold text-gray-800">{{ editandoId !== null ? 'Editar' : 'Nuevo' }} {{ config.titulo }}</h2>
-      <div *ngFor="let c of config.campos">
+      <div *ngFor="let c of camposForm()">
         <label class="block text-sm text-gray-600 mb-1">{{ c.label }}{{ c.required ? ' *' : '' }}</label>
         <select *ngIf="c.tipo === 'select'" [(ngModel)]="form[c.key]" [name]="c.key" [required]="c.required || false"
           class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm">
@@ -63,6 +77,18 @@
           class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm"></textarea>
         <input *ngIf="c.tipo === 'number'" [(ngModel)]="form[c.key]" [name]="c.key" type="number" step="any"
           class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+        <input *ngIf="c.tipo === 'password'" [(ngModel)]="form[c.key]" [name]="c.key" type="password"
+          [maxlength]="c.maxlength || null" placeholder="Dejar vacío para conservar el actual"
+          class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+        <label *ngIf="c.tipo === 'checkbox'" class="inline-flex items-center cursor-pointer select-none mt-1">
+          <input type="checkbox" class="sr-only" [(ngModel)]="form[c.key]" [name]="c.key" />
+          <span class="relative inline-block w-11 h-6 rounded-full transition-colors duration-200"
+            [class.bg-blue-600]="form[c.key]" [class.bg-gray-300]="!form[c.key]">
+            <span class="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"
+              [class.translate-x-5]="form[c.key]"></span>
+          </span>
+          <span class="ml-3 text-sm text-gray-700">{{ form[c.key] ? 'Sí' : 'No' }}</span>
+        </label>
         <input *ngIf="!c.tipo || c.tipo === 'text'" [(ngModel)]="form[c.key]" [name]="c.key" [required]="c.required || false"
           [maxlength]="c.maxlength || null"
           class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
@@ -75,5 +101,231 @@
         </button>
       </div>
     </form>
+  </div>
+
+  <!-- MODAL: "Probar conexión" de Scrin (solo Usuarios SGH) -->
+  <div *ngIf="scrinAbierto" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-6 w-full max-w-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-start justify-between">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-800">Probar conexión Scrin</h2>
+          <p class="text-xs text-gray-500">
+            {{ scrinFila?.nameUser }} · {{ scrinFila?.login }} · ID guardado: {{ scrinFila?.scrinEmploymentId ?? '—' }} · Empresa: {{ scrinFila?.scrinCompanyId ?? '—' }}
+          </p>
+        </div>
+        <button (click)="cerrarScrin()" class="text-gray-400 hover:text-gray-600 px-1">✕</button>
+      </div>
+
+      <div *ngIf="scrinCargando" class="p-6 text-center text-gray-500 text-sm">Consultando a Scrin...</div>
+
+      <ng-container *ngIf="!scrinCargando && scrinVerif">
+        <div class="rounded-lg border p-3 text-sm"
+          [class.border-green-300]="scrinVerif.veredicto === 'OK'"
+          [class.bg-green-50]="scrinVerif.veredicto === 'OK'"
+          [class.border-amber-300]="scrinVerif.veredicto !== 'OK'"
+          [class.bg-amber-50]="scrinVerif.veredicto !== 'OK'">
+          <div class="flex items-start gap-2">
+            <span>{{ scrinVerif.veredicto === 'OK' ? '✅' : '⚠️' }}</span>
+            <div class="flex-1">
+              <div [class]="scrinVerif.veredicto === 'OK' ? 'font-medium text-green-800' : 'font-medium text-amber-800'">
+                {{ scrinVerif.mensaje }}
+              </div>
+              <div *ngIf="scrinVerif.tokenOk" class="text-xs text-gray-600 mt-1">
+                Token válido<span *ngIf="scrinVerif.duenoToken"> · cuenta de {{ scrinVerif.duenoToken!.name }}</span>
+              </div>
+              <div *ngIf="scrinVerif.veredicto === 'TOKEN_INVALIDO'" class="text-xs text-gray-700 mt-1">
+                Use <b>Editar</b> para reemplazar el token API de este usuario.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="scrinVerif.sugerido"
+          class="flex flex-wrap items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+          <span class="text-gray-700">
+            Por su nombre parece que le corresponde
+            <b>{{ scrinVerif.sugerido!.id }}</b> — {{ scrinVerif.sugerido!.name }}.
+          </span>
+          <button (click)="aplicarIdScrin(scrinVerif!.sugerido!.id)" [disabled]="scrinAplicando"
+            class="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50">
+            {{ scrinAplicando ? 'Guardando...' : 'Usar este ID y guardar' }}
+          </button>
+        </div>
+
+        <div *ngIf="scrinVerif.empleados.length">
+          <div class="text-xs text-gray-500 mb-2">
+            Empleados que este token puede ver en ScreenMonitor ({{ scrinVerif.empleados.length }}):
+          </div>
+          <div class="border border-gray-200 rounded-lg divide-y divide-gray-100 max-h-64 overflow-y-auto">
+            <div *ngFor="let e of scrinVerif.empleados" class="flex items-center justify-between gap-3 px-3 py-2 text-sm"
+              [class.bg-green-50]="scrinVerif.veredicto === 'OK' && e.id === scrinVerif.empleadoConfigurado?.id">
+              <span class="text-gray-700">
+                <b>{{ e.id }}</b> — {{ e.name }}
+                <span *ngIf="scrinVerif.veredicto === 'OK' && e.id === scrinVerif.empleadoConfigurado?.id" class="ml-1 text-xs text-green-700">(configurado ✓)</span>
+              </span>
+              <button (click)="aplicarIdScrin(e.id)"
+                [disabled]="scrinAplicando || e.id === scrinVerif.empleadoConfigurado?.id"
+                class="px-2 py-1 text-xs bg-white border border-blue-600 text-blue-700 hover:bg-blue-50 rounded-lg disabled:opacity-40">
+                Usar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <p class="text-xs text-gray-400">
+          El ID que la aplicación necesita es este de ScreenMonitor (el de la API v2).
+          No use el <b>employee_id</b> que aparece en el reporte / API v1.
+        </p>
+      </ng-container>
+
+      <div class="flex justify-end gap-2">
+        <button (click)="verificarScrin()" [disabled]="scrinCargando"
+          class="px-4 py-2 bg-white border border-blue-600 text-blue-700 hover:bg-blue-50 rounded-lg text-sm disabled:opacity-50">
+          Volver a verificar
+        </button>
+        <button (click)="cerrarScrin()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Enviar formato de habilitación por correo (solo Clientes) -->
+  <div *ngIf="formatoAbierto" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-6 w-full max-w-lg space-y-4">
+      <div class="flex items-start justify-between">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-800">Enviar formato de habilitación</h2>
+          <p class="text-xs text-gray-500">{{ formatoFila?.name }} ({{ formatoFila?.rif }})</p>
+        </div>
+        <button (click)="cerrarEnviarFormato()" class="text-gray-400 hover:text-gray-600 px-1">✕</button>
+      </div>
+
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Para (correo destinatario)</label>
+        <div class="flex gap-2">
+          <input [(ngModel)]="formatoDestinatario" name="fmtDest" type="email"
+            placeholder="correo@institucion.com"
+            class="flex-1 px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+          <button type="button" (click)="usarCalidad()"
+            class="px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50">
+            Usar calidad
+          </button>
+        </div>
+        <p class="text-xs text-gray-400 mt-1">
+          Si lo dejas vacío, se usará el correo del cliente o calidad@sigesp.com.ve.
+        </p>
+      </div>
+
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Mensaje (opcional)</label>
+        <textarea [(ngModel)]="formatoMensaje" name="fmtMsg" rows="3"
+          placeholder="Nota para la institución…"
+          class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm"></textarea>
+      </div>
+
+      <div class="flex justify-end gap-2">
+        <button (click)="cerrarEnviarFormato()"
+          class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm">Cancelar</button>
+        <button (click)="enviarFormato()" [disabled]="formatoEnviando"
+          class="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-sm disabled:opacity-50">
+          {{ formatoEnviando ? 'Enviando…' : '📧 Enviar formato' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Consultar token de Scrin -> lista los IDs de empleado que expone -->
+  <div *ngIf="tokenAbierto" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-6 w-full max-w-3xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-start justify-between">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-800">Consultar token de Scrin</h2>
+          <p class="text-xs text-gray-500">
+            Pegue un token y verá <b>todos los IDs de empleado</b> que puede leer en ScreenMonitor. No necesita estar guardado.
+          </p>
+        </div>
+        <button (click)="cerrarToken()" class="text-gray-400 hover:text-gray-600 px-1">✕</button>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-2">
+        <input [(ngModel)]="tokenTexto" name="tokScrin" type="password" autocomplete="off"
+          placeholder="Token de Scrin (ej.: 275277lff565e625b36...)"
+          (keyup.enter)="consultarToken()"
+          class="flex-1 px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+        <button (click)="consultarToken()" [disabled]="tokenCargando"
+          class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm disabled:opacity-50">
+          {{ tokenCargando ? 'Consultando...' : 'Obtener IDs' }}
+        </button>
+      </div>
+
+      <div *ngIf="tokenCargando" class="p-6 text-center text-gray-500 text-sm">Consultando a Scrin...</div>
+
+      <ng-container *ngIf="!tokenCargando && tokenResultado">
+        <div class="rounded-lg border border-green-300 bg-green-50 p-3 text-sm">
+          <div class="font-medium text-green-800">
+            Token válido: {{ tokenResultado.total }} empleado(s) encontrado(s).
+          </div>
+          <div class="text-xs text-gray-600 mt-1">
+            {{ tokenResultado.empresas.length }} empresa(s)
+            <span *ngIf="tokenResultado.duenoToken"> · token de {{ tokenResultado.duenoToken!.name }} (ID {{ tokenResultado.duenoToken!.id }})</span>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-end gap-3">
+          <div class="flex-1 max-w-xs">
+            <label class="block text-xs text-gray-500 mb-1">Filtrar por nombre o ID</label>
+            <input [(ngModel)]="tokenFiltro" name="tokFiltro"
+              class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 text-sm" />
+          </div>
+          <span class="text-xs text-gray-500">{{ empleadosToken.length }} mostrado(s)</span>
+        </div>
+
+        <div class="border border-gray-200 rounded-lg overflow-hidden">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-3 py-2 text-left text-gray-600 font-medium">ID (el que usa la app)</th>
+                <th class="px-3 py-2 text-left text-gray-600 font-medium">Empleado en ScreenMonitor</th>
+                <th class="px-3 py-2 text-left text-gray-600 font-medium">Asignar a usuario SGH</th>
+                <th class="px-3 py-2 text-right text-gray-600 font-medium">Acción</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr *ngFor="let e of empleadosToken" class="hover:bg-gray-50">
+                <td class="px-3 py-2 font-mono text-gray-800">{{ e.id }}</td>
+                <td class="px-3 py-2 text-gray-700">
+                  {{ e.name }}
+                  <span class="block text-xs text-gray-400">Empresa {{ e.companyId }}</span>
+                </td>
+                <td class="px-3 py-2">
+                  <select [ngModel]="asignacion[e.id]" (ngModelChange)="asignacion[e.id] = $event" [name]="'usr' + e.id"
+                    class="w-full px-2 py-1.5 bg-gray-100 border border-gray-300 rounded-lg text-xs">
+                    <option [ngValue]="undefined">— Sin asignar —</option>
+                    <option *ngFor="let u of filas" [ngValue]="u.idUser">{{ u.nameUser }} ({{ u.login }})</option>
+                  </select>
+                </td>
+                <td class="px-3 py-2 text-right">
+                  <button (click)="asignarId(e)" [disabled]="tokenAsignando === e.id || !asignacion[e.id]"
+                    class="px-3 py-1 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg disabled:opacity-40">
+                    {{ tokenAsignando === e.id ? 'Guardando...' : 'Asignar' }}
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="empleadosToken.length === 0">
+                <td colspan="4" class="px-3 py-6 text-center text-gray-400 text-sm">Sin resultados</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="text-xs text-gray-400">
+          Al asignar se guarda el <b>ID Scrin (employment)</b> y la <b>empresa</b> en el usuario elegido.
+          El usuario sugerido se preselecciona por coincidencia de nombre.
+        </p>
+      </ng-container>
+
+      <div class="flex justify-end">
+        <button (click)="cerrarToken()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm">Cerrar</button>
+      </div>
+    </div>
   </div>
 </div>

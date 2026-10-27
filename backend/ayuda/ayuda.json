@@ -105,6 +105,16 @@
       { "titulo": "Consejos", "texto": "Usa 'Descargar PDF' para obtener el reporte consolidado. Verifica los totales; el cálculo depende de las horas registradas en Actividades." }
     ]
   },
+  "SGH/monitor_horas": {
+    "sistema": "SGH",
+    "pagina": "monitor_horas",
+    "titulo": "Monitor de Horas (Scrin.io)",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Importa el tiempo capturado en Scrin.io y lo replica en una tabla de registros para su revisión, selección y posterior procesamiento en el sistema de horas." },
+      { "titulo": "Cómo usarlo", "texto": "1) Configure su identidad Scrin (token e ID de empleado) en 'Mi identidad Scrin' o desde Catálogos > Usuarios SGH. 2) Indique el rango Desde/Hasta y pulse 'Consultar Scrin'. 3) Marque con el check los registros válidos. 4) Pulse 'Generar resumen' para agrupar por proyecto. 5) Asigne el proyecto SGH, el tipo, el módulo/proceso y el ítem. 6) Pulse 'Procesar'." },
+      { "titulo": "Consejos", "texto": "La consulta solo trae las actividades del empleado Scrin asociado a su usuario (token e ID propios). Al procesar se crea UNA actividad consolidada por proyecto; la duración en minutos se convierte a horas en el detalle de la actividad." }
+    ]
+  },
   "SGH/clientes": {
     "sistema": "SGH",
     "pagina": "clientes",
@@ -112,7 +122,8 @@
     "secciones": [
       { "titulo": "Descripción", "texto": "Catálogo de clientes asociados a los proyectos." },
       { "titulo": "Cómo usarlo", "texto": "Crea/edita clientes con sus datos de contacto y estado activo. Los proyectos se vinculan a un cliente." },
-      { "titulo": "Consejos", "texto": "Mantén los RIF y razones sociales correctos: se usan para identificar al cliente en reportes y cotizaciones." }
+      { "titulo": "Consejos", "texto": "Mantén los RIF y razones sociales correctos: se usan para identificar al cliente en reportes y cotizaciones." },
+      { "titulo": "Formato de habilitación de tickets", "texto": "El botón “🖨 Formato” de cada cliente genera un PDF con el RIF y el nombre de la institución YA impresos, y con los campos Contacto, Teléfono de contacto y Correo electrónico EN BLANCO para que la institución los complete. Sirve para formalizar la habilitación de la generación de tickets vía página web e incluye bloque de conformidad con firma y sello. Con el botón “✉ Enviar” puedes enviar ese formato por correo a la institución (el correo del cliente) o a calidad@sigesp.com.ve, con un mensaje opcional; el PDF va como adjunto." }
     ]
   },
   "SGH/procesos": {
@@ -162,6 +173,7 @@
     "secciones": [
       { "titulo": "Descripción", "texto": "Perfiles de consultores y su rol dentro del sistema de gestión de horas." },
       { "titulo": "Cómo usarlo", "texto": "Vincula cada usuario SGH a su perfil (rol A = administrador) y estado activo. Determina los reportes que puede ver." },
+      { "titulo": "Scrin.io", "texto": "Para usar el Monitor de Horas complete 'Empresa Scrin' (opcional), 'ID Scrin (employment)' y 'Token API Scrin'. El token se guarda enmascarado y no se devuelve en las listas." },
       { "titulo": "Consejos", "texto": "El rol 'A' permite ver los reportes de todos; cualquier otro perfil solo ve sus propios datos." }
     ]
   },
@@ -283,6 +295,456 @@
       { "titulo": "Descripción", "texto": "Bitácora de eventos del sistema (accesos, operaciones y acciones de usuarios)." },
       { "titulo": "Cómo usarlo", "texto": "Filtra por fecha, usuario o evento para revisar la actividad." },
       { "titulo": "Consejos", "texto": "Es una herramienta de control: revisa los eventos inusuales para detectar accesos indebidos." }
+    ]
+  },
+  "SOP/tickets": {
+    "sistema": "SOP",
+    "pagina": "tickets",
+    "titulo": "Incidencias / Tickets (Mesa de Ayuda)",
+    "secciones": [
+      { "titulo": "Descripción",
+        "texto": "Mesa de ayuda interna (modelo ITIL) para registrar y dar seguimiento a incidencias, requerimientos, problemas y cambios. Cada ticket tiene un número, un solicitante, una prioridad, un responsable y un ciclo de vida con SLA. Es la pantalla de entrada al módulo de Soporte." },
+      { "titulo": "Cómo usarlo (flujo general)",
+        "pasos": [
+          "Entrar a Soporte → Procesos → “Incidencias / Tickets”.",
+          "Pulsar “+ Nuevo ticket” para registrar la incidencia.",
+          "Desde la bandeja, hacer clic en la fila del ticket para abrir su detalle.",
+          "Asignar agente y/o grupo, y cambiar el estado según avance la atención.",
+          "Responder al solicitante (o dejar notas internas) y adjuntar archivos.",
+          "Al resolver, indicar el código de resolución. Opcionalmente enviar la carta de cierre al cliente.",
+          "Si aplica, enviar el caso a MantisBT para su gestión técnica."
+        ] },
+      { "titulo": "Bandeja e indicadores",
+        "texto": "En la parte superior se muestran las tarjetas de resumen (Totales, Abiertos, Sin asignar, Vencidos y Reabiertos). Debajo, la tabla de tickets con N°, Cliente, Título, Estado, Prioridad, Asignado y Creado. Las prioridades P1/P2 se resaltan y junto a ellas aparece “⚠ SLA” (vencido) o “SLA” (por vencer)." },
+      { "titulo": "Filtros de la bandeja",
+        "lista": [
+          "Buscar: por número, título o descripción.",
+          "Estado: nuevo, asignado, en espera, en progreso, resuelto, cerrado o cancelado.",
+          "Prioridad: P1, P2, P3 o P4.",
+          "Tipo: incidente, requerimiento, problema o cambio.",
+          "Mis tickets: solo los asignados al usuario actual.",
+          "SLA en riesgo: solo los que están vencidos o por vencer.",
+          "Botones “Filtrar” y “Limpiar”; la tabla se pagina con Anterior/Siguiente."
+        ] },
+      { "titulo": "Campos del alta de ticket",
+        "lista": [
+          "Tipo (obligatorio): incidente (INC), requerimiento (REQ), problema (PRB) o cambio (CHG).",
+          "Canal: portal, correo, teléfono, WhatsApp o presencial.",
+          "Título (obligatorio, mínimo 5 caracteres) y Descripción (obligatorio, mínimo 10).",
+          "Categoría y Grupo de soporte (de los catálogos).",
+          "Impacto (extenso, significativo, moderado, menor) y Urgencia (crítica, alta, media, baja): definen la prioridad automática.",
+          "Servicio, Usuario afectado y datos del Cliente (ID, nombre y RIF).",
+          "Adjuntos (opcional, varios archivos)."
+        ] },
+      { "titulo": "Prioridad automática (impacto × urgencia)",
+        "texto": "La prioridad se calcula con la matriz ITIL:\n\n• Impacto EXTENSO: crítica/alta → P1, media → P2, baja → P3.\n• Impacto SIGNIFICATIVO: crítica → P1, alta → P2, media → P3, baja → P4.\n• Impacto MODERADO: crítica → P2, alta → P3, media/baja → P4.\n• Impacto MENOR: crítica → P3, alta/media/baja → P4.\n\nEl administrador puede forzar la prioridad manualmente (con justificación) desde el detalle." },
+      { "titulo": "Ciclo de vida y transiciones de estado",
+        "texto": "Solo se permiten transiciones válidas; el selector de “Cambiar estado” muestra únicamente las permitidas según el estado actual:",
+        "lista": [
+          "Nuevo → Asignado, En progreso o Cancelado.",
+          "Asignado → En progreso, En espera o Cancelado.",
+          "En progreso → En espera, Resuelto o Cancelado.",
+          "En espera → En progreso o Resuelto.",
+          "Resuelto → Cerrado o En progreso.",
+          "Cerrado → En progreso.",
+          "Cancelado: estado final."
+        ] },
+      { "titulo": "SLA e hitos",
+        "texto": "El ticket registra la primera respuesta, la resolución y el cierre. La bandeja marca el SLA vencido o por vencer. Al pasar a “En espera” se debe indicar el motivo (espera del usuario, del proveedor, ventana de cambio o de un tercero). Al pasar a “Resuelto” se indica el código de resolución —solucionado, mitigación (workaround), no reproducible, duplicado, error del usuario, cancelado por el usuario o requiere cambio— con sus notas." },
+      { "titulo": "Detalle del ticket",
+        "texto": "El detalle reúne todo el trabajo del caso:",
+        "lista": [
+          "Encabezado con número, estado, prioridad, cliente, solicitante, tipo, canal, grupo y fechas de SLA.",
+          "Conversación: respuestas al solicitante y notas internas (resaltadas en ámbar, no visibles para el cliente).",
+          "Responder: caja de texto con la opción “Nota interna”.",
+          "Adjuntos: subir (varios), descargar y eliminar.",
+          "Historial: cada cambio con fecha, usuario, campo y valores anterior/nuevo.",
+          "Asignación: agente y grupo.",
+          "Cambiar estado, forzar prioridad y enviar la carta de cierre al cliente."
+        ] },
+      { "titulo": "Enviar a MantisBT",
+        "pasos": [
+          "En el bloque “MantisBT”, pulsar “Enviar a Mantis”.",
+          "Elegir el proyecto en Mantis (por defecto se usa el “ID Mantis Proyecto” del cliente).",
+          "Elegir el responsable entre los usuarios con acceso a ese proyecto.",
+          "Ajustar la prioridad y la severidad (opcional) y pulsar “Confirmar envío”.",
+          "Una vez enviado, usar “🔄 Sincronizar” para traer el estado y los comentarios de Mantis, o “Abrir en Mantis”."
+        ] },
+      { "titulo": "Carta de cierre al cliente",
+        "texto": "Cuando el ticket está Resuelto o Cerrado, el bloque “Carta de cierre al cliente” permite redactar un comentario final, incluir o no la conversación y enviar por correo la carta formal al solicitante. Puedes usar “Vista previa” antes de enviarla." },
+      { "titulo": "Enviar por correo (calidad)",
+        "texto": "El bloque “Enviar por correo” envía la incidencia con TODOS sus documentos adjuntos a calidad@sigesp.com.ve. Puedes agregar una nota y decidir si incluye la conversación. El envío queda registrado en el historial del ticket." },
+      { "titulo": "Consejos",
+        "texto": "Clasifica bien impacto y urgencia para que la prioridad sea correcta. Usa notas internas para coordinación y la conversación para lo visible al cliente. Resuelve con un código adecuado para medir reincidencias. Si el caso requiere desarrollo, envíalo a Mantis y da seguimiento desde allí." }
+    ]
+  },
+  "SOP/mantis": {
+    "sistema": "SOP",
+    "pagina": "mantis",
+    "titulo": "Dashboard de Mantis (Mesa de Ayuda)",
+    "secciones": [
+      { "titulo": "Descripción",
+        "texto": "Tablero de indicadores de las incidencias de MantisBT, calculado sobre un espejo local (sigespweb.mantis_issue) que se sincroniza con Mantis. Incluye KPIs, gráficos, listado de casos y un seguimiento paso a paso de un caso. Es de solo lectura respecto a Mantis." },
+      { "titulo": "Cómo usarlo",
+        "pasos": [
+          "Entrar a Soporte → Procesos → “Dashboard Mantis”.",
+          "Definir el rango Desde/Hasta y, opcionalmente, Proyecto, Responsable y Estatus.",
+          "Pulsar “Consultar” para recalcular los indicadores del rango.",
+          "Usar “📥 Casos” o “📊 Resumen” para exportar el detalle o los KPIs en CSV (Excel).",
+          "Pulsar “🔄 Sincronizar” para actualizar el espejo con Mantis (tarda unos minutos; corre en segundo plano).",
+          "Recorrer las pestañas Resumen, Casos y Seguimiento de caso."
+        ] },
+      { "titulo": "Filtros",
+        "lista": [
+          "Desde / Hasta: rango por fecha de creación del caso (por defecto, últimos 12 meses).",
+          "Proyecto: caso de un proyecto de Mantis.",
+          "Responsable: handler (usuario asignado) de Mantis.",
+          "Informador: usuario que reportó el caso (reporter) en Mantis.",
+          "Estatus: filtra por un estado concreto (Nuevo, Asignado, Resuelto, Cerrado, etc.).",
+          "Reapertura: muestra solo las reabiertas, las reabiertas 1 vez, o las reabiertas 2+ veces.",
+          "La línea superior indica el rango analizado y el resultado de la última sincronización del espejo."
+        ] },
+      { "titulo": "Pestañas",
+        "lista": [
+          "Resumen: tarjetas KPI, gráficos y casos estancados.",
+          "Casos: listado filtrable y paginado (reporte por usuario/proyecto/estatus) con “Ver seguimiento”.",
+          "Seguimiento de caso: buscar un caso por ID y ver su recorrido."
+        ] },
+      { "titulo": "Indicadores KPI (definiciones)",
+        "texto": "Todas las tarjetas se calculan sobre los casos creados dentro del rango:\n\n• Casos: total de casos.\n• Abiertos: los que NO están en estado resuelto ni cerrado.\n• Cerrados: los que están resueltos o cerrados (Abiertos + Cerrados = Casos).\n• Sin asignar: abiertos sin fecha/hito de asignación.\n• Sin responsable: abiertos sin usuario responsable (handler).\n• MTTR (días): tiempo MEDIO de resolución = promedio de (fecha de resolución − fecha de creación), en días.\n• 1.ª respuesta (días): promedio de (primera respuesta − creación), usando la fecha de confirmación/reconocimiento o, si no existe, la de asignación.\n• Cierre (días): promedio de (fecha de cierre − fecha de resolución).\n• Reapertura: porcentaje de casos reabiertos = casos con reapertura ÷ total × 100.\n• Reaperturas (desglose): cuántos casos se reabrieron 1 vez y cuántos 2 o más veces (y el máximo de reaperturas en un caso).\n• Estancados (+15 d): casos abiertos sin cambios (updated_at) en más de 15 días; se muestra el más antiguo. El umbral de días es configurable." },
+      { "titulo": "De dónde salen las fechas",
+        "texto": "Los hitos (confirmación, asignación, resolución y cierre) y el número de reaperturas se extraen del historial de cada incidencia en Mantis (campo “status”). El resto de datos (proyecto, estatus, prioridad, severidad, handler, informador) vienen del propio caso." },
+      { "titulo": "Gráficos",
+        "lista": [
+          "Casos por proyecto (Top 10), abiertos vs. cerrados.",
+          "Distribución por estatus.",
+          "Casos abiertos por usuario (Top 10).",
+          "Recibidos vs. cerrados por mes.",
+          "Tiempo medio de resolución (MTTR) por mes.",
+          "Tiempos por etapa (primera respuesta, resolución y cierre: promedio y mediana).",
+          "Backlog abierto por antigüedad.",
+          "Top categorías de incidencia."
+        ] },
+      { "titulo": "Casos estancados",
+        "texto": "Lista los casos abiertos sin actualización por más de los días configurados (15 por defecto), del más antiguo al más reciente. Incluye el botón “📧 Enviar alerta por correo” para notificar la lista al destinatario configurado." },
+      { "titulo": "Pestaña Casos",
+        "texto": "Listado paginado de los casos que cumplen los MISMOS filtros del dashboard (Proyecto, Responsable, Informador, Estatus y rango Desde/Hasta). Muestra ID, asunto, proyecto, estatus, prioridad, responsable y fecha de creación. Es la base del “reporte por cada usuario”: filtra por Responsable o por Informador y verás solo sus casos. Cada fila tiene “Ver seguimiento”." },
+      { "titulo": "Seguimiento de caso",
+        "pasos": [
+          "Entrar a la pestaña “Seguimiento de caso” (o pulsar “Ver seguimiento” en una fila).",
+          "Escribir el ID de la incidencia de Mantis y pulsar “🔎 Buscar caso”.",
+          "Ver la cabecera (proyecto, estatus, prioridad, severidad, responsable, informador y datos de fechas).",
+          "Revisar el gráfico de HITOS: cada cambio de estado con su fecha y responsable.",
+          "Revisar las BARRAS DE DURACIÓN por etapa (días en cada estado).",
+          "Consultar la tabla de etapas y la lista de notas/comentarios."
+        ] },
+      { "titulo": "Sincronización y permisos",
+        "texto": "El espejo se actualiza al arrancar (si está vacío), cada 6 horas y a demanda con “🔄 Sincronizar”. La consulta de un caso para el seguimiento se hace EN VIVO contra Mantis. Para ver este dashboard se requiere el permiso SOP / mantis / seleccionar." },
+      { "titulo": "Consejos",
+        "texto": "Usa el rango y los filtros para acotar por proyecto o responsable. Filtrar por Estatus ayuda a analizar, por ejemplo, solo los casos abiertos. Antes de analizar, verifica la fecha de la última sincronización del espejo. El seguimiento en vivo refleja el estado más reciente del caso." }
+    ]
+  },
+  "SGH/cronograma": {
+    "sistema": "SGH",
+    "pagina": "cronograma",
+    "titulo": "Cronograma del Proyecto",
+    "secciones": [
+      { "titulo": "Descripción",
+        "texto": "Planificación y seguimiento de un proyecto de horas: define las FASES (con horas plan/ejecutadas y avance) y los HITOS (fechas plan/real). Muestra el avance por fase y permite registrar el seguimiento periódico." },
+      { "titulo": "Cómo usarlo",
+        "pasos": [
+          "Entrar a SGH → Procesos → “Cronograma” (o desde un proyecto, botón “Cronograma”).",
+          "Si no viene de un proyecto, seleccionar el proyecto.",
+          "Pulsar “Generar / Actualizar Fases” para crear/ajustar las fases a partir de la estructura del proyecto.",
+          "Editar una fase para fijar fechas plan/real, responsable, status y modelo de avance.",
+          "Usar “Seguimiento” en una fase para registrar avance, status y comentario (queda en el historial).",
+          "Con “+ Hito” se agregan hitos con fecha plan, fecha real, status y peso."
+        ] },
+      { "titulo": "Fases",
+        "texto": "Cada fila muestra la fase (proceso responsable), su período plan, las horas Plan/Ejec, el avance (%) y el status.",
+        "lista": [
+          "Modelo de avance: Automático (por horas registradas) o Manual (lo fija el usuario).",
+          "Status de la fase: Pendiente, En Curso, Atrasada o Cerrada.",
+          "Acciones: Editar (fechas, responsable, status, modelo de avance, avance) y Seguimiento.",
+          "El porcentaje se calcula según el modelo: automático = horas ejecutadas / horas plan; manual = valor indicado."
+        ] },
+      { "titulo": "Seguimiento de fase",
+        "texto": "El seguimiento guarda un registro histórico por cada actualización: nuevo avance (%), status, usuario y comentario. El historial muestra “avance anterior → avance nuevo” con fecha y usuario." },
+      { "titulo": "Hitos",
+        "lista": [
+          "Nombre del hito.",
+          "Fecha Plan y Fecha Real.",
+          "Status: En curso, Cumplido o Vencido.",
+          "Peso y comentario.",
+          "Se pueden eliminar desde la tabla."
+        ] },
+      { "titulo": "Consejos",
+        "texto": "Mantén las fechas plan y el peso de los hitos actualizados: alimentan el avance y los reportes. El avance automático depende de las horas registradas en Actividades, por lo que hay que registrar horas para verlo avanzar. Usa el seguimiento para dejar trazabilidad de cada ajuste de avance." }
+    ]
+  },
+  "SGH/monitor_horas_consulta": {
+    "sistema": "SGH",
+    "pagina": "monitor_horas_consulta",
+    "titulo": "Consulta de Monitor de Horas (multi-usuario)",
+    "secciones": [
+      { "titulo": "Descripción",
+        "texto": "Consulta de solo lectura de las horas de Scrin.io para VARIOS usuarios y un rango de fechas, en una sola pantalla. Es el equivalente multiusuario del “Monitor de Horas”, pensado para administradores. Combina las horas traídas en vivo de Scrin con las ya procesadas y almacenadas en el sistema." },
+      { "titulo": "Modos de vista",
+        "texto": "Arriba del formulario hay un selector con tres modos; el botón cambia de nombre según el modo:",
+        "lista": [
+          "Actual (Scrin): “Consultar Scrin”. Trae en vivo de Scrin las horas de los usuarios del rango y las guarda como pendientes (staging).",
+          "Procesadas: “Buscar procesadas”. NO consulta Scrin; lee las horas ya procesadas y guardadas en el sistema, con el proyecto y cliente SGH asignados.",
+          "Todas: “Buscar todas”. Muestra lo almacenado (pendientes y procesadas) del rango; la columna Estado las distingue."
+        ] },
+      { "titulo": "Cómo usarlo",
+        "pasos": [
+          "Entrar a SGH → Procesos → “Monitor de Horas (Consulta)”.",
+          "Indicar el rango Desde/Hasta.",
+          "Elegir el modo de vista (Actual, Procesadas o Todas).",
+          "Agregar los usuarios: buscar, seleccionarlos y pulsar “Agregar” (se listan los usuarios activos de SGH; los que no tienen Scrin aparecen con la marca “sin Scrin”).",
+          "Pulsar el botón de consulta (“Consultar Scrin” / “Buscar procesadas” / “Buscar todas”).",
+          "Revisar la tabla y usar “Exportar CSV” si se necesita."
+        ] },
+      { "titulo": "Columnas de la tabla",
+        "lista": [
+          "Usuario",
+          "Estado: Actual (pendiente/traída en vivo) o Procesada (ya volcada al sistema).",
+          "Proyecto (Scrin) y Empleado (nombre en Scrin).",
+          "Proyecto SGH y Cliente SGH: dónde quedó asignada la hora cuando ya fue procesada.",
+          "Fecha, Inicio, Fin, Duración.",
+          "Offline y Nota."
+        ] },
+      { "titulo": "Exportar",
+        "texto": "El botón “Exportar CSV” descarga la tabla actual en un archivo que abre directamente en Excel. Incluye la columna Estado, los proyectos/clientes SGH, y una valorización: Minutos, Horas (convertidas a decimales), Precio (4 USD por hora) y Monto por fila (horas × precio). Al final agrega una FILA de TOTALES con la suma de minutos, horas y monto (USD)." },
+      { "titulo": "Alcance y permisos",
+        "texto": "Está pensada para administradores: permite consultar a múltiples usuarios. Es de SOLO LECTURA (no crea ni modifica horas); el procesamiento se hace en la pantalla “Monitor de Horas”. Si un usuario no tiene token/ID de Scrin, en el modo Actual no devolverá datos pero puede tener registros históricos visibles en los modos Procesadas/Todas." },
+      { "titulo": "Consejos",
+        "texto": "Usa el modo “Todas” para auditar lo que ya está en el sistema y “Actual” para traer lo nuevo de Scrin. Cuando un usuario no aparece con Scrin, verifica su token e ID en Catálogos → Usuarios SGH. Si la tabla sale vacía en Procesadas, es porque ese usuario/rango no tiene horas procesadas todavía." }
+    ]
+  },
+  "SGH/mantis_reportes": {
+    "sistema": "SGH",
+    "pagina": "mantis_reportes",
+    "titulo": "Reportes de Mantis (Actividades)",
+    "secciones": [
+      { "titulo": "Descripción",
+        "texto": "Reporte parametrizable de incidencias de MantisBT para el área de actividades/horas. Permite filtrar los casos, verlos en tabla o dashboard de gráficos, generar un análisis ejecutivo con IA y exportar a CSV. Es de solo lectura respecto a Mantis." },
+      { "titulo": "Cómo usarlo",
+        "pasos": [
+          "Entrar a SGH → Procesos → “Reportes Mantis”.",
+          "Elegir los parámetros: proyecto, informador, asignado, estatus, texto (resumen) y rango Desde/Hasta.",
+          "Pulsar “Consultar” para cargar las incidencias.",
+          "Alternar entre las pestañas Tabla, Dashboard y Análisis IA.",
+          "Usar “Exportar CSV” para descargar el resultado."
+        ] },
+      { "titulo": "Parámetros de consulta",
+        "lista": [
+          "Proyecto: proyecto de Mantis (o Todos).",
+          "Informador: usuario que reportó el caso.",
+          "Asignado: usuario responsable (handler).",
+          "Estatus: estado del caso (Nuevo, Asignado, Resuelto, Cerrado, etc.).",
+          "Texto: búsqueda por el resumen del caso.",
+          "Desde / Hasta: rango de fechas."
+        ] },
+      { "titulo": "Pestaña Tabla",
+        "texto": "Lista las incidencias con ID, Resumen, Proyecto, Informador, Asignado, Estado, Prioridad y Fecha. El contador superior indica cuántas incidencias hay." },
+      { "titulo": "Pestaña Dashboard",
+        "texto": "Gráficos Highcharts con la distribución por estado, por proyecto, por asignado y por mes, según los filtros aplicados." },
+      { "titulo": "Pestaña Análisis IA",
+        "texto": "El botón “Analizar con IA” genera un análisis ejecutivo en texto del resultado actual (patrones, riesgos y recomendaciones). Se muestra en pantalla para su lectura." },
+      { "titulo": "Consejos",
+        "texto": "Acota por proyecto y estatus para análisis puntuales; por asignado para evaluar la carga de un usuario. Usa “Limpiar” para reiniciar los filtros. La consulta va en vivo contra Mantis, por lo que depende de su disponibilidad." }
+    ]
+  },
+  "COT/tasas-iva": {
+    "sistema": "COT",
+    "pagina": "tasas-iva",
+    "titulo": "Tasas de IVA",
+    "secciones": [
+      { "titulo": "Descripción",
+        "texto": "Catálogo de tasas de IVA usadas en las cotizaciones para el cálculo de impuestos. Cada tasa tiene un nombre, un porcentaje y un orden, y puede estar activa o inactiva." },
+      { "titulo": "Cómo usarlo",
+        "pasos": [
+          "Entrar a Cotizaciones → Catálogos → “Tasas de IVA”.",
+          "Hacer clic en “Editar” en la fila de la tasa que se quiere ajustar.",
+          "Modificar el nombre, el porcentaje, el orden o el interruptor “Activo”.",
+          "Pulsar “Actualizar Tasa de IVA”."
+        ] },
+      { "titulo": "Reglas importantes",
+        "lista": [
+          "Las tasas de IVA NO se crean ni se eliminan desde aquí: solo se editan o se activan/desactivan.",
+          "El catálogo muestra también las inactivas para poder reactivarlas.",
+          "El “Orden” define cómo se presentan las tasas en la lista de selección.",
+          "Solo las tasas activas quedan disponibles al elaborar una cotización."
+        ] },
+      { "titulo": "Consejos",
+        "texto": "Mantén una sola tasa vigente activa para evitar selecciones incorrectas. Si cambia el porcentaje legal, edita la tasa existente o desactiva la anterior y deja activa la nueva; así las cotizaciones ya emitidas conservan el porcentaje con el que se generaron." }
+    ]
+  },
+
+  "GPI/dashboard": {
+    "sistema": "GPI",
+    "pagina": "dashboard",
+    "titulo": "Dashboard de Proyectos Internos",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Panel de indicadores (KPIs) y gráficos de la cartera de proyectos internos: proyectos por estado, horas estimadas vs. reales, avance por proyecto y carga por recurso." },
+      { "titulo": "Cómo usarlo", "texto": "Revisa las tarjetas de KPI en la parte superior y luego los gráficos. El botón «Actualizar» recarga la información. Cada bloque es informativo." },
+      { "titulo": "Alertas inteligentes", "texto": "El bloque de alertas resalta proyectos vencidos, desviación respecto a la línea base, proyectos en ejecución sin avance y proyectos sin calendario definido." },
+      { "titulo": "Consejos", "texto": "Los datos se alimentan desde Proyectos, Actividades, Asignación de horas y Partes de horas. Si un gráfico se ve vacío, verifica que existan proyectos y horas registradas." }
+    ]
+  },
+
+  "GPI/proyectos": {
+    "sistema": "GPI",
+    "pagina": "proyectos",
+    "titulo": "Proyectos Internos",
+    "secciones": [
+      { "titulo": "¿Qué es este módulo?", "texto": "Es la cartera de proyectos internos de SIGESP (independiente de la Gestión de Horas a clientes). Cada proyecto agrupa un equipo (consultores/desarrolladores), actividades (WBS), asignaciones de horas, un calendario y su línea base." },
+      { "titulo": "Paso a paso",
+        "pasos": [
+          "Entrar a Proyectos Internos → Proyectos.",
+          "Pulsar «+ Nuevo proyecto».",
+          "Indicar el Código y el Nombre (obligatorios).",
+          "Opcional: gerente, estado, prioridad, fechas plan y horas estimadas.",
+          "Guardar. El proyecto aparece en la lista.",
+          "Hacer clic en una fila para abrir el detalle del proyecto."
+        ] },
+      { "titulo": "Campos del proyecto",
+        "lista": [
+          "Código: identificador único (ej. GPI-2026-01). Obligatorio.",
+          "Nombre: descripción del proyecto. Obligatorio.",
+          "Gerente: recurso responsable del proyecto.",
+          "Estado: planificado, en ejecución, en pausa, cerrado o cancelado.",
+          "Prioridad: 1 (alta) a 5 (baja).",
+          "Fecha inicio/fin plan: fechas planificadas.",
+          "Horas estimadas: total previsto del proyecto."
+        ] },
+      { "titulo": "Consejos", "texto": "Crea primero el proyecto y su calendario; luego agrega el equipo y las actividades. Usa códigos y nombres descriptivos para facilitar los reportes." }
+    ]
+  },
+
+  "GPI/actividades": {
+    "sistema": "GPI",
+    "pagina": "actividades",
+    "titulo": "Actividades del Proyecto",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Lista de actividades (tareas) del proyecto, organizadas por WBS. Cada actividad tiene tipo (tarea, resumen o hito), responsable, fechas plan/real, horas estimadas/reales y estado." },
+      { "titulo": "Cómo usarlo", "texto": "Dentro del detalle del proyecto, pestaña «Actividades». Pulsa «+ Nueva actividad», indica el nombre (obligatorio), tipo, responsable, fechas y horas estimadas. El estado se cambia directamente en la lista." },
+      { "titulo": "Tipos de actividad",
+        "lista": [
+          "Tarea: actividad normal con duración.",
+          "Resumen: agrupa otras actividades (no consume horas).",
+          "Hito: evento sin duración (se muestra como rombo en el Gantt)."
+        ] },
+      { "titulo": "Consejos", "texto": "Para que el Gantt y la programación funcionen, asigna fecha de inicio y fin a las actividades. Las horas estimadas determinan la duración cuando usas «Programar fechas»." }
+    ]
+  },
+
+  "GPI/asignaciones": {
+    "sistema": "GPI",
+    "pagina": "asignaciones",
+    "titulo": "Asignación de Horas",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Asigna los recursos del equipo a cada actividad e indica las horas estimadas. Además, permite distribuir esas horas por fecha (cuota diaria)." },
+      { "titulo": "Cómo usarlo", "texto": "En el detalle del proyecto, pestaña «Asignación de horas». Elige la actividad y el recurso (miembro del equipo) e indica las horas. Luego, con «Horas por fecha», distribuye las horas día a día." },
+      { "titulo": "Reglas",
+        "lista": [
+          "El recurso debe ser primero miembro del proyecto (pestaña Equipo).",
+          "La suma de las horas por fecha se convierte en las horas estimadas de la asignación.",
+          "Las horas de la actividad se recalculan como la suma de sus asignaciones.",
+          "«Distribuidas» debe cuadrar con «Horas estimadas» (verde = cuadra, ámbar = pendiente)."
+        ] },
+      { "titulo": "Consejos", "texto": "Distribuye las horas por fecha para que la vista «Carga por recurso» y la nivelación funcionen correctamente." }
+    ]
+  },
+
+  "GPI/gantt": {
+    "sistema": "GPI",
+    "pagina": "gantt",
+    "titulo": "Gantt del Proyecto",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Vista tipo MS Project: barras por actividad según sus fechas plan, con el avance, los hitos y la línea base." },
+      { "titulo": "Cómo leerlo",
+        "lista": [
+          "Barra de color: actividad (color según estado). El relleno oscuro indica el % de avance.",
+          "Rombo: hito.",
+          "Barra gris tenue detrás: línea base (plan original guardado).",
+          "Línea roja vertical: el día de hoy.",
+          "Sombreado: fines de semana."
+        ] },
+      { "titulo": "Consejos", "texto": "Usa «Guardar línea base» para fijar el plan y comparar después. Usa «Programar fechas» para recalcular las fechas según el calendario y las dependencias." }
+    ]
+  },
+
+  "GPI/carga": {
+    "sistema": "GPI",
+    "pagina": "carga",
+    "titulo": "Carga por Recurso",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Matriz de horas por recurso y por fecha, para detectar sobre-asignación comparando con la capacidad diaria." },
+      { "titulo": "Cómo usarlo", "texto": "En el detalle del proyecto, pestaña «Carga por recurso». Ajusta el rango de fechas y pulsa «Consultar». Las celdas en rojo indican que el recurso supera su capacidad diaria." },
+      { "titulo": "Reglas",
+        "lista": [
+          "Capacidad diaria = capacidad semanal del recurso ÷ 5.",
+          "Se muestran las horas estimadas distribuidas por fecha (asignaciones).",
+          "La fila «Total por día» suma las horas de todos los recursos."
+        ] },
+      { "titulo": "Consejos", "texto": "Si hay sobre-asignación, usa «Nivelar recursos» para redistribuir el exceso a los días siguientes con capacidad libre." }
+    ]
+  },
+
+  "GPI/partes_horas": {
+    "sistema": "GPI",
+    "pagina": "partes_horas",
+    "titulo": "Partes de Horas",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Registro de las horas reales trabajadas por recurso y por fecha sobre una asignación, con estado de aprobación." },
+      { "titulo": "Cómo usarlo", "texto": "En el detalle del proyecto, pestaña «Partes de horas». Elige la asignación (actividad · recurso), la fecha, las horas y una descripción. Pulsa «Registrar horas». El botón «Aprobar» cambia el estado del parte." },
+      { "titulo": "Estados",
+        "lista": [
+          "borrador: recién registrado.",
+          "aprobado: validado por el responsable."
+        ] },
+      { "titulo": "Consejos", "texto": "Los partes alimentan las horas reales del proyecto y del dashboard. Regístralos por fecha para mantener la trazabilidad." }
+    ]
+  },
+
+  "GPI/recursos": {
+    "sistema": "GPI",
+    "pagina": "recursos",
+    "titulo": "Recursos",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Catálogo de personas (consultores, desarrolladores, analistas, líderes, QA, soporte) que pueden integrar los proyectos internos." },
+      { "titulo": "Cómo usarlo", "texto": "Pulsa «+ Nuevo recurso» e indica nombre, tipo, cargo, correo, área, capacidad semanal (horas) y tarifa/hora. Desde la lista puedes eliminar (desactiva)." },
+      { "titulo": "Consejos", "texto": "La capacidad semanal define la capacidad diaria usada en la nivelación y en la vista de carga (capacidad ÷ 5). Mantén las tarifas al día si las usas para valorización." }
+    ]
+  },
+
+  "GPI/roles": {
+    "sistema": "GPI",
+    "pagina": "roles",
+    "titulo": "Roles de Proyecto",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Catálogo de roles del equipo (Líder, Consultor, Desarrollador, QA, etc.) que se asignan a los miembros del proyecto." },
+      { "titulo": "Cómo usarlo", "texto": "Pulsa «+ Nuevo rol», indica un código corto y el nombre. Los roles quedan disponibles al agregar miembros al proyecto." },
+      { "titulo": "Consejos", "texto": "Usa códigos cortos y consistentes para facilitar los reportes." }
+    ]
+  },
+
+  "GPI/calendario": {
+    "sistema": "GPI",
+    "pagina": "calendario",
+    "titulo": "Calendario y Feriados",
+    "secciones": [
+      { "titulo": "Descripción", "texto": "Define los días laborables y las horas por día del proyecto, además de los feriados (excepciones). Es la base para calcular fechas y capacidad." },
+      { "titulo": "Cómo usarlo", "texto": "En el detalle del proyecto, pestaña «Calendario». Pulsa «+ Nuevo calendario», marca los días laborables e indica las horas por día. Luego agrega excepciones (feriados o días laborables especiales)." },
+      { "titulo": "Reglas",
+        "lista": [
+          "Una excepción «No laborable» convierte ese día en feriado.",
+          "Una excepción «Laborable especial» habilita un día que normalmente no lo sería.",
+          "El calendario se usa en «Programar fechas» y en «Nivelar recursos»."
+        ] },
+      { "titulo": "Consejos", "texto": "Registra los feriados del año para que la programación y la nivelación salten esos días correctamente." }
     ]
   }
 }

@@ -233,6 +233,8 @@ export class CatalogosService {
       contacName: dto.contacName?.toUpperCase(),
       creation: dto.creation ? new Date(dto.creation) : new Date(),
       active: dto.active ?? 1,
+      mantenimiento: dto.mantenimiento ?? 0,
+      idMantisProyect: dto.idMantisProyect ?? 0,
     });
     return this.clienteRepo.save(cliente);
   }
@@ -246,6 +248,8 @@ export class CatalogosService {
     if (dto.contacTel !== undefined) cliente.contacTel = dto.contacTel;
     if (dto.contacName !== undefined) cliente.contacName = dto.contacName?.toUpperCase();
     if (dto.active !== undefined) cliente.active = dto.active;
+    if (dto.mantenimiento !== undefined) cliente.mantenimiento = dto.mantenimiento;
+    if (dto.idMantisProyect !== undefined) cliente.idMantisProyect = dto.idMantisProyect;
     return this.clienteRepo.save(cliente);
   }
 
@@ -260,13 +264,45 @@ export class CatalogosService {
   }
 
   /* ==================== USUARIOS SGH ==================== */
+  private publicUsuario(u: UsuarioSgh) {
+    return {
+      idUser: u.idUser,
+      idCategory: u.idCategory,
+      login: u.login,
+      nameUser: u.nameUser,
+      email: u.email,
+      creation: u.creation,
+      active: u.active,
+      rol: u.rol,
+      scrinCompanyId: u.scrinCompanyId ?? null,
+      scrinEmploymentId: u.scrinEmploymentId ?? null,
+      hasScrinToken: !!u.scrinToken,
+      tokenPreview: u.scrinToken ? `******${u.scrinToken.slice(-4)}` : null,
+    };
+  }
+
   async findAllUsuariosSgh(active?: number) {
     const where: Record<string, unknown> = {};
     if (active !== undefined) where.active = active;
-    return this.usuarioSghRepo.find({ where, order: { nameUser: 'ASC' } });
+    const rows = await this.usuarioSghRepo.find({ where, order: { nameUser: 'ASC' } });
+    return rows.map((u) => this.publicUsuario(u));
+  }
+
+  /**
+   * Rol e id del usuario SGH por login. Lo usan otros módulos (p. ej. el agente
+   * de IA) para aplicar el mismo control de acceso por rol que el resto del SGH.
+   */
+  async rolIdPorLogin(login?: string): Promise<{ idUser: number; rol?: string } | null> {
+    if (!login) return null;
+    const usuario = await this.usuarioSghRepo.findOne({ where: { login } });
+    return usuario ? { idUser: usuario.idUser, rol: usuario.rol } : null;
   }
 
   async findOneUsuarioSgh(id: number) {
+    return this.publicUsuario(await this.getUsuarioEntity(id));
+  }
+
+  private async getUsuarioEntity(id: number) {
     const usuario = await this.usuarioSghRepo.findOne({ where: { idUser: id } });
     if (!usuario) throw new NotFoundException(`Usuario SGH ${id} no encontrado`);
     return usuario;
@@ -283,23 +319,29 @@ export class CatalogosService {
       creation: dto.creation ? new Date(dto.creation) : new Date(),
       active: dto.active ?? 1,
       rol: dto.rol,
+      scrinCompanyId: dto.scrinCompanyId,
+      scrinEmploymentId: dto.scrinEmploymentId,
+      scrinToken: dto.scrinToken,
     });
-    return this.usuarioSghRepo.save(usuario);
+    return this.publicUsuario(await this.usuarioSghRepo.save(usuario));
   }
 
   async updateUsuarioSgh(id: number, dto: UpdateUsuarioSghDto) {
-    const usuario = await this.findOneUsuarioSgh(id);
+    const usuario = await this.getUsuarioEntity(id);
     if (dto.login !== undefined) usuario.login = dto.login;
     if (dto.nameUser !== undefined) usuario.nameUser = dto.nameUser.toUpperCase();
     if (dto.email !== undefined) usuario.email = dto.email;
     if (dto.idCategory !== undefined) usuario.idCategory = dto.idCategory;
     if (dto.active !== undefined) usuario.active = dto.active;
     if (dto.rol !== undefined) usuario.rol = dto.rol;
-    return this.usuarioSghRepo.save(usuario);
+    if (dto.scrinCompanyId !== undefined) usuario.scrinCompanyId = dto.scrinCompanyId;
+    if (dto.scrinEmploymentId !== undefined) usuario.scrinEmploymentId = dto.scrinEmploymentId;
+    if (dto.scrinToken) usuario.scrinToken = dto.scrinToken;
+    return this.publicUsuario(await this.usuarioSghRepo.save(usuario));
   }
 
   async removeUsuarioSgh(id: number) {
-    const usuario = await this.findOneUsuarioSgh(id);
+    const usuario = await this.getUsuarioEntity(id);
     const enUso = await this.actividadRepo.findOne({ where: { idUser: id } });
     if (enUso) {
       throw new ConflictException('No se puede eliminar: el usuario tiene actividades relacionadas');

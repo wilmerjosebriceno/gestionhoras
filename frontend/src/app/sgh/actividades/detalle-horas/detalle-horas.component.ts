@@ -60,6 +60,7 @@ export class DetalleHorasComponent implements OnChanges {
       hours: 0,
       note: '',
       mantis: '',
+      online: 0,
     });
   }
 

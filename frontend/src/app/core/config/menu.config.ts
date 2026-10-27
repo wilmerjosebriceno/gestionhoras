@@ -63,6 +63,9 @@ export const MENUS: ModuleMenu[] = [
           { label: 'Actividades / Horas', route: '/sgh/actividades' },
           { label: 'Estructura de Proyecto', route: '/sgh/estructura' },
           { label: 'Reportes', route: '/sgh/reportes' },
+          { label: 'Monitor de Horas', route: '/sgh/monitor-horas' },
+          { label: 'Monitor de Horas (Consulta)', route: '/sgh/monitor-horas-consulta' },
+          { label: 'Reportes Mantis', route: '/sgh/mantis-reportes' },
         ],
       },
       {
@@ -98,6 +101,41 @@ export const MENUS: ModuleMenu[] = [
           { label: 'Regiones', route: '/cot/catalogos/regiones' },
           { label: 'Plantillas', route: '/cot/catalogos/plantillas' },
           { label: 'Tasas de IVA', route: '/cot/catalogos/tasas-iva' },
+          { label: 'Rangos de Usuarios', route: '/cot/catalogos/rangos' },
+          { label: 'Tarifas', route: '/cot/catalogos/tarifas' },
+        ],
+      },
+    ],
+  },
+  {
+    sistema: 'SOP',
+    titulo: 'Soporte',
+    grupos: [
+      {
+        label: 'Procesos',
+        items: [
+          { label: 'Incidencias / Tickets', route: '/soporte/tickets' },
+          { label: 'Dashboard Mantis', route: '/soporte/mantis' },
+        ],
+      },
+    ],
+  },
+  {
+    sistema: 'GPI',
+    titulo: 'Proyectos Internos',
+    grupos: [
+      {
+        label: 'Procesos',
+        items: [
+          { label: 'Dashboard', route: '/gpi/dashboard' },
+          { label: 'Proyectos', route: '/gpi/proyectos' },
+        ],
+      },
+      {
+        label: 'Catálogos',
+        items: [
+          { label: 'Recursos', route: '/gpi/recursos' },
+          { label: 'Roles', route: '/gpi/roles' },
         ],
       },
     ],
